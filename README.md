@@ -1,3 +1,3 @@
 # RapidityJson
 
-Reference  to a simple json component implemented by newtonsoft.json
+A simple JSON serialization component, in continuous improvement, refer to newtonsoft.json
