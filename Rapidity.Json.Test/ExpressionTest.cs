@@ -31,7 +31,7 @@ namespace Rapidity.Json.Tests
                 if (property.PropertyType == typeof(int))
                     constant = Expression.Constant(10, typeof(int));
                 if (property.PropertyType == typeof(string))
-                    constant = Expression.Constant("awejflawkeuoi", typeof(string));
+                    constant = Expression.Constant("fawefagg ", typeof(string));
                 MemberAssignment bindingId = Expression.Bind(property, constant);
                 bindList.Add(bindingId);
             }
