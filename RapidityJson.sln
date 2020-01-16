@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29509.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rapidity.Json", "Rapidity.Json\Rapidity.Json.csproj", "{C1E6A0C1-55E5-43B7-9D1D-465B3FEDF52B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rapidity.Json.Test", "Rapidity.Json.Test\Rapidity.Json.Test.csproj", "{098A2074-BD97-447A-9B77-C091856197D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C1E6A0C1-55E5-43B7-9D1D-465B3FEDF52B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1E6A0C1-55E5-43B7-9D1D-465B3FEDF52B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1E6A0C1-55E5-43B7-9D1D-465B3FEDF52B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1E6A0C1-55E5-43B7-9D1D-465B3FEDF52B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{098A2074-BD97-447A-9B77-C091856197D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{098A2074-BD97-447A-9B77-C091856197D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{098A2074-BD97-447A-9B77-C091856197D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{098A2074-BD97-447A-9B77-C091856197D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4744C4ED-9392-471B-8CDE-431391B4B87F}
+	EndGlobalSection
+EndGlobal
