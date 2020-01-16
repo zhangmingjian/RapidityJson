@@ -132,6 +132,7 @@ namespace Rapidity.Json
             _inObject = true;
             _tokens.Push(TokenType);
             Depth++;
+            if (Depth > _option.MaxDepth) throw new JsonException($"当前深度超出最大限制：{_option.MaxDepth}", _line, _position);
             return true;
         }
         /// <summary>
@@ -157,6 +158,7 @@ namespace Rapidity.Json
             _inObject = false;
             _tokens.Push(TokenType);
             Depth++;
+            if (Depth > _option.MaxDepth) throw new JsonException($"当前深度超出最大限制：{_option.MaxDepth}", _line, _position);
             return true;
         }
         /// <summary>
@@ -334,7 +336,7 @@ namespace Rapidity.Json
                 if (ReadNext() != target[i])
                     throw new JsonException($"非法字符[{_currentChar}]", _line, _position);
             }
-            _state = ReadState.Value; 
+            _state = ReadState.Value;
             SetToken(targetToken);
             if (_inObject == true) PopToken(JsonTokenType.PropertyName);
             return true;
@@ -419,6 +421,8 @@ namespace Rapidity.Json
         #endregion
 
         #region Get Value
+
+        public string GetString() => TokenType == JsonTokenType.Null ? null : Value;
 
         public int GetInt() => int.Parse(Value, CultureInfo.InvariantCulture);
 
