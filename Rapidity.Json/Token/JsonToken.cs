@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace Rapidity.Json
 {
@@ -34,7 +35,7 @@ namespace Rapidity.Json
 
         public string ToString(JsonWriteOption option)
         {
-            using (var sw = new StringWriter(CultureInfo.InvariantCulture))
+            using (var sw = new StringWriter(new StringBuilder(1024), CultureInfo.InvariantCulture))
             using (var write = new JsonWriter(sw, option))
             {
                 write.WriteToken(this);

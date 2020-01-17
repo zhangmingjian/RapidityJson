@@ -152,9 +152,9 @@ namespace Rapidity.Json
         {
             var option = new JsonWriteOption
             {
-                SkipValidated = true,
-                //IndenteLength = 4,
-                UseSingleQuote = true
+                //SkipValidated = true,
+                IndenteLength = 4,
+                //UseSingleQuote = true
             };
             using (var sw = new StringWriter())
             using (var write = new JsonWriter(sw, option))
@@ -205,7 +205,7 @@ namespace Rapidity.Json
         {
             var option = new JsonWriteOption
             {
-                SkipValidated = true,
+                //SkipValidated = true,
                 IndenteLength = 4,
                 DateTimeFormat = "yyyyMMddHHmmss"
             };

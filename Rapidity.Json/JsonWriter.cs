@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
 
 namespace Rapidity.Json
 {
@@ -151,15 +148,16 @@ namespace Rapidity.Json
 
         public void WriteString(string value)
         {
+            if (value == null)
+            {
+                WriteNull();
+                return;
+            }
             _tokenValidator.Validate(JsonTokenType.String);
             WriteComma();
-            if (value == null) WriteNull();
-            else
-            {
-                _writer.Write(_quoteSymbol);
-                WriteEscapeString(value);
-                _writer.Write(_quoteSymbol);
-            }
+            _writer.Write(_quoteSymbol);
+            WriteEscapeString(value);
+            _writer.Write(_quoteSymbol);
             CurrentToken = _tokenValidator.CurrentToken;
         }
 
@@ -382,16 +380,13 @@ namespace Rapidity.Json
         /// </summary>
         private class DefaultTokenValidator : TokenValidator
         {
-
-            private enum InDocument : byte { None, Object, Array }
-
             private Stack<JsonTokenType> _tokens;
-            private InDocument _inDocument;
+            private InContainer _inContainer;
 
             public DefaultTokenValidator()
             {
                 _tokens = new Stack<JsonTokenType>();
-                _inDocument = InDocument.None;
+                _inContainer = InContainer.None;
             }
 
             /// <summary>
@@ -403,9 +398,9 @@ namespace Rapidity.Json
                 {
                     var token = _tokens.Peek();
                     if (token == JsonTokenType.StartArray)
-                        throw new JsonException("Invalid JSON format, missing symbol ']'");
+                        throw new JsonException("无效的JSON格式, 缺失符号：] ");
                     else
-                        throw new JsonException("Invalid JSON format, missing symbol '}'");
+                        throw new JsonException("无效的JSON格式, 缺失符号：} ");
                 }
             }
 
@@ -439,11 +434,11 @@ namespace Rapidity.Json
                 switch (next)
                 {
                     case JsonTokenType.StartObject:
-                        _inDocument = InDocument.Object;
+                        _inContainer = InContainer.Object;
                         _tokens.Push(next);
                         break;
                     case JsonTokenType.StartArray:
-                        _inDocument = InDocument.Array;
+                        _inContainer = InContainer.Array;
                         _tokens.Push(next);
                         break;
                     case JsonTokenType.PropertyName:
@@ -463,7 +458,7 @@ namespace Rapidity.Json
                         _tokens.Push(next);
                         break;
                     case JsonTokenType.EndObject:
-                        PopToken(JsonTokenType.StartObject, next);
+                        PopToken(next, JsonTokenType.StartObject);
                         break;
                     default:
                         ThrowException(next);
@@ -477,18 +472,18 @@ namespace Rapidity.Json
                 {
                     case JsonTokenType.StartObject:
                         _tokens.Push(next);
-                        _inDocument = InDocument.Object;
+                        _inContainer = InContainer.Object;
                         break;
                     case JsonTokenType.StartArray:
                         _tokens.Push(next);
-                        _inDocument = InDocument.Array;
+                        _inContainer = InContainer.Array;
                         break;
                     case JsonTokenType.String:
                     case JsonTokenType.Null:
                     case JsonTokenType.True:
                     case JsonTokenType.False:
                     case JsonTokenType.Number:
-                        PopToken(JsonTokenType.PropertyName, next);
+                        PopToken(next, JsonTokenType.PropertyName);
                         break;
                     default:
                         ThrowException(next);
@@ -502,14 +497,14 @@ namespace Rapidity.Json
                 {
                     case JsonTokenType.StartObject:
                         _tokens.Push(next);
-                        _inDocument = InDocument.Object;
+                        _inContainer = InContainer.Object;
                         break;
                     case JsonTokenType.StartArray:
                         _tokens.Push(next);
-                        _inDocument = InDocument.Array;
+                        _inContainer = InContainer.Array;
                         break;
                     case JsonTokenType.EndArray:
-                        PopToken(JsonTokenType.StartArray, next);
+                        PopToken(next, JsonTokenType.StartArray);
                         break;
                     case JsonTokenType.String:
                     case JsonTokenType.Null:
@@ -528,7 +523,7 @@ namespace Rapidity.Json
                 switch (next)
                 {
                     case JsonTokenType.PropertyName:
-                        if (_inDocument == InDocument.Object)
+                        if (_inContainer == InContainer.Object)
                         {
                             _tokens.Push(next);
                             break;
@@ -537,7 +532,7 @@ namespace Rapidity.Json
                         break;
                     case JsonTokenType.StartObject:
                     case JsonTokenType.StartArray:
-                        if (_inDocument == InDocument.Array)
+                        if (_inContainer == InContainer.Array)
                         {
                             _tokens.Push(next);
                             break;
@@ -545,17 +540,17 @@ namespace Rapidity.Json
                         ThrowException(next);
                         break;
                     case JsonTokenType.EndObject:
-                        if (_inDocument == InDocument.Object)
+                        if (_inContainer == InContainer.Object)
                         {
-                            PopToken(JsonTokenType.StartObject, next);
+                            PopToken(next, JsonTokenType.StartObject);
                             break;
                         }
                         ThrowException(next);
                         break;
                     case JsonTokenType.EndArray:
-                        if (_inDocument == InDocument.Array)
+                        if (_inContainer == InContainer.Array)
                         {
-                            PopToken(JsonTokenType.StartArray, next);
+                            PopToken(next, JsonTokenType.StartArray);
                             break;
                         }
                         ThrowException(next);
@@ -565,7 +560,7 @@ namespace Rapidity.Json
                     case JsonTokenType.True:
                     case JsonTokenType.False:
                     case JsonTokenType.Null:
-                        if (_inDocument == InDocument.Array) break;
+                        if (_inContainer == InContainer.Array) break;
                         ThrowException(next);
                         break;
                     case JsonTokenType.Comment: break;
@@ -575,46 +570,43 @@ namespace Rapidity.Json
                 }
             }
 
-            private void PopToken(JsonTokenType previous, JsonTokenType next)
+            private void PopToken(JsonTokenType next, JsonTokenType topToken)
             {
-                if (_tokens.Count > 0 && _tokens.Peek() == previous)
+                if (_tokens.Count > 0)
                 {
-                    var peek = _tokens.Peek();
-                    if (peek == previous)
+                    var top = _tokens.Pop(); //栈顶值必须与toptoken一致
+                    if (top == topToken)
                     {
-                        _tokens.Pop();
-                        if (_tokens.Count > 0 && _tokens.Peek() == JsonTokenType.PropertyName)
+                        if (_tokens.TryPeek(out JsonTokenType token) && token == JsonTokenType.PropertyName) //上一个是propertyName时继续出栈
                             _tokens.Pop();
-                        if (_tokens.Count > 0)
-                            _inDocument = _tokens.Peek() == JsonTokenType.StartObject ? InDocument.Object : InDocument.Array;
-                        else
-                            _inDocument = InDocument.None;
+                        if (_tokens.Count > 0) _inContainer = _tokens.Peek() == JsonTokenType.StartArray ? InContainer.Array : InContainer.Object;
+                        else _inContainer = InContainer.None;
                         return;
                     }
-                    ThrowException(next, peek);
+                    ThrowException(next, top);
                 }
                 ThrowException(next);
             }
 
             private void ThrowException(JsonTokenType next, JsonTokenType? current = null)
             {
-                throw new JsonException($"Invalid JsonToken:{next}, after JsonToken:{current ?? CurrentToken}");
+                throw new JsonException($"无效的JSON Token:{next}, 不能出现在:{current ?? CurrentToken}之后");
             }
         }
     }
 
-    internal class Utf8StringWriter : StringWriter
-    {
-        private Encoding _encoding;
-        public override Encoding Encoding => _encoding;
+    //internal class Utf8StringWriter : StringWriter
+    //{
+    //    private Encoding _encoding;
+    //    public override Encoding Encoding => _encoding;
 
-        public Utf8StringWriter(Encoding encoding = null) : this(new StringBuilder(1024), CultureInfo.CurrentCulture, encoding)
-        {
-        }
+    //    public Utf8StringWriter(Encoding encoding = null) : this(new StringBuilder(1024), CultureInfo.CurrentCulture, encoding)
+    //    {
+    //    }
 
-        public Utf8StringWriter(StringBuilder sb, IFormatProvider provider, Encoding encoding = null) : base(sb, provider)
-        {
-            _encoding = encoding ?? Encoding.UTF8;
-        }
-    }
+    //    public Utf8StringWriter(StringBuilder sb, IFormatProvider provider, Encoding encoding = null) : base(sb, provider)
+    //    {
+    //        _encoding = encoding ?? Encoding.UTF8;
+    //    }
+    //}
 }

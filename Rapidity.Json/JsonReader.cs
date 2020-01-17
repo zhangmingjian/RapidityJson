@@ -14,10 +14,10 @@ namespace Rapidity.Json
         private int _line;          //行号
         private int _position;      //列号
         private ReadState _state;   //
-        private bool? _inObject;
+        private InContainer _inContainer;
         private Stack<JsonTokenType> _tokens;
         private char _quoteSymbol;
-        private char _currentChar = default;
+        private char _currentChar;
         private StringBuilder _buffer;
         private JsonOption _option;
         /// <summary>
@@ -54,6 +54,7 @@ namespace Rapidity.Json
             _tokens = new Stack<JsonTokenType>();
             _option = option ?? JsonOption.Defalut;
             _buffer = new StringBuilder(1024);
+            _inContainer = InContainer.None;
         }
 
         /// <summary>
@@ -129,8 +130,8 @@ namespace Rapidity.Json
         {
             _state = ReadState.StartObject;
             SetToken(JsonTokenType.StartObject);
-            _inObject = true;
             _tokens.Push(TokenType);
+            _inContainer = InContainer.Object;
             Depth++;
             if (Depth > _option.MaxDepth) throw new JsonException($"当前深度超出最大限制：{_option.MaxDepth}", _line, _position);
             return true;
@@ -155,8 +156,8 @@ namespace Rapidity.Json
         {
             _state = ReadState.StartArray;
             SetToken(JsonTokenType.StartArray);
-            _inObject = false;
             _tokens.Push(TokenType);
+            _inContainer = InContainer.Array;
             Depth++;
             if (Depth > _option.MaxDepth) throw new JsonException($"当前深度超出最大限制：{_option.MaxDepth}", _line, _position);
             return true;
@@ -213,7 +214,7 @@ namespace Rapidity.Json
                     _quoteSymbol = _currentChar;
                     SetToken(JsonTokenType.String, ReadStringToBuffer());
                     _state = ReadState.Value;
-                    if (_inObject == true) PopToken(JsonTokenType.PropertyName);
+                    if (_inContainer == InContainer.Object) PopToken(JsonTokenType.PropertyName);
                     return true;
                 case JsonConstants.OpenBrace: return StartObject();
                 case JsonConstants.OpenBracket: return StartArray();
@@ -253,7 +254,8 @@ namespace Rapidity.Json
                 case JsonConstants.End: return ValidateEndToken();
                 case JsonConstants.Comma:
                     _state = ReadState.Comma;
-                    if (_inObject.HasValue) return _inObject.Value ? ReadProperty() : ReadToken();
+                    if (_inContainer == InContainer.Object) return ReadProperty();
+                    if (_inContainer == InContainer.Array) return ReadToken();
                     throw new JsonException($"非法字符{_currentChar}", _line, _position);
                 case JsonConstants.CloseBrace: return EndObject();
                 case JsonConstants.CloseBracket: return EndArray();
@@ -338,7 +340,7 @@ namespace Rapidity.Json
             }
             _state = ReadState.Value;
             SetToken(targetToken);
-            if (_inObject == true) PopToken(JsonTokenType.PropertyName);
+            if (_inContainer == InContainer.Object) PopToken(JsonTokenType.PropertyName);
             return true;
         }
         /// <summary>
@@ -387,7 +389,7 @@ namespace Rapidity.Json
             _buffer.Length = 0;
             _state = ReadState.Value;
             SetToken(JsonTokenType.Number, number);
-            if (_inObject == true) PopToken(JsonTokenType.PropertyName);
+            if (_inContainer == InContainer.Object) PopToken(JsonTokenType.PropertyName);
             return true;
         }
 
@@ -413,7 +415,9 @@ namespace Rapidity.Json
                 //出栈后栈顶是PropertyName时需要继续出栈
                 if (_tokens.TryPeek(out JsonTokenType propertyToken) && propertyToken == JsonTokenType.PropertyName)
                     _tokens.Pop();
-                _inObject = _tokens.Count > 0 ? _tokens.Peek() != JsonTokenType.StartArray : default;
+                if (_tokens.Count > 0)
+                    _inContainer = _tokens.Peek() == JsonTokenType.StartArray ? InContainer.Array : InContainer.Object;
+                else _inContainer = InContainer.None;
                 return;
             }
             throw new JsonException($"无效字符{_currentChar}", _line, _position);
@@ -455,11 +459,10 @@ namespace Rapidity.Json
         }
 
         /// <summary>
-        /// 
+        /// json read state
         /// </summary>
-        enum ReadState
-        {
-            Start, StartObject, EndObject, StartArray, EndArray, Property, Value, Comma, Comment, End
-        }
+        enum ReadState : byte { Start, StartObject, EndObject, StartArray, EndArray, Property, Value, Comma, Comment, End }
     }
+
+    internal enum InContainer : byte { None, Object, Array }
 }
