@@ -11,27 +11,46 @@ namespace Rapidity.Json
     public class JsonReader : IDisposable
     {
         private TextReader _reader;
-        private int _line;          //行号
-        private int _position;      //列号
-        private ReadState _state;   //
-        private InContainer _inContainer;
-        private Stack<JsonTokenType> _tokens;
-        private char _quoteSymbol;
-        private char _currentChar;
         private StringBuilder _buffer;
         private JsonOption _option;
+        private int _line;          //行号
+        private int _position;      //列号
+        private ReadState _state;   //读取状态
+        private InContainer _inContainer;   //所在容器
+        private Stack<JsonTokenType> _tokens;
+        private char _quoteSymbol;  //引号类型
+        private char _currentChar;  //当前字符
+        private int _depth;         //当前深度
+        private JsonTokenType _tokenType; //当前jsontoken
+        private string _value; //当前token值
+
+        #region public properties
+        /// <summary>
+        /// 行号
+        /// </summary>
+        public int Line => _line;
+        /// <summary>
+        /// 列号
+        /// </summary>
+        public int Position => _position;
+        /// <summary>
+        /// 当前字符
+        /// </summary>
+        public char CurrentChar => _currentChar;
         /// <summary>
         /// 当前深度
         /// </summary>
-        public int Depth { get; private set; }
+        public int Depth => _depth;
         /// <summary>
-        /// 当前tokentype
+        /// 当前jsontoken
         /// </summary>
-        public JsonTokenType TokenType { get; private set; }
+        public JsonTokenType TokenType => _tokenType;
         /// <summary>
         /// 当前Value
         /// </summary>
-        public string Value { get; private set; }
+        public string Value => _value;
+        #endregion
+
         /// <summary>
         /// 
         /// </summary>
@@ -132,8 +151,8 @@ namespace Rapidity.Json
             SetToken(JsonTokenType.StartObject);
             _tokens.Push(TokenType);
             _inContainer = InContainer.Object;
-            Depth++;
-            if (Depth > _option.MaxDepth) throw new JsonException($"当前深度超出最大限制：{_option.MaxDepth}", _line, _position);
+            _depth++;
+            if (_depth > _option.MaxDepth) throw new JsonException($"当前深度超出最大限制：{_option.MaxDepth}", _line, _position);
             return true;
         }
         /// <summary>
@@ -145,7 +164,7 @@ namespace Rapidity.Json
             _state = ReadState.EndObject;
             SetToken(JsonTokenType.EndObject);
             PopToken(JsonTokenType.StartObject);
-            Depth--;
+            _depth--;
             return true;
         }
         /// <summary>
@@ -158,8 +177,8 @@ namespace Rapidity.Json
             SetToken(JsonTokenType.StartArray);
             _tokens.Push(TokenType);
             _inContainer = InContainer.Array;
-            Depth++;
-            if (Depth > _option.MaxDepth) throw new JsonException($"当前深度超出最大限制：{_option.MaxDepth}", _line, _position);
+            _depth++;
+            if (_depth > _option.MaxDepth) throw new JsonException($"当前深度超出最大限制：{_option.MaxDepth}", _line, _position);
             return true;
         }
         /// <summary>
@@ -171,7 +190,7 @@ namespace Rapidity.Json
             _state = ReadState.EndArray;
             SetToken(JsonTokenType.EndArray);
             PopToken(JsonTokenType.StartArray);
-            Depth--;
+            _depth--;
             return true;
         }
         /// <summary>
@@ -399,8 +418,8 @@ namespace Rapidity.Json
 
         private void SetToken(JsonTokenType token, string value = "")
         {
-            TokenType = token;
-            Value = value;
+            _tokenType = token;
+            _value = value;
         }
 
         /// <summary>

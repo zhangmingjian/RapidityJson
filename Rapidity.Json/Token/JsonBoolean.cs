@@ -6,21 +6,16 @@ namespace Rapidity.Json
 {
     public class JsonBoolean : JsonToken, IEquatable<JsonBoolean>
     {
-        public bool Value { get; private set; }
+        private bool _value;
+        public bool Value => _value;
 
         public override JsonValueType ValueType => JsonValueType.Boolean;
 
         public JsonBoolean() { }
 
-        public JsonBoolean(bool value)
-        {
-            this.Value = value;
-        }
+        public JsonBoolean(bool value) => _value = value;
 
-        public JsonBoolean(string value)
-        {
-            this.Value = bool.Parse(value);
-        }
+        public JsonBoolean(string value) => _value = bool.Parse(value);
 
         public bool Equals(JsonBoolean other)
         {

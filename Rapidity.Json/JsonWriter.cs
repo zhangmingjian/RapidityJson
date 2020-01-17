@@ -13,9 +13,11 @@ namespace Rapidity.Json
         private JsonWriteOption _option;
         private TokenValidator _tokenValidator;
         private int _depth;
-        private string _indeteFilled;
-        private char _quoteSymbol;
-        public JsonTokenType CurrentToken { get; private set; }
+        private string _indeteChars; //缩进字符
+        private char _quoteSymbol;   //引号字符
+        private JsonTokenType _tokenType;
+        public JsonTokenType TokenType => _tokenType;
+        public int Depth => _depth;
 
         public JsonWriter(TextWriter writer) : this(writer, default)
         {
@@ -29,11 +31,11 @@ namespace Rapidity.Json
             _quoteSymbol = _option.UseSingleQuote ? JsonConstants.SingleQuote : JsonConstants.Quote;
             if (_option.Indented || _option.IndenteLength > 0)
             {
-                if (_option.IndenteLength <= 0) _indeteFilled = JsonConstants.Tab.ToString();
+                if (_option.IndenteLength <= 0) _indeteChars = JsonConstants.Tab.ToString();
                 else
                 {
                     for (int i = 0; i < _option.IndenteLength; i++)
-                        _indeteFilled = string.Concat(_indeteFilled, JsonConstants.Space);
+                        _indeteChars = string.Concat(_indeteChars, JsonConstants.Space);
                 }
             }
         }
@@ -100,7 +102,7 @@ namespace Rapidity.Json
             _writer.Write(JsonConstants.OpenBrace);
             _depth++;
             WriteIndented();
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteEndObject()
@@ -109,7 +111,7 @@ namespace Rapidity.Json
             _depth--;
             WriteIndented();
             _writer.Write(JsonConstants.CloseBrace);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteStartArray()
@@ -119,7 +121,7 @@ namespace Rapidity.Json
             _writer.Write(JsonConstants.OpenBracket);
             _depth++;
             WriteIndented();
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteEndArray()
@@ -128,7 +130,7 @@ namespace Rapidity.Json
             _depth--;
             WriteIndented();
             _writer.Write(JsonConstants.CloseBracket);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         /// <summary>
@@ -143,7 +145,7 @@ namespace Rapidity.Json
             WriteEscapeString(name);
             _writer.Write(_quoteSymbol);
             _writer.Write(JsonConstants.Colon);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteString(string value)
@@ -158,7 +160,7 @@ namespace Rapidity.Json
             _writer.Write(_quoteSymbol);
             WriteEscapeString(value);
             _writer.Write(_quoteSymbol);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         private void WriteEscapeString(string value)
@@ -188,7 +190,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.String);
             WriteComma();
             _writer.Write(_quoteSymbol + value.ToString(_option.DateTimeFormat, CultureInfo.CurrentCulture) + _quoteSymbol);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteGuid(Guid value)
@@ -196,7 +198,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.String);
             WriteComma();
             _writer.Write(_quoteSymbol + value.ToString() + _quoteSymbol);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteChar(char value)
@@ -204,7 +206,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.String);
             WriteComma();
             _writer.Write(_quoteSymbol + value + _quoteSymbol);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteInt(int value)
@@ -212,7 +214,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteUInt(uint value)
@@ -220,7 +222,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteLong(long value)
@@ -228,7 +230,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteULong(ulong value)
@@ -236,7 +238,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteFloat(float value)
@@ -244,7 +246,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteDouble(double value)
@@ -252,7 +254,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteDecimal(decimal value)
@@ -260,7 +262,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         private void WriteNumber(string number)
@@ -268,7 +270,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.Number);
             WriteComma();
             _writer.Write(number);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteBoolean(bool value)
@@ -276,7 +278,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(value ? JsonTokenType.True : JsonTokenType.False);
             WriteComma();
             _writer.Write(value ? JsonConstants.TrueString : JsonConstants.FalseString);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteNull()
@@ -284,7 +286,7 @@ namespace Rapidity.Json
             _tokenValidator.Validate(JsonTokenType.Null);
             WriteComma();
             _writer.Write(JsonConstants.NullString);
-            CurrentToken = _tokenValidator.CurrentToken;
+            _tokenType = _tokenValidator.TokenType;
         }
 
         public void WriteRaw(string raw)
@@ -315,7 +317,7 @@ namespace Rapidity.Json
         /// </summary>
         private void WriteComma()
         {
-            switch (CurrentToken)
+            switch (_tokenType)
             {
                 case JsonTokenType.EndObject:
                 case JsonTokenType.EndArray:
@@ -335,11 +337,11 @@ namespace Rapidity.Json
         /// </summary>
         private void WriteIndented()
         {
-            if ((_indeteFilled ?? string.Empty).Length > 0)
+            if ((_indeteChars ?? string.Empty).Length > 0)
             {
                 _writer.WriteLine();
                 for (var i = 0; i < _depth; i++)
-                    _writer.Write(_indeteFilled);
+                    _writer.Write(_indeteChars);
             }
         }
 
@@ -364,11 +366,11 @@ namespace Rapidity.Json
         /// </summary>
         public static TokenValidator Default => new DefaultTokenValidator();
 
-        public JsonTokenType CurrentToken { get; private set; } = JsonTokenType.None;
+        public JsonTokenType TokenType = JsonTokenType.None;
 
         public virtual void Validate(JsonTokenType next)
         {
-            CurrentToken = next;
+            TokenType = next;
         }
 
         public virtual void Validate()
@@ -410,7 +412,7 @@ namespace Rapidity.Json
             /// <param name="next"></param>
             public override void Validate(JsonTokenType next)
             {
-                switch (CurrentToken)
+                switch (TokenType)
                 {
                     case JsonTokenType.None: ValidateStart(next); break;
                     case JsonTokenType.StartObject: ValidateStartObject(next); break;
@@ -426,7 +428,7 @@ namespace Rapidity.Json
 
                     case JsonTokenType.Comment: break;
                 }
-                CurrentToken = next;
+                TokenType = next;
             }
 
             private void ValidateStart(JsonTokenType next)
@@ -590,7 +592,7 @@ namespace Rapidity.Json
 
             private void ThrowException(JsonTokenType next, JsonTokenType? current = null)
             {
-                throw new JsonException($"无效的JSON Token:{next}, 不能出现在:{current ?? CurrentToken}之后");
+                throw new JsonException($"无效的JSON Token:{next}, 不能出现在:{current ?? TokenType}之后");
             }
         }
     }

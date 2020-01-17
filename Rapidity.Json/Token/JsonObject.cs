@@ -116,15 +116,16 @@ namespace Rapidity.Json
     /// </summary>
     public struct JsonProperty
     {
-        public string Name { get; private set; }
+        private string _name;
+        private JsonToken _value;
 
-        public JsonToken Value { get; private set; }
-
+        public string Name => _name;
+        public JsonToken Value => _value;
         public JsonProperty(string name, JsonToken value)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
-            Name = name;
-            Value = value ?? new JsonNull();
+            _name = name;
+            _value = value ?? new JsonNull();
         }
     }
 }

@@ -16,22 +16,21 @@ namespace Rapidity.Json
         {
             using (var reader = new JsonReader(json))
             {
-                JsonToken token = null;
                 while (reader.Read())
                 {
                     switch (reader.TokenType)
                     {
-                        case JsonTokenType.StartObject: token = ReadObject(reader); break;
-                        case JsonTokenType.StartArray: token = ReadArray(reader); break;
-                        case JsonTokenType.String: token = new JsonString(reader.Value); break;
-                        case JsonTokenType.Number: token = new JsonNumber(reader.Value); break;
-                        case JsonTokenType.True: token = new JsonBoolean(true); break;
-                        case JsonTokenType.False: token = new JsonBoolean(false); break;
-                        case JsonTokenType.Null: token = new JsonNull(); break;
-                        default: throw new JsonException($"无效的token:{reader.TokenType}");
+                        case JsonTokenType.StartObject: return ReadObject(reader);
+                        case JsonTokenType.StartArray: return ReadArray(reader);
+                        case JsonTokenType.String: return new JsonString(reader.Value);
+                        case JsonTokenType.Number: return new JsonNumber(reader.Value);
+                        case JsonTokenType.True: return new JsonBoolean(true);
+                        case JsonTokenType.False: return new JsonBoolean(false);
+                        case JsonTokenType.Null: return new JsonNull();
+                        default: break;
                     }
                 }
-                return token;
+                throw new JsonException($"非法JSON Token:{reader.TokenType}", reader.Line, reader.Position);
             }
         }
 
@@ -45,7 +44,7 @@ namespace Rapidity.Json
             {
                 reader.Read();
                 if (reader.TokenType != JsonTokenType.StartObject)
-                    throw new JsonException($"无效的JsonObject token,实际为{reader.TokenType}");
+                    throw new JsonException($"不正确的JSON Object格式，缺失符号{{，实际为{reader.CurrentChar}", reader.Line, reader.Position);
                 return ReadObject(reader);
             }
         }
@@ -60,7 +59,7 @@ namespace Rapidity.Json
             {
                 reader.Read();
                 if (reader.TokenType != JsonTokenType.StartArray)
-                    throw new JsonException($"无效的JsonArray token,实际为{reader.TokenType}");
+                    throw new JsonException($"不正确的JSON Array格式，缺失符号[,实际为{reader.CurrentChar}", reader.Line, reader.Position);
                 return ReadArray(reader);
             }
         }

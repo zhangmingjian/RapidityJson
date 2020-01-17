@@ -21,6 +21,7 @@ namespace Rapidity.Json
 
         public static JsonOption Defalut => new JsonOption
         {
+            MaxDepth = 32
         };
     }
 

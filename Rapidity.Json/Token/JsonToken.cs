@@ -43,7 +43,7 @@ namespace Rapidity.Json
             }
         }
 
-        #region 基本类型 隐式转换
+        #region 基本类型转换
 
         public static implicit operator JsonToken(string value)
         {
