@@ -12,9 +12,9 @@ namespace Rapidity.Json
         private TextWriter _writer;
         private JsonWriteOption _option;
         private TokenValidator _tokenValidator;
-        private int _depth;
         private string _indeteChars; //缩进字符
         private char _quoteSymbol;   //引号字符
+        private int _depth;
         private JsonTokenType _tokenType;
         public JsonTokenType TokenType => _tokenType;
         public int Depth => _depth;
@@ -383,12 +383,12 @@ namespace Rapidity.Json
         private class DefaultTokenValidator : TokenValidator
         {
             private Stack<JsonTokenType> _tokens;
-            private InContainer _inContainer;
+            private ContainerType _containerType;
 
             public DefaultTokenValidator()
             {
                 _tokens = new Stack<JsonTokenType>();
-                _inContainer = InContainer.None;
+                _containerType = ContainerType.None;
             }
 
             /// <summary>
@@ -425,7 +425,6 @@ namespace Rapidity.Json
                     case JsonTokenType.True:
                     case JsonTokenType.False:
                     case JsonTokenType.Null: ValidateEndToken(next); break;
-
                     case JsonTokenType.Comment: break;
                 }
                 TokenType = next;
@@ -436,11 +435,11 @@ namespace Rapidity.Json
                 switch (next)
                 {
                     case JsonTokenType.StartObject:
-                        _inContainer = InContainer.Object;
+                        _containerType = ContainerType.Object;
                         _tokens.Push(next);
                         break;
                     case JsonTokenType.StartArray:
-                        _inContainer = InContainer.Array;
+                        _containerType = ContainerType.Array;
                         _tokens.Push(next);
                         break;
                     case JsonTokenType.PropertyName:
@@ -474,11 +473,11 @@ namespace Rapidity.Json
                 {
                     case JsonTokenType.StartObject:
                         _tokens.Push(next);
-                        _inContainer = InContainer.Object;
+                        _containerType = ContainerType.Object;
                         break;
                     case JsonTokenType.StartArray:
                         _tokens.Push(next);
-                        _inContainer = InContainer.Array;
+                        _containerType = ContainerType.Array;
                         break;
                     case JsonTokenType.String:
                     case JsonTokenType.Null:
@@ -499,11 +498,11 @@ namespace Rapidity.Json
                 {
                     case JsonTokenType.StartObject:
                         _tokens.Push(next);
-                        _inContainer = InContainer.Object;
+                        _containerType = ContainerType.Object;
                         break;
                     case JsonTokenType.StartArray:
                         _tokens.Push(next);
-                        _inContainer = InContainer.Array;
+                        _containerType = ContainerType.Array;
                         break;
                     case JsonTokenType.EndArray:
                         PopToken(next, JsonTokenType.StartArray);
@@ -525,7 +524,7 @@ namespace Rapidity.Json
                 switch (next)
                 {
                     case JsonTokenType.PropertyName:
-                        if (_inContainer == InContainer.Object)
+                        if (_containerType == ContainerType.Object)
                         {
                             _tokens.Push(next);
                             break;
@@ -534,7 +533,7 @@ namespace Rapidity.Json
                         break;
                     case JsonTokenType.StartObject:
                     case JsonTokenType.StartArray:
-                        if (_inContainer == InContainer.Array)
+                        if (_containerType == ContainerType.Array)
                         {
                             _tokens.Push(next);
                             break;
@@ -542,7 +541,7 @@ namespace Rapidity.Json
                         ThrowException(next);
                         break;
                     case JsonTokenType.EndObject:
-                        if (_inContainer == InContainer.Object)
+                        if (_containerType == ContainerType.Object)
                         {
                             PopToken(next, JsonTokenType.StartObject);
                             break;
@@ -550,7 +549,7 @@ namespace Rapidity.Json
                         ThrowException(next);
                         break;
                     case JsonTokenType.EndArray:
-                        if (_inContainer == InContainer.Array)
+                        if (_containerType == ContainerType.Array)
                         {
                             PopToken(next, JsonTokenType.StartArray);
                             break;
@@ -562,7 +561,7 @@ namespace Rapidity.Json
                     case JsonTokenType.True:
                     case JsonTokenType.False:
                     case JsonTokenType.Null:
-                        if (_inContainer == InContainer.Array) break;
+                        if (_containerType == ContainerType.Array) break;
                         ThrowException(next);
                         break;
                     case JsonTokenType.Comment: break;
@@ -581,8 +580,8 @@ namespace Rapidity.Json
                     {
                         if (_tokens.TryPeek(out JsonTokenType token) && token == JsonTokenType.PropertyName) //上一个是propertyName时继续出栈
                             _tokens.Pop();
-                        if (_tokens.Count > 0) _inContainer = _tokens.Peek() == JsonTokenType.StartArray ? InContainer.Array : InContainer.Object;
-                        else _inContainer = InContainer.None;
+                        if (_tokens.Count > 0) _containerType = _tokens.Peek() == JsonTokenType.StartArray ? ContainerType.Array : ContainerType.Object;
+                        else _containerType = ContainerType.None;
                         return;
                     }
                     ThrowException(next, top);

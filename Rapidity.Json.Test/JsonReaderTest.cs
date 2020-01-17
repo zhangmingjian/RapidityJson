@@ -152,5 +152,16 @@ namespace Rapidity.Json
             var token = JsonToken.Parse(json);
             var j = token.ToString();
         }
+
+        [Fact]
+        public void ReadInvalidTokenTest()
+        {
+            var json = "[]{}";
+            var read = new JsonReader(json);
+            while (read.Read())
+            {
+                _output.WriteLine(read.TokenType.ToString());
+            }
+        }
     }
 }
