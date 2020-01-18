@@ -58,82 +58,6 @@ namespace Rapidity.Json
                 var str = token.ToString();
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        [Fact]
-        public void ReadPerformanceTest()
-        {
-            var json = GetJson();
-            //jsonreader
-            {
-                var watch = Stopwatch.StartNew();
-                int count = 0;
-                using (var read = new JsonReader(json))
-                {
-                    while (read.Read())
-                    {
-                        count++;
-                    }
-                }
-                watch.Stop();
-                _output.WriteLine($"json读用时：{watch.ElapsedMilliseconds}ms,token数量：{count}");
-            }
-
-            {
-                var watch = Stopwatch.StartNew();
-                var token = new JsonParser().Parse(json);
-                watch.Stop();
-                _output.WriteLine($"json读+解析用时：{watch.ElapsedMilliseconds}ms");
-            }
-
-            //newtonsoft.jsonreader
-            {
-                var watch = Stopwatch.StartNew();
-                int count = 0;
-                using (var read = new Newtonsoft.Json.JsonTextReader(new StringReader(json)))
-                {
-                    while (read.Read())
-                    {
-                        count++;
-                    }
-                }
-                watch.Stop();
-                _output.WriteLine($"newtonsoft读用时：{watch.ElapsedMilliseconds}ms,token数量：{count}");
-
-
-            }
-
-            {
-                var watch = Stopwatch.StartNew();
-                var token = Newtonsoft.Json.Linq.JToken.Parse(json);
-                watch.Stop();
-                _output.WriteLine($"newtonsoft读+解析用时：{watch.ElapsedMilliseconds}ms");
-            }
-
-            //microsoft Json
-            {
-                var bytes = Encoding.UTF8.GetBytes(json);
-                var memory = new ReadOnlySpan<byte>(bytes);
-                var read = new System.Text.Json.Utf8JsonReader(memory);
-                var watch = Stopwatch.StartNew();
-                int count = 0;
-                while (read.Read())
-                {
-                    count++;
-                }
-                watch.Stop();
-                _output.WriteLine($"system.json读用时：{watch.ElapsedMilliseconds}ms,token数量：{count}");
-
-            }
-            {
-                var bytes = Encoding.UTF8.GetBytes(json);
-                var watch = Stopwatch.StartNew();
-                var doc = System.Text.Json.JsonDocument.Parse(new ReadOnlyMemory<byte>(bytes));
-                watch.Stop();
-                _output.WriteLine($"system.json读+解析用时：{watch.ElapsedMilliseconds}ms");
-            }
-        }
 
         /// <summary>
         /// 
@@ -161,6 +85,103 @@ namespace Rapidity.Json
             while (read.Read())
             {
                 _output.WriteLine(read.TokenType.ToString());
+            }
+        }
+
+        /// <summary>
+        /// JsonReader Parser 性能测试
+        /// </summary>
+        [Fact(DisplayName = "JsonReader性能测试")]
+        public void ReadPerformanceTest()
+        {
+            var json = GetJson();
+            int total = 10;
+            //jsonreader
+            {
+                _output.WriteLine("==Rapidity.Json================");
+                var watch = Stopwatch.StartNew();
+                for (int i = 1; i <= total; i++)
+                {                  
+                    int count = 0;
+                    using (var read = new JsonReader(json))
+                    {
+                        while (read.Read())
+                        {
+                            count++;
+                        }
+                    }                
+                }
+                watch.Stop();
+                _output.WriteLine($"Rapidity.Json读{total}次用时：{watch.ElapsedMilliseconds}ms");
+            }
+
+            {
+                var watch = Stopwatch.StartNew();
+                for (int i = 1; i <= total; i++)
+                {
+                    var token = new JsonParser().Parse(json);
+                }
+                watch.Stop();
+                _output.WriteLine($"Rapidity.Json读+解析{total}次用时：{watch.ElapsedMilliseconds}ms");
+            }
+
+            //newtonsoft.jsonreader
+            {
+                _output.WriteLine("==Newtonsoft.Json================");
+                var watch = Stopwatch.StartNew();
+                for (int i = 1; i <= total; i++)
+                {
+                    int count = 0;
+                    using (var read = new Newtonsoft.Json.JsonTextReader(new StringReader(json)))
+                    {
+                        while (read.Read())
+                        {
+                            count++;
+                        }
+                    }
+                }
+                watch.Stop();
+                _output.WriteLine($"Newtonsoft.Json读{total}次用时：{watch.ElapsedMilliseconds}ms");
+            }
+
+            {
+                var watch = Stopwatch.StartNew();
+                for (int i = 1; i <= total; i++)
+                {
+                    var token = Newtonsoft.Json.Linq.JToken.Parse(json);
+                }
+                watch.Stop();
+                _output.WriteLine($"Newtonsoft.Json读+解析{total}次用时：{watch.ElapsedMilliseconds}ms");
+
+            }
+
+            //microsoft Json
+            {
+                _output.WriteLine("==System.Text.Json================");
+                var bytes = Encoding.UTF8.GetBytes(json);
+                var memory = new ReadOnlySpan<byte>(bytes);
+                var watch = Stopwatch.StartNew();
+                for (int i = 1; i <= total; i++)
+                {
+                    var read = new System.Text.Json.Utf8JsonReader(memory);
+                    int count = 0;
+                    while (read.Read())
+                    {
+                        count++;
+                    }
+                }
+                watch.Stop();
+                _output.WriteLine($"System.Text.Json读{total}次用时：{watch.ElapsedMilliseconds}ms");
+            }
+            {
+                var bytes = Encoding.UTF8.GetBytes(json);
+                var watch = Stopwatch.StartNew();
+                for (int i = 1; i <= total; i++)
+                {
+                    var doc = System.Text.Json.JsonDocument.Parse(new ReadOnlyMemory<byte>(bytes));
+                }
+                watch.Stop();
+                _output.WriteLine($"System.Text.Json读+解析{total}次用时：{watch.ElapsedMilliseconds}ms");
             }
         }
     }

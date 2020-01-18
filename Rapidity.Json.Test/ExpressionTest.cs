@@ -15,7 +15,6 @@ namespace Rapidity.Json.Tests
             var init = Expression.New(typeof(Person));
             foreach (var property in typeof(Person).GetProperties())
             {
-
                 ConstantExpression constant = null;
                 if (property.PropertyType == typeof(int))
                     constant = Expression.Constant(10, typeof(int));
@@ -25,8 +24,8 @@ namespace Rapidity.Json.Tests
                 bindList.Add(bindingId);
 
             }
-            MemberInitExpression initExp = Expression.MemberInit(init, bindList);
-            Expression<Func<Person>> expression = Expression.Lambda<Func<Person>>(initExp);
+            //MemberInitExpression initExp = Expression.MemberInit(init, bindList);
+            Expression<Func<Person>> expression = Expression.Lambda<Func<Person>>(init);
             var func = expression.Compile();
             var p = func();
         }
