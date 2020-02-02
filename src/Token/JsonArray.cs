@@ -9,21 +9,21 @@ namespace Rapidity.Json
     /// </summary>
     public class JsonArray : JsonToken, IEnumerable<JsonToken>
     {
-        private readonly List<JsonToken> _store;
+        private readonly List<JsonToken> _list;
 
         public override JsonValueType ValueType => JsonValueType.Array;
 
         public JsonArray()
         {
-            _store = new List<JsonToken>();
+            _list = new List<JsonToken>();
         }
 
-        public int Count => _store.Count;
+        public int Count => _list.Count;
 
         public JsonToken this[int index]
         {
-            get => _store[index];
-            set => _store[index] = value ?? new JsonNull();
+            get => _list[index];
+            set => _list[index] = value ?? new JsonNull();
         }
 
         public static JsonArray Create(string json)
@@ -33,37 +33,37 @@ namespace Rapidity.Json
 
         public void Add(JsonToken token)
         {
-            _store.Add(token ?? new JsonNull());
+            _list.Add(token ?? new JsonNull());
         }
 
         public void RemoveAt(int index)
         {
-            _store.RemoveAt(index);
+            _list.RemoveAt(index);
         }
 
         public bool Remove(JsonToken token)
         {
-            return _store.Remove(token);
+            return _list.Remove(token);
         }
 
         public int Remove(Predicate<JsonToken> match)
         {
-            return _store.RemoveAll(match);
+            return _list.RemoveAll(match);
         }
 
         public void Clear()
         {
-            _store.Clear();
+            _list.Clear();
         }
 
         public IEnumerator<JsonToken> GetEnumerator()
         {
-            return _store.GetEnumerator();
+            return _list.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _store.GetEnumerator();
+            return _list.GetEnumerator();
         }
 
         public override object To(Type type)

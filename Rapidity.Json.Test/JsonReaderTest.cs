@@ -69,6 +69,7 @@ namespace Rapidity.Json
             var data = new JsonParser().Parse(json);
         }
 
+
         [Fact]
         public void ReadEscapeStringTest()
         {
@@ -95,7 +96,7 @@ namespace Rapidity.Json
         public void ReadPerformanceTest()
         {
             var json = GetJson();
-            int total = 10;
+            int total = 5;
             //jsonreader
             {
                 _output.WriteLine("==Rapidity.Json================");
@@ -182,6 +183,38 @@ namespace Rapidity.Json
                 }
                 watch.Stop();
                 _output.WriteLine($"System.Text.Json读+解析{total}次用时：{watch.ElapsedMilliseconds}ms");
+            }
+        }
+
+        [Fact]
+        public void ReadStructureTest()
+        {
+            int total = 20000;
+            //jsonreader
+            {
+                _output.WriteLine("==Rapidity.Json================");
+                var watch = Stopwatch.StartNew();
+                for (int i = 1; i <= total; i++)
+                {
+                    using (var read = new JsonReader(""))
+                    {
+                    }
+                }
+                watch.Stop();
+                _output.WriteLine($"Rapidity.JsonReader构造{total}次用时：{watch.ElapsedMilliseconds}ms");
+            }
+            //newtonsoft.jsonreader
+            {
+                _output.WriteLine("==Newtonsoft.Json================");
+                var watch = Stopwatch.StartNew();
+                for (int i = 1; i <= total; i++)
+                {
+                    using (var read = new Newtonsoft.Json.JsonTextReader(new StringReader("")))
+                    {
+                    }
+                }
+                watch.Stop();
+                _output.WriteLine($"Newtonsoft.JsonReader构造{total}次用时：{watch.ElapsedMilliseconds}ms");
             }
         }
     }

@@ -9,12 +9,12 @@ namespace Rapidity.Json
     /// </summary>
     public class JsonObject : JsonToken, IEnumerable<KeyValuePair<string, JsonToken>>
     {
-        private readonly Dictionary<string, JsonToken> _store;
+        private readonly Dictionary<string, JsonToken> _dictionary;
         public override JsonValueType ValueType => JsonValueType.Object;
 
         public JsonObject()
         {
-            _store = new Dictionary<string, JsonToken>();
+            _dictionary = new Dictionary<string, JsonToken>();
         }
 
         public JsonToken this[string propertyName]
@@ -25,12 +25,12 @@ namespace Rapidity.Json
 
         public IEnumerable<JsonProperty> GetAllProperty()
         {
-            if (_store.Count == 0) yield return default;
-            foreach (var key in _store.Keys)
-                yield return new JsonProperty(key, _store[key]);
+            if (_dictionary.Count == 0) yield return default;
+            foreach (var key in _dictionary.Keys)
+                yield return new JsonProperty(key, _dictionary[key]);
         }
 
-        public IReadOnlyCollection<string> GetPropertyNames() => _store.Keys;
+        public IReadOnlyCollection<string> GetPropertyNames() => _dictionary.Keys;
 
         /// <summary>
         /// 
@@ -59,7 +59,7 @@ namespace Rapidity.Json
         public void AddProperty(string name, JsonToken value)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
-            _store[name] = value ?? new JsonNull();
+            _dictionary[name] = value ?? new JsonNull();
         }
 
         public JsonToken GetValue(string property)
@@ -82,7 +82,7 @@ namespace Rapidity.Json
                 token = null;
                 return false;
             }
-            return _store.TryGetValue(property, out token);
+            return _dictionary.TryGetValue(property, out token);
         }
 
         /// <summary>
@@ -92,12 +92,12 @@ namespace Rapidity.Json
         /// <returns></returns>
         public bool Remove(string property)
         {
-            return _store.Remove(property);
+            return _dictionary.Remove(property);
         }
 
         public IEnumerator<KeyValuePair<string, JsonToken>> GetEnumerator()
         {
-            return _store.GetEnumerator();
+            return _dictionary.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

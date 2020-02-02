@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -176,7 +177,7 @@ namespace Rapidity.Json
                     case '\n': _writer.Write('\\'); _writer.Write('n'); break;  //换行(LF) ，将当前位置移到下一行开头
                     case '\t': _writer.Write('\\'); _writer.Write('t'); break;  //水平制表(HT) （跳到下一个TAB位置）
                     case '\v': _writer.Write(JsonConstants.VTChars); break;     //垂直制表(VT)
-                    case '\\': _writer.Write('\\'); _writer.Write('\\'); break;
+                    case '\\': _writer.Write("\\\\"); break;                    //反斜杠
                     default:
                         if (@char == _quoteSymbol) _writer.Write('\\');
                         _writer.Write(@char);
@@ -383,12 +384,12 @@ namespace Rapidity.Json
         private class DefaultTokenValidator : TokenValidator
         {
             private Stack<JsonTokenType> _tokens;
-            private ContainerType _containerType;
+            private JsonContainerType _containerType;
 
             public DefaultTokenValidator()
             {
                 _tokens = new Stack<JsonTokenType>();
-                _containerType = ContainerType.None;
+                _containerType = JsonContainerType.None;
             }
 
             /// <summary>
@@ -435,11 +436,11 @@ namespace Rapidity.Json
                 switch (next)
                 {
                     case JsonTokenType.StartObject:
-                        _containerType = ContainerType.Object;
+                        _containerType = JsonContainerType.Object;
                         _tokens.Push(next);
                         break;
                     case JsonTokenType.StartArray:
-                        _containerType = ContainerType.Array;
+                        _containerType = JsonContainerType.Array;
                         _tokens.Push(next);
                         break;
                     case JsonTokenType.PropertyName:
@@ -473,11 +474,11 @@ namespace Rapidity.Json
                 {
                     case JsonTokenType.StartObject:
                         _tokens.Push(next);
-                        _containerType = ContainerType.Object;
+                        _containerType = JsonContainerType.Object;
                         break;
                     case JsonTokenType.StartArray:
                         _tokens.Push(next);
-                        _containerType = ContainerType.Array;
+                        _containerType = JsonContainerType.Array;
                         break;
                     case JsonTokenType.String:
                     case JsonTokenType.Null:
@@ -498,11 +499,11 @@ namespace Rapidity.Json
                 {
                     case JsonTokenType.StartObject:
                         _tokens.Push(next);
-                        _containerType = ContainerType.Object;
+                        _containerType = JsonContainerType.Object;
                         break;
                     case JsonTokenType.StartArray:
                         _tokens.Push(next);
-                        _containerType = ContainerType.Array;
+                        _containerType = JsonContainerType.Array;
                         break;
                     case JsonTokenType.EndArray:
                         PopToken(next, JsonTokenType.StartArray);
@@ -524,7 +525,7 @@ namespace Rapidity.Json
                 switch (next)
                 {
                     case JsonTokenType.PropertyName:
-                        if (_containerType == ContainerType.Object)
+                        if (_containerType == JsonContainerType.Object)
                         {
                             _tokens.Push(next);
                             break;
@@ -533,7 +534,7 @@ namespace Rapidity.Json
                         break;
                     case JsonTokenType.StartObject:
                     case JsonTokenType.StartArray:
-                        if (_containerType == ContainerType.Array)
+                        if (_containerType == JsonContainerType.Array)
                         {
                             _tokens.Push(next);
                             break;
@@ -541,7 +542,7 @@ namespace Rapidity.Json
                         ThrowException(next);
                         break;
                     case JsonTokenType.EndObject:
-                        if (_containerType == ContainerType.Object)
+                        if (_containerType == JsonContainerType.Object)
                         {
                             PopToken(next, JsonTokenType.StartObject);
                             break;
@@ -549,7 +550,7 @@ namespace Rapidity.Json
                         ThrowException(next);
                         break;
                     case JsonTokenType.EndArray:
-                        if (_containerType == ContainerType.Array)
+                        if (_containerType == JsonContainerType.Array)
                         {
                             PopToken(next, JsonTokenType.StartArray);
                             break;
@@ -561,7 +562,7 @@ namespace Rapidity.Json
                     case JsonTokenType.True:
                     case JsonTokenType.False:
                     case JsonTokenType.Null:
-                        if (_containerType == ContainerType.Array) break;
+                        if (_containerType == JsonContainerType.Array) break;
                         ThrowException(next);
                         break;
                     case JsonTokenType.Comment: break;
@@ -578,10 +579,10 @@ namespace Rapidity.Json
                     var top = _tokens.Pop(); //栈顶值必须与toptoken一致
                     if (top == topToken)
                     {
-                        if (_tokens.TryPeek(out JsonTokenType token) && token == JsonTokenType.PropertyName) //上一个是propertyName时继续出栈
+                        if (_tokens.Count > 0 && _tokens.Peek() == JsonTokenType.PropertyName) //上一个是propertyName时继续出栈
                             _tokens.Pop();
-                        if (_tokens.Count > 0) _containerType = _tokens.Peek() == JsonTokenType.StartArray ? ContainerType.Array : ContainerType.Object;
-                        else _containerType = ContainerType.None;
+                        if (_tokens.Count > 0) _containerType = _tokens.Peek() == JsonTokenType.StartArray ? JsonContainerType.Array : JsonContainerType.Object;
+                        else _containerType = JsonContainerType.None;
                         return;
                     }
                     ThrowException(next, top);
