@@ -5,37 +5,32 @@ using System.Text;
 
 namespace Rapidity.Json.Serialization
 {
-    internal abstract class TypeDescriptor
+    internal class TypeDescriptor
     {
-        Type Type { get; }
-        public virtual TypeKind TypeKind { get; }
-        Func<object> CreateFunc { get; set; }
-    }
-
-    internal class ObjectDescriptor : TypeDescriptor
-    {
-        public override TypeKind TypeKind => TypeKind.Object;
-
-        public Func<object> CreateFunc { get; set; }
+        public TypeKind TypeKind { get; set; }
+        public Func<object> Create { get; set; }
     }
 
     internal class PropertyDescriptor
     {
-        public string Name { get; }
+        public string Name => MemberInfo.Name;
 
         public string JsonAlias { get; }
 
-        public TypeDescriptor TypeDescriptor { get; }
+        public MemberInfo MemberInfo { get; set; }
+    }
 
-        public PropertyInfo PropertyInfo { get; set; }
+    internal class ListDesciptor : TypeDescriptor
+    {
+        public Action<object, object> Add { get; set; }
     }
 
     internal enum TypeKind : byte
     {
-        Unknown,
         Object,
         Value,
         Array,
+        List,
         Dictionary
     }
 }
