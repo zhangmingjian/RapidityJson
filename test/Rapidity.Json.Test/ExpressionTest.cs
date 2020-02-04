@@ -36,10 +36,11 @@ namespace Rapidity.Json.Tests
 
             public string Name { get; set; }
 
-            public Person(string name)
-            {
-                this.Name = name;
-            }
+            public Guid? Number { get; set; }
+
+            public DateTime Birthday { get; set; }
+
+            public Person Child { get; set; }
 
             //public Person() { }
         }

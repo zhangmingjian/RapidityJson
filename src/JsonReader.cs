@@ -479,6 +479,13 @@ namespace Rapidity.Json
 
         public decimal GetDecimal() => decimal.Parse(Value, CultureInfo.InvariantCulture);
 
+        public bool GetBoolean()
+        {
+            if (TokenType == JsonTokenType.True) return true;
+            if (TokenType == JsonTokenType.False) return false;
+            throw new JsonException($"不是有效的JSON Boolean Type：{TokenType},{Value}", _line, _position);
+        }
+
         public DateTime GetDateTime() => DateTime.Parse(Value, CultureInfo.CurrentCulture);
 
         public Guid GetGuid() => Guid.Parse(Value);
