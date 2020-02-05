@@ -1,60 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
 namespace Rapidity.Json.Serialization
 {
-    internal class TypeDescriptor
-    {
-        public TypeKind TypeKind { get; set; }
-        public Func<object> CreateMethod { get; set; }
-    }
-
-    internal class ValueDescriptor : TypeDescriptor
-    {
-        public ValueDescriptor()
-        {
-            TypeKind = TypeKind.Value;
-        }
-    }
-
-    internal class ObjectDescriptor : TypeDescriptor
-    {
-        public ObjectDescriptor()
-        {
-            TypeKind = TypeKind.Object;
-        }
-
-        public List<PropertyDescriptor> PropertyDescriptors { get; set; }
-    }
-
-    internal class PropertyDescriptor
-    {
-        public string Name => MemberInfo.Name;
-
-        public string JsonAlias { get; set; }
-
-        public MemberInfo MemberInfo { get; set; }
-
-        public Type MemberType { get; set; }
-
-        public Func<object, object> GetValueMethod { get; set; }
-
-        public Action<object, object> SetValueMethod { get; set; }
-    }
-
-    internal class ListDescriptor : TypeDescriptor
-    {
-        public Action<object, object> AddMethod { get; set; }
-    }
-
-    internal class ArrayDescriptor : ListDescriptor
-    {
-        public Func<object, object> ToArrayMethod { get; set; }
-    }
-
-
     internal enum TypeKind : byte
     {
         Value,
@@ -62,5 +14,92 @@ namespace Rapidity.Json.Serialization
         Array,
         List,
         Dictionary
+    }
+
+    internal abstract class TypeDescriptor
+    {
+        public abstract TypeKind TypeKind { get; }
+
+        public Type Type { get; protected set; }
+
+        protected Func<object> _createInstance;
+
+        public virtual Func<object> CreateInstance
+        {
+            get => _createInstance = _createInstance ?? BuildCreateInstanceMethod(this.Type);
+            protected set => _createInstance = value;
+        }
+
+        public static TypeDescriptor Create(Type type)
+        {
+            return new TypeDescriptorProvider().Build(type);
+        }
+
+        protected TypeDescriptor(Type type)
+        {
+            this.Type = type;
+        }
+
+        protected virtual Func<object> BuildCreateInstanceMethod(Type type)
+        {
+            var constructor = type.GetConstructors().OrderBy(t => t.GetParameters().Length).FirstOrDefault();
+            var parameters = constructor.GetParameters();
+            NewExpression newExp;
+            if (parameters.Length == 0)
+                newExp = Expression.New(type);
+            else
+            {
+                List<Expression> parametExps = new List<Expression>();
+                foreach (var para in parameters)
+                {
+                    var desc = Create(para.ParameterType);
+                    ConstantExpression constant = Expression.Constant(desc.CreateInstance(), para.ParameterType);
+                    parametExps.Add(constant);
+                }
+                newExp = Expression.New(constructor, parametExps);
+            }
+            Expression<Func<object>> expression = Expression.Lambda<Func<object>>(newExp);
+            return expression.Compile();
+        }
+    }
+
+    internal class ValueDescriptor : TypeDescriptor
+    {
+        public ValueDescriptor(Type type) : base(type)
+        {
+        }
+
+        public override TypeKind TypeKind => TypeKind.Value;
+
+        protected override Func<object> BuildCreateInstanceMethod(Type type)
+        {
+            object value;
+            switch (Type.GetTypeCode(type))
+            {
+                case TypeCode.Boolean: value = default(bool); break;
+                case TypeCode.Byte: value = default(byte); break;
+                case TypeCode.Char: value = default(char); break;
+                case TypeCode.Int16: value = default(Int16); break;
+                case TypeCode.UInt16: value = default(UInt16); break;
+                case TypeCode.Int32: value = default(Int32); break;
+                case TypeCode.UInt32: value = default(UInt32); break;
+                case TypeCode.Int64: value = default(Int64); break;
+                case TypeCode.UInt64: value = default(UInt64); break;
+                case TypeCode.Single: value = default(Single); break;
+                case TypeCode.Double: value = default(double); break;
+                case TypeCode.Decimal: value = default(decimal); break;
+                case TypeCode.SByte: value = default(sbyte); break;
+                case TypeCode.DateTime: value = default(DateTime); break;
+                case TypeCode.String: value = default(string); break;
+                case TypeCode.DBNull: value = default(DBNull); break;
+                default:
+                    if (type.IsValueType)
+                        value = Activator.CreateInstance(type);
+                    else
+                        value = default; break;
+            }
+            return () => value;
+        }
+
     }
 }

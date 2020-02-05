@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rapidity.Json.Test;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
@@ -28,21 +29,6 @@ namespace Rapidity.Json.Tests
             Expression<Func<Person>> expression = Expression.Lambda<Func<Person>>(init);
             var func = expression.Compile();
             var p = func();
-        }
-
-        public class Person
-        {
-            public int Id { get; set; }
-
-            public string Name { get; set; }
-
-            public Guid? Number { get; set; }
-
-            public DateTime Birthday { get; set; }
-
-            public Person Child { get; set; }
-
-            //public Person() { }
-        }
+        }     
     }
 }

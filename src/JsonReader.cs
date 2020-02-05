@@ -461,6 +461,16 @@ namespace Rapidity.Json
 
         public string GetString() => TokenType == JsonTokenType.Null ? null : Value;
 
+        public char GetChar()
+        {
+            if (char.TryParse(Value, out char c)) return c;
+            throw new JsonException($"无效的{typeof(char)}类型：{Value}", _line, _position);
+        }
+
+        public byte GetByte() => byte.Parse(Value, CultureInfo.InvariantCulture);
+
+        public sbyte GetSByte() => sbyte.Parse(Value, CultureInfo.InvariantCulture);
+
         public int GetInt() => int.Parse(Value, CultureInfo.InvariantCulture);
 
         public uint GetUInt() => uint.Parse(Value, CultureInfo.InvariantCulture);

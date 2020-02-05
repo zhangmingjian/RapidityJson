@@ -1,10 +1,10 @@
 ﻿using Rapidity.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using Xunit;
-using static Rapidity.Json.Tests.ExpressionTest;
 
 namespace Rapidity.Json.Test
 {
@@ -13,24 +13,61 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ObjectProviderTest()
         {
-            var provider = new TypeDescriptorProvider();
-            var desc = provider.GetDescriptor(typeof(Person)) as ObjectDescriptor;
-            var person = desc.CreateMethod();
-            var nameProperty = desc.PropertyDescriptors.FirstOrDefault(x => x.JsonAlias == "Name");
-            nameProperty.SetValueMethod(person, Guid.NewGuid().ToString());
+            //var provider = new TypeDescriptorProvider();
+            var desc = TypeDescriptor.Create(typeof(Person)) as ObjectDescriptor;
+            var person = desc.CreateInstance();
+            desc.TrySetValue(person, "Name", "张三");
+            desc.TrySetValue(person, nameof(Person.Number), Guid.NewGuid());
+            desc.TrySetValue(person, nameof(Person.Birthday), DateTime.Now);
+            desc.TrySetValue(person, nameof(Person.Child), new Person());
 
-            var idProp = desc.PropertyDescriptors.FirstOrDefault(x => x.JsonAlias == "Id");
-            idProp.SetValueMethod(person, 1212);
+            var name = desc.GetValue(person, "Name");
+        }
 
+        [Fact]
+        public void GetFieldTest()
+        {
+            var desc = TypeDescriptor.Create(typeof(Person)) as ObjectDescriptor;
+            var person = desc.CreateInstance();
+            var floatField = desc.GetValue(person, "floadField");
+            Assert.Equal(0f, floatField);
+
+            desc.TrySetValue(person, "floadField", 12345f);
+
+            floatField = desc.GetValue(person, "floadField");
+            Assert.Equal(12345f, floatField);
         }
 
         [Fact]
         public void ListProviderTest()
         {
-            var provider = new TypeDescriptorProvider();
-            var desc = provider.GetDescriptor(typeof(List<Person>)) as ListDescriptor;
-            var person = desc.CreateMethod() as List<Person>;
-            //desc.AddMethod(person, new Person("aeff") { Id = 100, Name = "faefafeafeaef" });
+            var desc = TypeDescriptor.Create(typeof(List<Person>)) as EnumerableDescriptor;
+            var list = desc.CreateInstance() as List<Person>;
+            desc.AddItemMethod(list, new Person() { Id = 100, Name = "faefafeafeaef" });
+            Assert.Equal(1, list.Count);
+        }
+
+        [Fact]
+        public void CollectionTest()
+        {
+            var desc = TypeDescriptor.Create(typeof(Collection<Person>)) as EnumerableDescriptor;
+            var list = desc.CreateInstance() as Collection<Person>;
+            desc.AddItemMethod(list, new Person() { Id = 100, Name = "faefafeafeaef" });
+            Assert.Equal(1, list.Count);
+
+            var enumer = desc.GetEnumerator(list);
+            while (enumer.MoveNext())
+            {
+                var item = enumer.Current;
+            }
+        }
+
+        [Fact]
+        public void ValueTypeTest()
+        {
+            var type = typeof(Nullable<>);
+            type.MakeGenericType(typeof(int));
+            Assert.True(type.IsValueType);
         }
     }
 }
