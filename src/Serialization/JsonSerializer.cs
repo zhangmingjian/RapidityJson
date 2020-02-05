@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -22,20 +23,21 @@ namespace Rapidity.Json.Serialization
 
         private object ConvertObject(JsonReader reader, ObjectDescriptor descriptor)
         {
-            if (reader.TokenType != JsonTokenType.StartObject)
-                throw new JsonException($"无效的JSON Token，应为{{，实际为{reader.TokenType}", reader.Line, reader.Position);
-            object instance = descriptor.CreateInstance();
-            while (reader.Read())
+            object instance = null;
+            do
             {
                 switch (reader.TokenType)
                 {
+                    case JsonTokenType.StartObject: instance = descriptor.CreateInstance(); break;
+                    case JsonTokenType.Null:
                     case JsonTokenType.EndObject: return instance;
                     case JsonTokenType.PropertyName:
                         var property = descriptor.GetMemberDefinition(reader.Value);
-                        property?.SetValueMethod(instance, Deserialize(reader, property.MemberType));
+                        property?.SetValue(instance, Deserialize(reader, property.MemberType));
                         break;
                 }
             }
+            while (reader.Read());
             return instance;
         }
 
@@ -81,34 +83,82 @@ namespace Rapidity.Json.Serialization
 
         private object ConvertList(JsonReader reader, EnumerableDescriptor descriptor)
         {
-            if (reader.TokenType != JsonTokenType.StartArray)
-                throw new JsonException($"无效的JSON Token，应为[，实际为{reader.TokenType}", reader.Line, reader.Position);
-            object instance = descriptor.CreateInstance();
-            while (reader.Read())
+            object instance = null;
+            do
             {
                 switch (reader.TokenType)
                 {
+                    case JsonTokenType.StartArray: instance = descriptor.CreateInstance(); break;
                     case JsonTokenType.EndArray: return instance;
                     case JsonTokenType.StartObject:
                         var item = ConvertObject(reader, new ObjectDescriptor(descriptor.ItemType));
-                        descriptor.AddItemMethod(instance, item);
+                        descriptor.AddItem(instance, item);
                         break;
                     case JsonTokenType.String:
                     case JsonTokenType.Number:
                     case JsonTokenType.True:
                     case JsonTokenType.False:
-                    case JsonTokenType.Null:
                         var valueItem = ConvertValue(reader, descriptor.ItemType);
-                        descriptor.AddItemMethod(instance, valueItem);
+                        descriptor.AddItem(instance, valueItem);
+                        break;
+                    case JsonTokenType.Null:
+                        if (instance == null) return instance;
+                        descriptor.AddItem(instance, null);
                         break;
                 }
-            }
+            } while (reader.Read());
             return instance;
         }
 
         public string Serialize(object obj)
         {
-            return null;
+            if (obj == null)
+                throw new JsonException("序列化对象的值不能为Null");
+            using (var tw = new StringWriter())
+            using (var write = new JsonWriter(tw))
+            {
+                Serialize(write, obj);
+                return tw.ToString();
+            }
+        }
+
+        public void Serialize(JsonWriter writer, object obj)
+        {
+            if (obj == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+            var desc = TypeDescriptor.Create(obj.GetType());
+            switch (desc.TypeKind)
+            {
+                case TypeKind.Object: WriteObject(writer, obj, (ObjectDescriptor)desc); break;
+                case TypeKind.List: WriteList(writer, obj, (EnumerableDescriptor)desc); break;
+                case TypeKind.Value: writer.WriteObject(obj); break;
+            }
+        }
+
+        private void WriteObject(JsonWriter writer, object obj, ObjectDescriptor descriptor)
+        {
+            writer.WriteStartObject();
+            foreach (var member in descriptor.MemberDefinitions)
+            {
+                writer.WritePropertyName(member.JsonProperty);
+                var value = member.GetValue(obj);
+                Serialize(writer, value);
+            }
+            writer.WriteEndObject();
+        }
+
+        private void WriteList(JsonWriter writer, object list, EnumerableDescriptor descriptor)
+        {
+            writer.WriteStartArray();
+            var enumer = descriptor.GetEnumerator(list);
+            while (enumer.MoveNext())
+            {
+                Serialize(writer, enumer.Current);
+            }
+            writer.WriteEndArray();
         }
 
         public T Deserialize<T>(JsonReader reader)

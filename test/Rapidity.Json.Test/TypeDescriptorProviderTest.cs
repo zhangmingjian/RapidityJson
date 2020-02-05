@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -43,7 +44,7 @@ namespace Rapidity.Json.Test
         {
             var desc = TypeDescriptor.Create(typeof(List<Person>)) as EnumerableDescriptor;
             var list = desc.CreateInstance() as List<Person>;
-            desc.AddItemMethod(list, new Person() { Id = 100, Name = "faefafeafeaef" });
+            desc.AddItem(list, new Person() { Id = 100, Name = "faefafeafeaef" });
             Assert.Equal(1, list.Count);
         }
 
@@ -52,7 +53,7 @@ namespace Rapidity.Json.Test
         {
             var desc = TypeDescriptor.Create(typeof(Collection<Person>)) as EnumerableDescriptor;
             var list = desc.CreateInstance() as Collection<Person>;
-            desc.AddItemMethod(list, new Person() { Id = 100, Name = "faefafeafeaef" });
+            desc.AddItem(list, new Person() { Id = 100, Name = "faefafeafeaef" });
             Assert.Equal(1, list.Count);
 
             var enumer = desc.GetEnumerator(list);
@@ -65,9 +66,8 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ValueTypeTest()
         {
-            var type = typeof(Nullable<>);
-            type.MakeGenericType(typeof(int));
-            Assert.True(type.IsValueType);
+            var flag = float.TryParse("-∞", out float va);
+            var f = float.Parse("-∞", CultureInfo.InvariantCulture);
         }
     }
 }

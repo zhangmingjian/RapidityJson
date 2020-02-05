@@ -479,15 +479,15 @@ namespace Rapidity.Json
 
         public ushort GetUShort() => ushort.Parse(Value, CultureInfo.InvariantCulture);
 
-        public long GetLong() => long.Parse(Value, CultureInfo.InvariantCulture);
+        public long GetLong() => long.Parse(Value);
 
-        public ulong GetULong() => ulong.Parse(Value, CultureInfo.InvariantCulture);
+        public ulong GetULong() => ulong.Parse(Value);
 
-        public float GetFloat() => float.Parse(Value, CultureInfo.InvariantCulture);
+        public float GetFloat() => float.Parse(Value);
 
-        public double GetDouble() => double.Parse(Value, CultureInfo.InvariantCulture);
+        public double GetDouble() => double.Parse(Value);
 
-        public decimal GetDecimal() => decimal.Parse(Value, CultureInfo.InvariantCulture);
+        public decimal GetDecimal() => decimal.Parse(Value);
 
         public bool GetBoolean()
         {

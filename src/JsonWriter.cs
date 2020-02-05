@@ -246,7 +246,13 @@ namespace Rapidity.Json
         {
             _tokenValidator.Validate(JsonTokenType.Number);
             WriteComma();
-            _writer.Write(value);
+            if (float.IsNaN(value) || float.IsNegativeInfinity(value) || float.IsPositiveInfinity(value))
+            {
+                _writer.Write(_quoteSymbol);
+                _writer.Write(value);
+                _writer.Write(_quoteSymbol);
+            }
+            else _writer.Write(value);
             _tokenType = _tokenValidator.TokenType;
         }
 
@@ -310,6 +316,49 @@ namespace Rapidity.Json
                         case JsonTokenType.Null: WriteNull(); break;
                     }
                 }
+            }
+        }
+
+        public void WriteObject(object value)
+        {
+            if (value == null)
+            {
+                WriteNull();
+                return;
+            }
+            var type = value.GetType();
+            var typeCode = Type.GetTypeCode(type);
+            switch (typeCode)
+            {
+                case TypeCode.String: WriteString((string)value); break;
+                case TypeCode.Char: WriteChar((char)value); break;
+                case TypeCode.Boolean: WriteBoolean((bool)value); break;
+                case TypeCode.SByte:
+                case TypeCode.Byte:
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                case TypeCode.Int32: WriteInt((int)value); break;
+                case TypeCode.UInt32: WriteUInt((uint)value); break;
+                case TypeCode.Int64: WriteLong((long)value); break;
+                case TypeCode.UInt64: WriteULong((ulong)value); break;
+                case TypeCode.Single: WriteFloat((float)value); break;
+                case TypeCode.Double: WriteDouble((double)value); break;
+                case TypeCode.Decimal: WriteDecimal((decimal)value); break;
+                case TypeCode.DateTime: WriteDateTime((DateTime)value); break;
+                case TypeCode.Object:
+                    if (type == typeof(Guid))
+                        WriteGuid((Guid)value);
+                    else
+                    {
+                        var valueType = Nullable.GetUnderlyingType(type);
+                        if (valueType != null)
+                        {
+                            WriteObject(Convert.ChangeType(value, valueType));
+                            break;
+                        }
+                    }
+                    //todo
+                    break;
             }
         }
 

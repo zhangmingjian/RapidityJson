@@ -22,24 +22,29 @@ namespace Rapidity.Json.Serialization
 
         private TypeDescriptor GetDescriptor(Type type)
         {
-            if (type.IsValueType || type == typeof(string))
-                return new ValueDescriptor(type);
-            if (type.IsGenericType && typeof(IEnumerable).IsAssignableFrom(type))
+            switch (Type.GetTypeCode(type))
             {
-                if(type.IsClass && !type.IsAbstract)
-                    return new EnumerableDescriptor(type);
-                var itemType = type.GetGenericArguments()[0];
-                var listType = typeof(List<>).MakeGenericType(itemType);
-                if (type.IsAssignableFrom(listType))
-                    return new EnumerableDescriptor(listType);
+                case TypeCode.Object:
+                    if (type == typeof(Guid) || Nullable.GetUnderlyingType(type) != null)
+                        return new ValueDescriptor(type);
+                    if (type.IsGenericType && typeof(IEnumerable).IsAssignableFrom(type))
+                    {
+                        if (type.IsClass && !type.IsAbstract)
+                            return new EnumerableDescriptor(type);
+                        var itemType = type.GetGenericArguments()[0];
+                        var listType = typeof(List<>).MakeGenericType(itemType);
+                        if (type.IsAssignableFrom(listType))
+                            return new EnumerableDescriptor(listType);
+                    }
+                    if (type.IsArray)
+                        return new ArrayDescriptor(type);
+                    if (type.IsClass && !type.IsAbstract && !type.IsInterface)
+                        return new ObjectDescriptor(type);
+                    //if (typeof(IDictionary).IsAssignableFrom(type))
+                    //    return new DictionaryDescorptorProvider();
+                    throw new JsonException($"无法创建{type}的TypeDescriptor");
+                default: return new ValueDescriptor(type);
             }
-            if (type.IsArray)
-                return new ArrayDescriptor(type);
-            if (type.IsClass && !type.IsAbstract && !type.IsInterface)
-                return new ObjectDescriptor(type);
-            //if (typeof(IDictionary).IsAssignableFrom(type))
-            //    return new DictionaryDescorptorProvider();
-            throw new JsonException($"无法创建{type}的TypeDescriptor");
         }
     }
 }

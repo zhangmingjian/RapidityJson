@@ -59,7 +59,7 @@ namespace Rapidity.Json.Serialization
             var prop = GetMemberDefinition(memberName);
             if (prop != null)
             {
-                prop.SetValueMethod(instance, value);
+                prop.SetValue(instance, value);
                 return true;
             }
             return false;
@@ -69,7 +69,7 @@ namespace Rapidity.Json.Serialization
         {
             var prop = GetMemberDefinition(memberName);
             if (prop != null)
-                return prop.GetValueMethod(instace);
+                return prop.GetValue(instace);
             throw new JsonException($"类型{Type}不包含成员{memberName}");
         }
     }
@@ -92,9 +92,9 @@ namespace Rapidity.Json.Serialization
 
         public Type MemberType => _memberType;
 
-        private Func<object, object> _getValueMethod;
+        private Func<object, object> _getValue;
 
-        public Func<object, object> GetValueMethod => _getValueMethod = _getValueMethod ?? BuildGetValueMethod();
+        public Func<object, object> GetValue => _getValue = _getValue ?? BuildGetValueMethod();
 
         /// <summary>
         /// 
@@ -110,8 +110,8 @@ namespace Rapidity.Json.Serialization
             return exp.Compile();
         }
 
-        private Action<object, object> _setValueMethod;
-        public Action<object, object> SetValueMethod => _setValueMethod = _setValueMethod ?? BuildSetValueMethod();
+        private Action<object, object> _setValue;
+        public Action<object, object> SetValue => _setValue = _setValue ?? BuildSetValueMethod();
 
         /// <summary>
         /// 

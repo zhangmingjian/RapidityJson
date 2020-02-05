@@ -1,4 +1,5 @@
 ﻿using Rapidity.Json;
+using Rapidity.Json.Test;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,14 +16,6 @@ namespace Rapidity.Json.Tests
             var person = new JsonParser().To<Person>(json);
         }
 
-        class Person
-        {
-            public string Id { get; set; }
-
-            public string Name { get; set; }
-
-            public string Url { get; set; }
-        }
     }
 
 }

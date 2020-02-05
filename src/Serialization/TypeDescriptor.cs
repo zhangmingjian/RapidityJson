@@ -100,6 +100,5 @@ namespace Rapidity.Json.Serialization
             }
             return () => value;
         }
-
     }
 }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Rapidity.Json.Serialization
 {
@@ -27,15 +25,15 @@ namespace Rapidity.Json.Serialization
             return expression.Compile();
         }
 
-        private Action<object, object> _addItemMethod;
-        public Action<object, object> AddItemMethod => _addItemMethod = _addItemMethod ?? BuildAddItemMethod(Type);
+        private Action<object, object> _addItem;
+        public Action<object, object> AddItem => _addItem = _addItem ?? BuildAddItemMethod(Type);
 
         protected virtual Action<object, object> BuildAddItemMethod(Type type)
         {
             var listExp = Expression.Parameter(typeof(object), "list");
             var itemExp = Expression.Parameter(typeof(object), "item");
-            var instanceExp = Expression.TypeAs(listExp, type);
-            var argumentExp = Expression.TypeAs(itemExp, ItemType);
+            var instanceExp = Expression.Convert(listExp, type);
+            var argumentExp = Expression.Convert(itemExp, ItemType);
             var addMethod = type.GetMethod(AddMethodName);
             var callExp = Expression.Call(instanceExp, addMethod, argumentExp);
             Expression<Action<object, object>> addItemExp = Expression.Lambda<Action<object, object>>(callExp, listExp, itemExp);
@@ -53,8 +51,9 @@ namespace Rapidity.Json.Serialization
             var paramExp = Expression.Parameter(typeof(object));
             var listExp = Expression.TypeAs(paramExp, type);
             var method = type.GetMethod(nameof(IEnumerable.GetEnumerator));
-            var callEnumerExp = Expression.Call(listExp, method);
-            Expression<Func<object, IEnumerator>> expression = Expression.Lambda<Func<object, IEnumerator>>(callEnumerExp, paramExp);
+            var callExp = Expression.Call(listExp, method);
+            var body = Expression.TypeAs(callExp,typeof(IEnumerator));
+            var expression = Expression.Lambda<Func<object, IEnumerator>>(body, paramExp);
             return expression.Compile();
         }
     }
