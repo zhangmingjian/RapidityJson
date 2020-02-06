@@ -81,16 +81,14 @@ namespace Rapidity.Json.Serialization
         public MemberDefinition(MemberInfo memberInfo)
         {
             this.MemberInfo = memberInfo;
-            if (MemberInfo.MemberType == MemberTypes.Property) _memberType = ((PropertyInfo)MemberInfo).PropertyType;
-            else if (MemberInfo.MemberType == MemberTypes.Field) _memberType = ((FieldInfo)MemberInfo).FieldType;
+            if (MemberInfo.MemberType == MemberTypes.Property) MemberType = ((PropertyInfo)MemberInfo).PropertyType;
+            else if (MemberInfo.MemberType == MemberTypes.Field) MemberType = ((FieldInfo)MemberInfo).FieldType;
             JsonProperty = MemberInfo.Name;
         }
 
         public string JsonProperty { get; }
 
-        private Type _memberType;
-
-        public Type MemberType => _memberType;
+        public Type MemberType { get; }
 
         private Func<object, object> _getValue;
 

@@ -319,7 +319,11 @@ namespace Rapidity.Json
             }
         }
 
-        public void WriteObject(object value)
+        /// <summary>
+        /// write object (仅适合几种基本类型)
+        /// </summary>
+        /// <param name="value"></param>
+        public void WriteValue(object value)
         {
             if (value == null)
             {
@@ -345,6 +349,8 @@ namespace Rapidity.Json
                 case TypeCode.Double: WriteDouble((double)value); break;
                 case TypeCode.Decimal: WriteDecimal((decimal)value); break;
                 case TypeCode.DateTime: WriteDateTime((DateTime)value); break;
+                case TypeCode.Empty:
+                case TypeCode.DBNull: WriteNull(); break;
                 case TypeCode.Object:
                     if (type == typeof(Guid))
                         WriteGuid((Guid)value);
@@ -353,11 +359,12 @@ namespace Rapidity.Json
                         var valueType = Nullable.GetUnderlyingType(type);
                         if (valueType != null)
                         {
-                            WriteObject(Convert.ChangeType(value, valueType));
+                            WriteValue(Convert.ChangeType(value, valueType));
                             break;
                         }
+                        //未知类型直接ToString()
+                        WriteString(value.ToString());
                     }
-                    //todo
                     break;
             }
         }

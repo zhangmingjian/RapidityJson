@@ -1,7 +1,10 @@
 ﻿using Rapidity.Json.Serialization;
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -12,7 +15,7 @@ namespace Rapidity.Json.Test
     public class TypeDescriptorProviderTest
     {
         [Fact]
-        public void ObjectProviderTest()
+        public void ObjectDescriptorTest()
         {
             //var provider = new TypeDescriptorProvider();
             var desc = TypeDescriptor.Create(typeof(Person)) as ObjectDescriptor;
@@ -40,7 +43,7 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
-        public void ListProviderTest()
+        public void ListDescriptorTest()
         {
             var desc = TypeDescriptor.Create(typeof(List<Person>)) as EnumerableDescriptor;
             var list = desc.CreateInstance() as List<Person>;
@@ -64,10 +67,75 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
+        public void DictionaryDescriptorTest()
+        {
+            var desc = TypeDescriptor.Create(typeof(StringDictionary)) as DictionaryDescriptor;
+            var dic = desc.CreateInstance();
+            desc.SetKeyValue(dic, "aaa", "afefe");
+            desc.SetKeyValue(dic, "bbbb", DateTime.Now.ToString());
+            var enumer = desc.GetKeys(dic);
+            while (enumer.MoveNext())
+            {
+                var value = desc.GetValue(dic, enumer.Current);
+            }
+        }
+
+
+        [Fact]
+        public void NameValueCollectionTest()
+        {
+            var desc = TypeDescriptor.Create(typeof(NameValueCollection)) as DictionaryDescriptor;
+            var dic = desc.CreateInstance();
+            desc.SetKeyValue(dic, "aaa", "afefe");
+            desc.SetKeyValue(dic, "bbbb", DateTime.Now.ToString());
+            var enumer = desc.GetKeys(dic);
+            while (enumer.MoveNext())
+            {
+                var value = desc.GetValue(dic, enumer.Current);
+            }
+        }
+
+        [Fact]
+        public void ConcurrentDictionaryTest()
+        {
+            var desc = TypeDescriptor.Create(typeof(ConcurrentDictionary<string, string>)) as DictionaryDescriptor;
+            var dic = desc.CreateInstance();
+            desc.SetKeyValue(dic, "aaa", "afefe");
+            desc.SetKeyValue(dic, "bbbb", DateTime.Now.ToString());
+            var enumer = desc.GetKeys(dic);
+            while (enumer.MoveNext())
+            {
+                var value = desc.GetValue(dic, enumer.Current);
+            }
+        }
+
+        [Fact]
+        public void DictionaryTest()
+        {
+            var desc = TypeDescriptor.Create(typeof(Dictionary<string, object>)) as DictionaryDescriptor;
+            var dic = desc.CreateInstance();
+            desc.SetKeyValue(dic, "aaa", "afefe");
+            desc.SetKeyValue(dic, "cccc", 1565);
+            desc.SetKeyValue(dic, "bbbb", DateTime.Now);
+            desc.SetKeyValue(dic, "aaa", true);
+            var enumer = desc.GetKeys(dic);
+            while (enumer.MoveNext())
+            {
+                var value = desc.GetValue(dic, enumer.Current);
+            }
+        }
+
+        [Fact]
         public void ValueTypeTest()
         {
-            var flag = float.TryParse("-∞", out float va);
-            var f = float.Parse("-∞", CultureInfo.InvariantCulture);
+            var properties = Array.CreateInstance(typeof(int), 0);
+            var arr = Array.Empty<int>();
+            array(arr);
+        }
+
+        private void array(int[] arr)
+        {
+            arr = new int[] { 123,1232 };
         }
     }
 }

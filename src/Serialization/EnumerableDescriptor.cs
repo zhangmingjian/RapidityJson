@@ -9,14 +9,17 @@ namespace Rapidity.Json.Serialization
     /// </summary>
     internal class EnumerableDescriptor : TypeDescriptor
     {
-        public EnumerableDescriptor(Type type) : base(type)
+        public override TypeKind TypeKind => TypeKind.List;
+        public Type ItemType { get; protected set; }
+
+        public EnumerableDescriptor(Type type) : this(type, typeof(object))
         {
-            ItemType = type.GenericTypeArguments[0];
         }
 
-        public override TypeKind TypeKind => TypeKind.List;
-
-        public Type ItemType { get; protected set; }
+        public EnumerableDescriptor(Type type, Type itemType) : base(type)
+        {
+            ItemType = itemType;
+        }
 
         protected override Func<object> BuildCreateInstanceMethod(Type type)
         {
@@ -52,7 +55,7 @@ namespace Rapidity.Json.Serialization
             var listExp = Expression.TypeAs(paramExp, type);
             var method = type.GetMethod(nameof(IEnumerable.GetEnumerator));
             var callExp = Expression.Call(listExp, method);
-            var body = Expression.TypeAs(callExp,typeof(IEnumerator));
+            var body = Expression.TypeAs(callExp, typeof(IEnumerator));
             var expression = Expression.Lambda<Func<object, IEnumerator>>(body, paramExp);
             return expression.Compile();
         }
@@ -60,12 +63,30 @@ namespace Rapidity.Json.Serialization
 
     internal class ArrayDescriptor : EnumerableDescriptor
     {
-        public ArrayDescriptor(Type type) : base(type)
+        public ArrayDescriptor(Type type) : base(type, type.GetElementType())
         {
         }
 
-        public override TypeKind TypeKind => TypeKind.Array;
+        protected override Func<object> BuildCreateInstanceMethod(Type type)
+        {
+            var array = Array.CreateInstance(ItemType, 0);
+            var arrayExp = Expression.Constant(array);
+            var expression = Expression.Lambda<Func<object>>(arrayExp);
+            return expression.Compile();
+        }
 
-        public Func<object, object> ToArrayMethod { get; set; }
+        protected virtual Action<object, object> BuildAddItemMethod(Type type)
+        {
+            var objExp = Expression.Parameter(typeof(object), "array");
+            var itemExp = Expression.Parameter(typeof(object), "item");
+            var arrayExp = Expression.Convert(objExp, type);
+            var argumentExp = Expression.Convert(itemExp, ItemType);
+
+
+            var addMethod = type.GetMethod(AddMethodName);
+            var callExp = Expression.Call(arrayExp, addMethod, argumentExp);
+            Expression<Action<object, object>> addItemExp = Expression.Lambda<Action<object, object>>(callExp, objExp, itemExp);
+            return addItemExp.Compile();
+        }
     }
 }

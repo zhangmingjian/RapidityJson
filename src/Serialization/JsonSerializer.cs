@@ -10,19 +10,29 @@ namespace Rapidity.Json.Serialization
     {
         public object Deserialize(JsonReader reader, Type type)
         {
-            var desc = TypeDescriptor.Create(type);
             reader.Read();
+            return Convert(reader, type);
+        }
+
+        #region convert
+
+        private object Convert(JsonReader reader, Type type)
+        {
+            var desc = TypeDescriptor.Create(type);
             switch (desc.TypeKind)
             {
                 case TypeKind.Object: return ConvertObject(reader, (ObjectDescriptor)desc);
                 case TypeKind.Value: return ConvertValue(reader, type);
                 case TypeKind.List: return ConvertList(reader, (EnumerableDescriptor)desc);
+                case TypeKind.Dictionary: return ConvertDictionary(reader, (DictionaryDescriptor)desc);
             }
             return null;
         }
 
         private object ConvertObject(JsonReader reader, ObjectDescriptor descriptor)
         {
+            if (reader.TokenType != JsonTokenType.StartArray && reader.TokenType != JsonTokenType.Null)
+                throw new JsonException($"无效的JSON Token: {reader.TokenType},需要{JsonTokenType.StartObject} Token:{{", reader.Line, reader.Position);
             object instance = null;
             do
             {
@@ -33,8 +43,10 @@ namespace Rapidity.Json.Serialization
                     case JsonTokenType.EndObject: return instance;
                     case JsonTokenType.PropertyName:
                         var property = descriptor.GetMemberDefinition(reader.Value);
-                        property?.SetValue(instance, Deserialize(reader, property.MemberType));
+                        reader.Read();
+                        property?.SetValue(instance, Convert(reader, property.MemberType));
                         break;
+                    default: throw new JsonException($"无效的JSON Token:{reader.TokenType}", reader.Line, reader.Position);
                 }
             }
             while (reader.Read());
@@ -67,14 +79,14 @@ namespace Rapidity.Json.Serialization
                 case TypeCode.Byte: return reader.GetByte();
                 case TypeCode.SByte: return reader.GetSByte();
                 default:
+                    if (type == typeof(Guid))
+                        return reader.GetGuid();
                     var valueType = Nullable.GetUnderlyingType(type);
                     if (valueType != null)
                     {
                         if (reader.TokenType == JsonTokenType.Null) return null;
                         return ConvertValue(reader, valueType);
                     }
-                    if (type == typeof(Guid))
-                        return reader.GetGuid();
                     if (type.IsValueType)
                         return Activator.CreateInstance(type);
                     else return default;
@@ -83,22 +95,27 @@ namespace Rapidity.Json.Serialization
 
         private object ConvertList(JsonReader reader, EnumerableDescriptor descriptor)
         {
+            if (reader.TokenType != JsonTokenType.StartArray && reader.TokenType != JsonTokenType.Null)
+                throw new JsonException($"无效的JSON Token: {reader.TokenType},需要{JsonTokenType.StartArray} Token:[", reader.Line, reader.Position);
             object instance = null;
             do
             {
                 switch (reader.TokenType)
                 {
-                    case JsonTokenType.StartArray: instance = descriptor.CreateInstance(); break;
                     case JsonTokenType.EndArray: return instance;
+                    case JsonTokenType.StartArray:
+                        if (instance == null) instance = descriptor.CreateInstance();
+                        else
+                            descriptor.AddItem(instance, Convert(reader, descriptor.ItemType));
+                        break;
                     case JsonTokenType.StartObject:
-                        var item = ConvertObject(reader, new ObjectDescriptor(descriptor.ItemType));
-                        descriptor.AddItem(instance, item);
+                        descriptor.AddItem(instance, Convert(reader, descriptor.ItemType));
                         break;
                     case JsonTokenType.String:
                     case JsonTokenType.Number:
                     case JsonTokenType.True:
                     case JsonTokenType.False:
-                        var valueItem = ConvertValue(reader, descriptor.ItemType);
+                        var valueItem = Convert(reader, descriptor.ItemType);
                         descriptor.AddItem(instance, valueItem);
                         break;
                     case JsonTokenType.Null:
@@ -110,15 +127,47 @@ namespace Rapidity.Json.Serialization
             return instance;
         }
 
+        private object ConvertDictionary(JsonReader reader, DictionaryDescriptor descriptor)
+        {
+            if (reader.TokenType != JsonTokenType.StartObject && reader.TokenType != JsonTokenType.Null)
+                throw new JsonException($"无效的JSON Token: {reader.TokenType},需要{JsonTokenType.StartObject} Token:{{", reader.Line, reader.Position);
+            object instance = null;
+            object key = null;
+            do
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.EndObject: return instance;
+                    case JsonTokenType.StartObject:
+                        if (instance == null) instance = descriptor.CreateInstance();
+                        else
+                            descriptor.SetKeyValue(instance, key, Convert(reader, descriptor.ValueType));
+                        break;
+                    case JsonTokenType.PropertyName:
+                        key = reader.Value;
+                        break;
+                    case JsonTokenType.StartArray:
+                    case JsonTokenType.String:
+                    case JsonTokenType.Number:
+                    case JsonTokenType.True:
+                    case JsonTokenType.False:
+                    case JsonTokenType.Null:
+                        descriptor.SetKeyValue(instance, key, Convert(reader, descriptor.ValueType));
+                        break;
+                }
+            } while (reader.Read());
+            return instance;
+        }
+        #endregion
+
         public string Serialize(object obj)
         {
-            if (obj == null)
-                throw new JsonException("序列化对象的值不能为Null");
-            using (var tw = new StringWriter())
-            using (var write = new JsonWriter(tw))
+            if (obj == null) throw new JsonException("序列化对象的值不能为Null");
+            using (var sw = new StringWriter())
+            using (var write = new JsonWriter(sw))
             {
                 Serialize(write, obj);
-                return tw.ToString();
+                return sw.ToString();
             }
         }
 
@@ -133,11 +182,13 @@ namespace Rapidity.Json.Serialization
             switch (desc.TypeKind)
             {
                 case TypeKind.Object: WriteObject(writer, obj, (ObjectDescriptor)desc); break;
+                case TypeKind.Value: writer.WriteValue(obj); break;
                 case TypeKind.List: WriteList(writer, obj, (EnumerableDescriptor)desc); break;
-                case TypeKind.Value: writer.WriteObject(obj); break;
+                case TypeKind.Dictionary: WriteDictionary(writer, obj, (DictionaryDescriptor)desc); break;
             }
         }
 
+        #region write
         private void WriteObject(JsonWriter writer, object obj, ObjectDescriptor descriptor)
         {
             writer.WriteStartObject();
@@ -160,6 +211,21 @@ namespace Rapidity.Json.Serialization
             }
             writer.WriteEndArray();
         }
+
+        private void WriteDictionary(JsonWriter writer, object dic, DictionaryDescriptor descriptor)
+        {
+            writer.WriteStartObject();
+            var keys = descriptor.GetKeys(dic);
+            while (keys.MoveNext())
+            {
+                writer.WritePropertyName(keys.Current.ToString());
+                var value = descriptor.GetValue(dic, keys.Current);
+                Serialize(writer, value);
+            }
+            writer.WriteEndObject();
+        }
+
+        #endregion
 
         public T Deserialize<T>(JsonReader reader)
         {

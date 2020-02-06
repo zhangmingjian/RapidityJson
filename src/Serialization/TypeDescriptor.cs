@@ -11,7 +11,6 @@ namespace Rapidity.Json.Serialization
     {
         Value,
         Object,
-        Array,
         List,
         Dictionary
     }
@@ -30,11 +29,6 @@ namespace Rapidity.Json.Serialization
             protected set => _createInstance = value;
         }
 
-        public static TypeDescriptor Create(Type type)
-        {
-            return new TypeDescriptorProvider().Build(type);
-        }
-
         protected TypeDescriptor(Type type)
         {
             this.Type = type;
@@ -42,13 +36,15 @@ namespace Rapidity.Json.Serialization
 
         protected virtual Func<object> BuildCreateInstanceMethod(Type type)
         {
-            var constructor = type.GetConstructors().OrderBy(t => t.GetParameters().Length).FirstOrDefault();
-            var parameters = constructor.GetParameters();
             NewExpression newExp;
-            if (parameters.Length == 0)
+            //优先获取无参构造函数
+            var constructor = type.GetConstructor(Array.Empty<Type>());
+            if (constructor != null) 
                 newExp = Expression.New(type);
             else
             {
+                constructor = type.GetConstructors().OrderBy(t => t.GetParameters().Length).FirstOrDefault();
+                var parameters = constructor.GetParameters();
                 List<Expression> parametExps = new List<Expression>();
                 foreach (var para in parameters)
                 {
@@ -60,6 +56,11 @@ namespace Rapidity.Json.Serialization
             }
             Expression<Func<object>> expression = Expression.Lambda<Func<object>>(newExp);
             return expression.Compile();
+        }
+
+        public static TypeDescriptor Create(Type type)
+        {
+            return new TypeDescriptorProvider().Build(type);
         }
     }
 

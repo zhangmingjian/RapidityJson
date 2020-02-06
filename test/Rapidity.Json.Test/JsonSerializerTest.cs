@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Text;
 using Xunit;
 
@@ -10,7 +11,7 @@ namespace Rapidity.Json.Test
     public class JsonSerializerTest
     {
         [Fact]
-        public void DeSerializeObjectTest()
+        public void ConvertObjectTest()
         {
             var json = "{\"id\":12345,  \"Name\":\"jfkalefjlaj\",\"birthday\":\"2020-02-02 20:10:10\"," +
                 "\"Number\":null,\"strField\":\"strFieldstrFieldstrFieldstrField\" , " +
@@ -57,6 +58,25 @@ namespace Rapidity.Json.Test
             var json2 = serializer.Serialize(list);
 
             var list2 = serializer.Deserialize<List<Person>>(new JsonReader(json2));
+        }
+
+        [Fact]
+        public void ConvertDictionaryTest()
+        {
+            var json = "{\"name\":[100,234],\"id\":null,\"reamark\":{} }";
+            var reader = new JsonReader(json);
+            var serializer = new JsonSerializer();
+            var collection = serializer.Deserialize<Dictionary<string, int[]>>(reader);
+        }
+
+        [Fact]
+        public void WriteDictionaryTest()
+        {
+            //var dic = new NameValueCollection();
+            var dic = new SortedDictionary<string,string>();
+            dic.Add("aaaa","1111");
+            dic.Add("bbbb","efoioweu");
+            var json = new JsonSerializer().Serialize(dic);
         }
     }
 }
