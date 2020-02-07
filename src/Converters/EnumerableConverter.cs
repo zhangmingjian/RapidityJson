@@ -2,31 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Text;
 
-namespace Rapidity.Json.Serialization
+namespace Rapidity.Json.Converters
 {
-    /// <summary>
-    /// 可迭代集合类型
-    /// </summary>
-    internal class EnumerableDescriptor : TypeDescriptor
+    internal class EnumerableConverter : TypeConverter
     {
-        public override TypeKind TypeKind => TypeKind.List;
         public Type ItemType { get; protected set; }
 
-        public EnumerableDescriptor(Type type) : this(type, typeof(object))
-        {
-        }
-
-        public EnumerableDescriptor(Type type, Type itemType) : base(type)
+        public EnumerableConverter(Type type, Type itemType, TypeConverterProvider provider) : base(type, provider)
         {
             ItemType = itemType;
-        }
-
-        protected override Func<object> BuildCreateInstanceMethod(Type type)
-        {
-            NewExpression newExp = Expression.New(type);
-            Expression<Func<object>> expression = Expression.Lambda<Func<object>>(newExp);
-            return expression.Compile();
         }
 
         private Action<object, object> _addItem;
@@ -60,35 +46,25 @@ namespace Rapidity.Json.Serialization
             var expression = Expression.Lambda<Func<object, IEnumerator>>(body, paramExp);
             return expression.Compile();
         }
-    }
 
-    internal class ArrayDescriptor : EnumerableDescriptor
-    {
-        public override TypeKind TypeKind => TypeKind.Array;
-
-        public ArrayDescriptor(Type type) :
-            base(typeof(List<>).MakeGenericType(type.GetElementType()), type.GetElementType())
+        public override bool CanConvert(Type type)
         {
+            throw new NotImplementedException();
         }
 
-        private Func<object, object> _toArray;
-        public Func<object, object> ToArray => _toArray = _toArray ?? BuildToArrayMethod(Type);
-
-        protected Func<object, object> BuildToArrayMethod(Type type)
+        public override TypeConverter Create(Type type, TypeConverterProvider provider)
         {
-            var objExp = Expression.Parameter(typeof(object), "list");
+            return null;
+        }
 
-            var equalExp = Expression.Equal(objExp, Expression.Constant(null));
+        public override object FromReader(JsonReader read)
+        {
+            throw new NotImplementedException();
+        }
 
-            var listExp = Expression.TypeAs(objExp, type);
-            var method = type.GetMethod("ToArray");
-            var call = Expression.Call(listExp, method);
-            //判断入参是否为null
-            var body = Expression.Condition(equalExp,
-                                objExp,
-                                Expression.TypeAs(call, typeof(object)));
-            var expression = Expression.Lambda<Func<object, object>>(body, objExp);
-            return expression.Compile();
+        public override void WriteTo(JsonWriter write, object obj)
+        {
+            throw new NotImplementedException();
         }
     }
 }

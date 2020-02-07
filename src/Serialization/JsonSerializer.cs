@@ -24,6 +24,7 @@ namespace Rapidity.Json.Serialization
                 case TypeKind.Object: return ConvertObject(reader, (ObjectDescriptor)desc);
                 case TypeKind.Value: return ConvertValue(reader, type);
                 case TypeKind.List: return ConvertList(reader, (EnumerableDescriptor)desc);
+                case TypeKind.Array: return ConvertArray(reader, (ArrayDescriptor)desc);
                 case TypeKind.Dictionary: return ConvertDictionary(reader, (DictionaryDescriptor)desc);
             }
             return null;
@@ -32,7 +33,7 @@ namespace Rapidity.Json.Serialization
         private object ConvertObject(JsonReader reader, ObjectDescriptor descriptor)
         {
             if (reader.TokenType != JsonTokenType.StartArray && reader.TokenType != JsonTokenType.Null)
-                throw new JsonException($"无效的JSON Token: {reader.TokenType},需要{JsonTokenType.StartObject} Token:{{", reader.Line, reader.Position);
+                throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{descriptor.Type}, 应为{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
             object instance = null;
             do
             {
@@ -55,12 +56,12 @@ namespace Rapidity.Json.Serialization
 
         private object ConvertValue(JsonReader reader, Type type)
         {
-            if (reader.TokenType != JsonTokenType.String
-                && reader.TokenType != JsonTokenType.Number
-                && reader.TokenType != JsonTokenType.True
-                && reader.TokenType != JsonTokenType.False
-                && reader.TokenType != JsonTokenType.Null)
-                throw new JsonException($"无效的JSON Value Type:{reader.TokenType}", reader.Line, reader.Position);
+            if (reader.TokenType == JsonTokenType.StartObject
+                || reader.TokenType == JsonTokenType.EndObject
+                || reader.TokenType == JsonTokenType.StartArray
+                || reader.TokenType == JsonTokenType.EndArray
+                || reader.TokenType == JsonTokenType.PropertyName)
+                throw new JsonException($"无效的JSON Value Type:{reader.TokenType},序列化对象:{type}", reader.Line, reader.Position);
             switch (Type.GetTypeCode(type))
             {
                 case TypeCode.Boolean: return reader.GetBoolean();
@@ -96,7 +97,7 @@ namespace Rapidity.Json.Serialization
         private object ConvertList(JsonReader reader, EnumerableDescriptor descriptor)
         {
             if (reader.TokenType != JsonTokenType.StartArray && reader.TokenType != JsonTokenType.Null)
-                throw new JsonException($"无效的JSON Token: {reader.TokenType},需要{JsonTokenType.StartArray} Token:[", reader.Line, reader.Position);
+                throw new JsonException($"无效的JSON Token: {reader.TokenType},,序列化对象:{descriptor.Type},应为：{JsonTokenType.StartArray}[", reader.Line, reader.Position);
             object instance = null;
             do
             {
@@ -127,10 +128,17 @@ namespace Rapidity.Json.Serialization
             return instance;
         }
 
+        private object ConvertArray(JsonReader reader, ArrayDescriptor descriptor)
+        {
+            var instance = ConvertList(reader, descriptor);
+            return descriptor.ToArray(instance);
+        }
+
         private object ConvertDictionary(JsonReader reader, DictionaryDescriptor descriptor)
         {
-            if (reader.TokenType != JsonTokenType.StartObject && reader.TokenType != JsonTokenType.Null)
-                throw new JsonException($"无效的JSON Token: {reader.TokenType},需要{JsonTokenType.StartObject} Token:{{", reader.Line, reader.Position);
+            if (reader.TokenType != JsonTokenType.StartObject 
+                && reader.TokenType != JsonTokenType.Null)
+                throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{descriptor.Type},应为:{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
             object instance = null;
             object key = null;
             do

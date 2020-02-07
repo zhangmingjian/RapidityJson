@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rapidity.Json.Serialization;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -26,7 +27,11 @@ namespace Rapidity.Json
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public abstract object To(Type type);
+        public virtual object To(Type type)
+        {
+            return null;
+            // return new JsonSerializer().Deserialize(type);
+        }
 
         public override string ToString()
         {
@@ -35,7 +40,7 @@ namespace Rapidity.Json
 
         public string ToString(JsonWriteOption option)
         {
-            using (var sw = new StringWriter(new StringBuilder(1024), CultureInfo.InvariantCulture))
+            using (var sw = new StringWriter(new StringBuilder(1024)))
             using (var write = new JsonWriter(sw, option))
             {
                 write.WriteToken(this);

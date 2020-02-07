@@ -1,26 +1,21 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 
-namespace Rapidity.Json.Serialization
+namespace Rapidity.Json.Converters
 {
-    internal class DictionaryDescriptor : TypeDescriptor
+    /// <summary>
+    /// 
+    /// </summary>
+    internal class DictionaryConverter : TypeConverter
     {
-        public override TypeKind TypeKind => TypeKind.Dictionary;
-
         public Type KeyType { get; protected set; }
 
         public Type ValueType { get; protected set; }
 
-        public DictionaryDescriptor(Type type) : this(type, typeof(object), typeof(object))
-        {
-        }
-
-        public DictionaryDescriptor(Type type, Type keyType, Type valueType) : base(type)
+        public DictionaryConverter(Type type, Type keyType, Type valueType, TypeConverterProvider provider) : base(type, provider)
         {
             this.KeyType = keyType;
             this.ValueType = valueType;
@@ -41,7 +36,7 @@ namespace Rapidity.Json.Serialization
             var valueExp = Expression.Convert(valueParaExp, ValueType);
             //调用索引器赋值
             var property = type.GetProperty("Item", new Type[] { KeyType });
-            var indexExp = Expression.MakeIndex(dicExp, property,new Expression[] { keyExp });
+            var indexExp = Expression.MakeIndex(dicExp, property, new Expression[] { keyExp });
             var body = Expression.Assign(indexExp, valueExp);
             //var method = type.GetMethod(AddKeyValueMethodName, new Type[] { KeyType, ValueType });
             //var body = Expression.Call(dicExp, method, keyExp, valueExp);
@@ -95,15 +90,30 @@ namespace Rapidity.Json.Serialization
             var expression = Expression.Lambda<Func<object, object, object>>(body, objExp, keyParaExp);
             return expression.Compile();
         }
-    }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    internal class StringKeyValueDescriptor : DictionaryDescriptor
-    {
-        public StringKeyValueDescriptor(Type type) : base(type, typeof(string), typeof(string))
+        public override bool CanConvert(Type type)
         {
+            throw new NotImplementedException();
+        }
+
+        public override TypeConverter Create(Type type, TypeConverterProvider provider)
+        {
+            if (type.IsGenericType)
+            {
+                var arguments = type.GetGenericArguments();
+                return new DictionaryConverter(type, arguments[0], arguments[1], provider);
+            }
+            return new DictionaryConverter(type, typeof(object), typeof(object), provider);
+        }
+
+        public override object FromReader(JsonReader read)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void WriteTo(JsonWriter write, object obj)
+        {
+            throw new NotImplementedException();
         }
     }
 }

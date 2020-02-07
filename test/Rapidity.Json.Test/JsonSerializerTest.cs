@@ -63,7 +63,7 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ConvertDictionaryTest()
         {
-            var json = "{\"name\":[100,234],\"id\":null,\"reamark\":{} }";
+            var json = "{\"name\":[100,234],\"id\":null,\"reamark\":[] }";
             var reader = new JsonReader(json);
             var serializer = new JsonSerializer();
             var collection = serializer.Deserialize<Dictionary<string, int[]>>(reader);

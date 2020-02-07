@@ -12,6 +12,7 @@ namespace Rapidity.Json.Serialization
         Value,
         Object,
         List,
+        Array,
         Dictionary
     }
 
