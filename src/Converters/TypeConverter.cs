@@ -6,28 +6,20 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    public abstract class TypeConverter : IConverterCreator
+    public abstract class TypeConverter
     {
         public TypeConverterProvider Provider { get; protected set; }
         public Type Type { get; protected set; }
 
-        protected TypeConverter(Type type, TypeConverterProvider provider)
+        public TypeConverter(Type type, TypeConverterProvider provider)
         {
             this.Type = type;
             this.Provider = provider;
         }
 
-        public abstract bool CanConvert(Type type);
+        private Func<object> _createInstance;
 
-        public abstract TypeConverter Create(Type type, TypeConverterProvider provider);
-
-        public abstract object FromReader(JsonReader read);
-
-        public abstract void WriteTo(JsonWriter write, object obj);
-
-        protected Func<object> _createInstance;
-
-        protected virtual Func<object> CreateInstance
+        public virtual Func<object> CreateInstance
             => _createInstance = _createInstance ?? BuildCreateInstanceMethod(this.Type);
 
         protected virtual Func<object> BuildCreateInstanceMethod(Type type)
@@ -45,7 +37,7 @@ namespace Rapidity.Json.Converters
                 foreach (var para in parameters)
                 {
                     var converter = Provider.Build(para.ParameterType);
-                    ConstantExpression constant = Expression.Constant(converter.CreateInstance(), para.ParameterType);
+                    ConstantExpression constant = Expression.Constant(converter.CreateInstance());
                     parametExps.Add(constant);
                 }
                 newExp = Expression.New(constructor, parametExps);
@@ -53,5 +45,11 @@ namespace Rapidity.Json.Converters
             Expression<Func<object>> expression = Expression.Lambda<Func<object>>(newExp);
             return expression.Compile();
         }
+
+        public abstract object FromReader(JsonReader read);
+
+        public abstract object FromToken(JsonToken token);
+
+        public abstract void WriteTo(JsonWriter write, object obj);
     }
 }

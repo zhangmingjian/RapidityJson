@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -9,7 +10,7 @@ namespace Rapidity.Json.Converters
     /// <summary>
     /// 
     /// </summary>
-    internal class DictionaryConverter : TypeConverter
+    internal class DictionaryConverter : TypeConverter, IConverterCreator
     {
         public Type KeyType { get; protected set; }
 
@@ -91,29 +92,101 @@ namespace Rapidity.Json.Converters
             return expression.Compile();
         }
 
-        public override bool CanConvert(Type type)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override TypeConverter Create(Type type, TypeConverterProvider provider)
+        public virtual bool CanConvert(Type type)
         {
             if (type.IsGenericType)
             {
                 var arguments = type.GetGenericArguments();
-                return new DictionaryConverter(type, arguments[0], arguments[1], provider);
+                if (arguments.Length == 2)
+                {
+                    var dicType = typeof(Dictionary<,>).MakeGenericType(arguments[0], arguments[1]);
+                    if (dicType == type || type.IsAssignableFrom(dicType))
+                        return true;
+                }
             }
-            return new DictionaryConverter(type, typeof(object), typeof(object), provider);
+            return false;
         }
 
-        public override object FromReader(JsonReader read)
+        public virtual TypeConverter Create(Type type, TypeConverterProvider provider)
+        {
+            var arguments = type.GetGenericArguments();
+            if (type.IsClass && !type.IsAbstract)
+                return new DictionaryConverter(type, arguments[0], arguments[1], provider);
+            var dicType = typeof(Dictionary<,>).MakeGenericType(arguments[0], arguments[1]);
+            return new DictionaryConverter(dicType, arguments[0], arguments[1], provider);
+        }
+
+        public override object FromReader(JsonReader reader)
+        {
+            object instance = null;
+            object key = null;
+            var convert = Provider.Build(ValueType);
+            do
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.EndObject: return instance;
+                    case JsonTokenType.StartObject:
+                        if (instance == null) instance = CreateInstance();
+                        else
+                            SetKeyValue(instance, key, convert.FromReader(reader));
+                        break;
+                    case JsonTokenType.PropertyName:
+                        key = reader.Value;
+                        break;
+                    case JsonTokenType.StartArray:
+                    case JsonTokenType.String:
+                    case JsonTokenType.Number:
+                    case JsonTokenType.True:
+                    case JsonTokenType.False:
+                        SetKeyValue(instance, key, convert.FromReader(reader));
+                        break;
+                    case JsonTokenType.Null:
+                        if (instance == null) return instance;
+                        SetKeyValue(instance, key, null);
+                        break;
+                    case JsonTokenType.None: break;
+                }
+            } while (reader.Read());
+            if (instance == null) throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type},应为:{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
+            return instance;
+        }
+
+        public override object FromToken(JsonToken token)
         {
             throw new NotImplementedException();
         }
 
-        public override void WriteTo(JsonWriter write, object obj)
+        public override void WriteTo(JsonWriter writer, object obj)
         {
-            throw new NotImplementedException();
+            if (obj == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    internal class StringKeyValueConverter : DictionaryConverter, IConverterCreator
+    {
+
+        public StringKeyValueConverter(Type type, TypeConverterProvider provider)
+            : base(type, typeof(string), typeof(string), provider)
+        {
+        }
+
+        public override bool CanConvert(Type type)
+        {
+            return type == typeof(StringDictionary) || type == typeof(NameValueCollection);
+        }
+
+        public override TypeConverter Create(Type type, TypeConverterProvider provider)
+        {
+            return new StringKeyValueConverter(type, provider);
         }
     }
 }

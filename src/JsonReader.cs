@@ -457,51 +457,6 @@ namespace Rapidity.Json
 
         #endregion
 
-        #region Get Value
-
-        public string GetString() => TokenType == JsonTokenType.Null ? null : Value;
-
-        public char GetChar()
-        {
-            if (char.TryParse(Value, out char c)) return c;
-            throw new JsonException($"无效的{typeof(char)}类型：{Value}", _line, _position);
-        }
-
-        public byte GetByte() => byte.Parse(Value, CultureInfo.InvariantCulture);
-
-        public sbyte GetSByte() => sbyte.Parse(Value, CultureInfo.InvariantCulture);
-
-        public int GetInt() => int.Parse(Value, CultureInfo.InvariantCulture);
-
-        public uint GetUInt() => uint.Parse(Value, CultureInfo.InvariantCulture);
-
-        public short GetShort() => short.Parse(Value, CultureInfo.InvariantCulture);
-
-        public ushort GetUShort() => ushort.Parse(Value, CultureInfo.InvariantCulture);
-
-        public long GetLong() => long.Parse(Value);
-
-        public ulong GetULong() => ulong.Parse(Value);
-
-        public float GetFloat() => float.Parse(Value);
-
-        public double GetDouble() => double.Parse(Value);
-
-        public decimal GetDecimal() => decimal.Parse(Value);
-
-        public bool GetBoolean()
-        {
-            if (TokenType == JsonTokenType.True) return true;
-            if (TokenType == JsonTokenType.False) return false;
-            throw new JsonException($"不是有效的JSON Boolean Type：{TokenType},{Value}", _line, _position);
-        }
-
-        public DateTime GetDateTime() => DateTime.Parse(Value, CultureInfo.CurrentCulture);
-
-        public Guid GetGuid() => Guid.Parse(Value);
-
-        #endregion
-
         public void Dispose()
         {
             _reader?.Close();

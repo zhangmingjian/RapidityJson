@@ -5,12 +5,10 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class ArrayConverter : EnumerableConverter
+    internal class ArrayConverter : EnumerableConverter, IConverterCreator
     {
-        public ArrayConverter(Type type, TypeConverterProvider provider) :
-            base(typeof(List<>).MakeGenericType(type.GetElementType()),
-                type.GetElementType(),
-                provider)
+        public ArrayConverter(Type type, Type elementType, TypeConverterProvider provider) :
+            base(type, elementType, provider)
         {
         }
 
@@ -36,12 +34,20 @@ namespace Rapidity.Json.Converters
 
         public override bool CanConvert(Type type)
         {
-            throw new NotImplementedException();
+            return type.IsArray;
         }
 
         public override TypeConverter Create(Type type, TypeConverterProvider provider)
         {
-            return null;
+            var elementType = type.GetElementType();
+            var listType = typeof(List<>).MakeGenericType(elementType);
+            return new ArrayConverter(listType, elementType, provider);
+        }
+
+        public override object FromReader(JsonReader reader)
+        {
+            var list =  base.FromReader(reader);
+            return ToArray(list);
         }
     }
 }

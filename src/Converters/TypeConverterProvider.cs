@@ -24,7 +24,16 @@ namespace Rapidity.Json.Converters
 
         public DefaultTypeConverterProvider()
         {
-            _converters = new List<IConverterCreator>();
+            _converters = new List<IConverterCreator>()
+            {
+                new ValueConverter(null,null),
+                new ObjectConverter(null,null),
+                new ListConverter(null,null,null),
+                new ArrayConverter(null,null,null),
+                new DictionaryConverter(null,null,null,null),
+                new StringKeyValueConverter(null,null),
+                new JsonTokenConverter(null,null)
+            };
         }
         public override void AddConverterFactory(IConverterCreator converter)
         {

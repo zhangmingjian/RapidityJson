@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class EnumerableConverter : TypeConverter
+    internal abstract class EnumerableConverter : TypeConverter, IConverterCreator
     {
         public Type ItemType { get; protected set; }
 
@@ -30,7 +30,7 @@ namespace Rapidity.Json.Converters
             return addItemExp.Compile();
         }
 
-        protected string AddMethodName { get; set; } = "Add";
+        protected virtual string AddMethodName => "Add";
 
         private Func<object, IEnumerator> _getEnumerator;
 
@@ -47,24 +47,65 @@ namespace Rapidity.Json.Converters
             return expression.Compile();
         }
 
-        public override bool CanConvert(Type type)
+        public abstract bool CanConvert(Type type);
+
+        public abstract TypeConverter Create(Type type, TypeConverterProvider provider);
+
+        public override object FromReader(JsonReader reader)
+        {
+            object instance = null;
+            var convert = Provider.Build(ItemType);
+            do
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.EndArray: return instance;
+                    case JsonTokenType.StartArray:
+                        if (instance == null) instance = CreateInstance();
+                        else
+                        {
+                            AddItem(instance, convert.FromReader(reader));
+                        }
+                        break;
+                    case JsonTokenType.StartObject:
+                    case JsonTokenType.String:
+                    case JsonTokenType.Number:
+                    case JsonTokenType.True:
+                    case JsonTokenType.False:
+                        var valueItem = convert.FromReader(reader);
+                        AddItem(instance, valueItem);
+                        break;
+                    case JsonTokenType.Null:
+                        if (instance == null) return instance;
+                        AddItem(instance, null);
+                        break;
+                    case JsonTokenType.None: break;
+                }
+            } while (reader.Read());
+            if (instance == null) throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type},应为：{JsonTokenType.StartArray}[", reader.Line, reader.Position);
+            return instance;
+        }
+
+        public override object FromToken(JsonToken token)
         {
             throw new NotImplementedException();
         }
 
-        public override TypeConverter Create(Type type, TypeConverterProvider provider)
+        public override void WriteTo(JsonWriter writer, object obj)
         {
-            return null;
-        }
-
-        public override object FromReader(JsonReader read)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void WriteTo(JsonWriter write, object obj)
-        {
-            throw new NotImplementedException();
+            if (obj == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+            writer.WriteStartArray();
+            var enumer = GetEnumerator(obj);
+            var convert = Provider.Build(ItemType);
+            while (enumer.MoveNext())
+            {
+                convert.WriteTo(writer,enumer.Current);
+            }
+            writer.WriteEndArray();
         }
     }
 }

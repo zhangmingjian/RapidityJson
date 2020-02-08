@@ -1,9 +1,6 @@
-﻿using Rapidity.Json.Serialization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Text;
 using Xunit;
 
 namespace Rapidity.Json.Test
@@ -28,6 +25,15 @@ namespace Rapidity.Json.Test
             var reader = new JsonReader(json);
             var serializer = new JsonSerializer();
             var collection = serializer.Deserialize<IReadOnlyCollection<Person>>(reader);
+        }
+
+        [Fact]
+        public void ConvertDictionaryTest()
+        {
+            var json = "{\"name\":\"jluoiuio\",\"id\":\"545465\",\"reamark\":[null] }";
+            var reader = new JsonReader(json);
+            var serializer = new JsonSerializer();
+            var collection = serializer.Deserialize<IDictionary<string, object>>(reader);
         }
 
         [Fact]
@@ -61,15 +67,6 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
-        public void ConvertDictionaryTest()
-        {
-            var json = "{\"name\":[100,234],\"id\":null,\"reamark\":[] }";
-            var reader = new JsonReader(json);
-            var serializer = new JsonSerializer();
-            var collection = serializer.Deserialize<Dictionary<string, int[]>>(reader);
-        }
-
-        [Fact]
         public void WriteDictionaryTest()
         {
             //var dic = new NameValueCollection();
@@ -77,6 +74,12 @@ namespace Rapidity.Json.Test
             dic.Add("aaaa","1111");
             dic.Add("bbbb","efoioweu");
             var json = new JsonSerializer().Serialize(dic);
+        }
+
+        [Fact]
+        public void ValueTypeTest()
+        {
+            var f = typeof(StringComparison).IsPrimitive;
         }
     }
 }

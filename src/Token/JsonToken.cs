@@ -1,6 +1,4 @@
-﻿using Rapidity.Json.Serialization;
-using System;
-using System.Globalization;
+﻿using System;
 using System.IO;
 using System.Text;
 
@@ -19,7 +17,10 @@ namespace Rapidity.Json
         /// <returns></returns>
         public static JsonToken Parse(string json)
         {
-            return new JsonParser().Parse(json);
+            using (var reader = new JsonReader(json))
+            {
+                return new JsonSerializer().Deserialize<JsonToken>(reader);
+            }
         }
 
         /// <summary>
@@ -30,7 +31,6 @@ namespace Rapidity.Json
         public virtual object To(Type type)
         {
             return null;
-            // return new JsonSerializer().Deserialize(type);
         }
 
         public override string ToString()

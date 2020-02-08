@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,7 +8,7 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class ObjectConverter : TypeConverter
+    internal class ObjectConverter : TypeConverter, IConverterCreator
     {
         public ObjectConverter(Type type, TypeConverterProvider provider) : base(type, provider)
         {
@@ -65,24 +66,77 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"类型{Type}不包含成员{memberName}");
         }
 
-        public override bool CanConvert(Type type)
+        public bool CanConvert(Type type)
+        {
+            if (type.IsClass
+                && type != typeof(object)
+                && type != typeof(DBNull)
+                && !type.IsAbstract
+                && !typeof(IEnumerable).IsAssignableFrom(type)
+                && !typeof(Delegate).IsAssignableFrom(type))
+                return true;
+            //值类型且不是基元类型
+            if (type.IsValueType
+                && !type.IsPrimitive
+                && type != typeof(DateTime)
+                && type != typeof(decimal)
+                && type != typeof(Guid))
+                return true;
+            return false;
+        }
+
+        public TypeConverter Create(Type type, TypeConverterProvider provider)
+        {
+            return new ObjectConverter(type, provider);
+        }
+
+        public override object FromReader(JsonReader reader)
+        {
+            object instance = null;
+            do
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.StartObject: instance = CreateInstance(); break;
+                    case JsonTokenType.Null:
+                    case JsonTokenType.EndObject: return instance;
+                    case JsonTokenType.PropertyName:
+                        var property = GetMemberDefinition(reader.Value);
+                        var converter = Provider.Build(property.MemberType);
+                        reader.Read();
+                        var value = converter.FromReader(reader);
+                        property?.SetValue(instance, value);
+                        break;
+                    case JsonTokenType.None: break;
+                    default: throw new JsonException($"无效的JSON Token:{reader.TokenType}", reader.Line, reader.Position);
+                }
+            }
+            while (reader.Read());
+            if (instance == null) throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type}, 应为{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
+            return instance;
+        }
+
+        public override object FromToken(JsonToken token)
         {
             throw new NotImplementedException();
         }
 
-        public override TypeConverter Create(Type type, TypeConverterProvider provider)
+        public override void WriteTo(JsonWriter writer, object obj)
         {
-            return null;
-        }
-
-        public override object FromReader(JsonReader read)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void WriteTo(JsonWriter write, object obj)
-        {
-            throw new NotImplementedException();
+            if (obj == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+            writer.WriteStartObject();
+            foreach (var member in this.MemberDefinitions)
+            {
+                writer.WritePropertyName(member.JsonProperty);
+                var convert = Provider.Build(obj.GetType());
+                var value = GetValue(obj, member.JsonProperty);
+                convert.WriteTo(writer, value);
+            }
+            writer.WriteEndObject();
         }
     }
 
