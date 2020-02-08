@@ -164,7 +164,16 @@ namespace Rapidity.Json.Converters
                 writer.WriteNull();
                 return;
             }
-
+            writer.WriteStartObject();
+            var keys = GetKeys(obj);
+            while (keys.MoveNext())
+            {
+                writer.WritePropertyName(keys.Current.ToString());
+                var value = GetValue(obj, keys.Current);
+                var convert = Provider.Build(value.GetType());
+                convert.WriteTo(writer, value);
+            }
+            writer.WriteEndObject();
         }
     }
 

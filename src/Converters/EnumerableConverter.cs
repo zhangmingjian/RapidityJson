@@ -100,10 +100,11 @@ namespace Rapidity.Json.Converters
             }
             writer.WriteStartArray();
             var enumer = GetEnumerator(obj);
-            var convert = Provider.Build(ItemType);
             while (enumer.MoveNext())
             {
-                convert.WriteTo(writer,enumer.Current);
+                var current = enumer.Current;
+                var convert = Provider.Build(current.GetType());
+                convert.WriteTo(writer, current);
             }
             writer.WriteEndArray();
         }

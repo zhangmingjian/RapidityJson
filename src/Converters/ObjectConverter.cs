@@ -132,8 +132,8 @@ namespace Rapidity.Json.Converters
             foreach (var member in this.MemberDefinitions)
             {
                 writer.WritePropertyName(member.JsonProperty);
-                var convert = Provider.Build(obj.GetType());
                 var value = GetValue(obj, member.JsonProperty);
+                var convert = Provider.Build(member.MemberType);
                 convert.WriteTo(writer, value);
             }
             writer.WriteEndObject();
