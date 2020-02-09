@@ -38,11 +38,11 @@ namespace Rapidity.Json.Converters
 
         private Func<object, IEnumerator> BuildGetEnumberatorMethod(Type type)
         {
-            var paramExp = Expression.Parameter(typeof(object));
+            var paramExp = Expression.Parameter(typeof(object), "list");
             var listExp = Expression.TypeAs(paramExp, type);
             var method = type.GetMethod(nameof(IEnumerable.GetEnumerator));
             var callExp = Expression.Call(listExp, method);
-            var body = Expression.TypeAs(callExp, typeof(IEnumerator));
+            var body = Expression.TypeAs(callExp,typeof(IEnumerator));
             var expression = Expression.Lambda<Func<object, IEnumerator>>(body, paramExp);
             return expression.Compile();
         }
@@ -88,7 +88,20 @@ namespace Rapidity.Json.Converters
 
         public override object FromToken(JsonToken token)
         {
-            throw new NotImplementedException();
+            if (token.ValueType == JsonValueType.Null) return null;
+            if (token.ValueType == JsonValueType.Array)
+            {
+                var list = CreateInstance();
+                var arrayToken = (JsonArray)token;
+                foreach (var item in arrayToken)
+                {
+                    var convert = Provider.Build(ItemType);
+                    var itemValue = convert.FromToken(item);
+                    AddItem(list, itemValue);
+                }
+                return list;
+            }
+            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
         }
 
         public override void WriteTo(JsonWriter writer, object obj)
@@ -103,6 +116,11 @@ namespace Rapidity.Json.Converters
             while (enumer.MoveNext())
             {
                 var current = enumer.Current;
+                if (current == null)
+                {
+                    writer.WriteNull();
+                    continue;
+                }
                 var convert = Provider.Build(current.GetType());
                 convert.WriteTo(writer, current);
             }

@@ -27,6 +27,7 @@ namespace Rapidity.Json.Converters
             _converters = new List<IConverterCreator>()
             {
                 new ValueConverter(null,null),
+                new EnumConverter(null,null),
                 new ObjectConverter(null,null),
                 new ListConverter(null,null,null),
                 new ArrayConverter(null,null,null),

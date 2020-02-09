@@ -23,7 +23,8 @@ namespace Rapidity.Json
         private char _currentChar;  //当前字符
         private int _depth;         //当前深度
         private JsonTokenType _tokenType; //当前jsontoken
-        private string _value; //当前token值
+        private string _text; //当前读取的文本值
+        private double? _number; //当前读取的数字值
 
         #region public properties
         /// <summary>
@@ -47,9 +48,13 @@ namespace Rapidity.Json
         /// </summary>
         public JsonTokenType TokenType => _tokenType;
         /// <summary>
-        /// 当前Value
+        /// 读取的文本值
         /// </summary>
-        public string Value => _value;
+        public string Text => _text;
+        /// <summary>
+        /// 读取的数字值
+        /// </summary>
+        public double? Number => _number;
         #endregion
 
         /// <summary>
@@ -407,23 +412,26 @@ namespace Rapidity.Json
                     default: throw new JsonException($"无效的JSON Number {_buffer.Append(next)}", _line, _position);
                 }
             } while (canRead);
-            var number = _buffer.ToString();
-            if (!double.TryParse(number, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out double val))
-                throw new JsonException($"无效的JSON Number {number}", _line, _position);
-            _buffer.Length = 0;
-            _state = ReadState.Value;
-            SetToken(JsonTokenType.Number, number);
-            return true;
+            var value = _buffer.ToString();
+            if (double.TryParse(value, out double number))
+            {
+                _buffer.Length = 0;
+                _state = ReadState.Value;
+                SetToken(JsonTokenType.Number, value, number);
+                return true;
+            }
+            throw new JsonException($"无效的JSON Number {value}", _line, _position);
         }
 
         #endregion
 
         #region token validated
 
-        private void SetToken(JsonTokenType token, string value = null)
+        private void SetToken(JsonTokenType token, string text = null, double? number = null)
         {
             _tokenType = token;
-            _value = value;
+            _text = text;
+            _number = number;
         }
 
         /// <summary>

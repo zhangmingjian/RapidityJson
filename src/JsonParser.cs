@@ -22,8 +22,8 @@ namespace Rapidity.Json
                     {
                         case JsonTokenType.StartObject: return ReadObject(reader);
                         case JsonTokenType.StartArray: return ReadArray(reader);
-                        case JsonTokenType.String: return new JsonString(reader.Value);
-                        case JsonTokenType.Number: return new JsonNumber(reader.Value);
+                        case JsonTokenType.String: return new JsonString(reader.Text);
+                        case JsonTokenType.Number: return new JsonNumber(reader.Number.Value);
                         case JsonTokenType.True: return new JsonBoolean(true);
                         case JsonTokenType.False: return new JsonBoolean(false);
                         case JsonTokenType.Null: return new JsonNull();
@@ -93,12 +93,12 @@ namespace Rapidity.Json
                 switch (reader.TokenType)
                 {
                     case JsonTokenType.PropertyName:
-                        property = type.GetProperty(reader.Value, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.SetProperty);
+                        property = type.GetProperty(reader.Text, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.SetProperty);
                         break;
                     case JsonTokenType.String:
                         if (property != null)
                         {
-                            property.SetValue(data, reader.Value);
+                            property.SetValue(data, reader.Text);
                         }
                         break;
                 }
@@ -121,13 +121,13 @@ namespace Rapidity.Json
                 {
                     case JsonTokenType.EndObject: return jObject;
                     case JsonTokenType.PropertyName:
-                        property = reader.Value;
+                        property = reader.Text;
                         break;
                     case JsonTokenType.String:
-                        jObject.AddProperty(property, new JsonString(reader.Value));
+                        jObject.AddProperty(property, new JsonString(reader.Text));
                         break;
                     case JsonTokenType.Number:
-                        jObject.AddProperty(property, new JsonNumber(reader.Value));
+                        jObject.AddProperty(property, new JsonNumber(reader.Number.Value));
                         break;
                     case JsonTokenType.True:
                         jObject.AddProperty(property, new JsonBoolean(true));
@@ -169,10 +169,10 @@ namespace Rapidity.Json
                         jArray.Add(ReadObject(reader));
                         break;
                     case JsonTokenType.String:
-                        jArray.Add(new JsonString(reader.Value));
+                        jArray.Add(new JsonString(reader.Text));
                         break;
                     case JsonTokenType.Number:
-                        jArray.Add(new JsonNumber(reader.Value));
+                        jArray.Add(new JsonNumber(reader.Number.Value));
                         break;
                     case JsonTokenType.True:
                         jArray.Add(new JsonBoolean(true));

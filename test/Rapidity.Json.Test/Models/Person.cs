@@ -20,7 +20,9 @@ namespace Rapidity.Json.Test
 
         public string strField;
 
-        public ICollection<DateTimeKind> dateTimeKinds { get; set; }
+        public ICollection<DateTimeKind?> dateTimeKinds { get; set; }
+
+        public EnvironmentVariableTarget EnumField;
 
     }
 }

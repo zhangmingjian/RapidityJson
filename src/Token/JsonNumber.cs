@@ -5,80 +5,96 @@ namespace Rapidity.Json
 {
     public class JsonNumber : JsonToken, IEquatable<JsonNumber>
     {
-        private double _value;
+        private string _value;
 
         public override JsonValueType ValueType => JsonValueType.Number;
 
-        public JsonNumber() { }
+        public JsonNumber() => _value = "0";
 
-        public JsonNumber(string value) => this._value = double.Parse(value, CultureInfo.InvariantCulture);
-
-        public JsonNumber(int value) => _value = value;
-
-        public JsonNumber(short value) => _value = value;
-
-        public JsonNumber(long value) => _value = value;
-        public JsonNumber(ulong value) => _value = value;
-
-        public JsonNumber(float value) => _value = value;
-
-        public JsonNumber(double value) => _value = value;
-
-        public JsonNumber(decimal value) => _value = (double)value;
-
-        public int GetInt()
+        public JsonNumber(string value)
         {
-            checked { return (int)_value; }
+            if (value == null) throw new ArgumentNullException(nameof(value));
+            if (double.TryParse(value, out double val))
+            {
+                _value = value;
+            }
+            throw new JsonException($"无效的JSON Number值：{value}");
         }
 
-        public uint GetUInt()
+        public JsonNumber(int value) => _value = value.ToString();
+
+        public JsonNumber(short value) => _value = value.ToString();
+
+        public JsonNumber(long value) => _value = value.ToString();
+
+        public JsonNumber(ulong value) => _value = value.ToString();
+
+        public JsonNumber(float value) => _value = value.ToString();
+
+        public JsonNumber(double value) => _value = value.ToString();
+
+        public JsonNumber(decimal value) => _value = value.ToString();
+
+        public bool TryGetByte(out byte value)
         {
-            checked { return (uint)_value; }
+            return byte.TryParse(_value, out value);
         }
 
-        public short GetShort()
+        public bool TryGetSByte(out sbyte value)
         {
-            checked { return (short)_value; }
+            return sbyte.TryParse(_value, out value);
         }
 
-        public ushort GetUShort()
+        public bool TryGetInt(out int value)
         {
-            checked { return (ushort)_value; }
+            return int.TryParse(_value, out value);
         }
 
-        public long GetLong()
+        public bool TryGetUInt(out uint value)
         {
-            checked { return (long)_value; }
+            return uint.TryParse(_value, out value);
         }
 
-        public ulong GetULong()
+        public bool TryGetShort(out short value)
         {
-            checked { return (ulong)_value; }
+            return short.TryParse(_value, out value);
         }
 
-        public float GetFloat()
+        public bool TryGetUShort(out ushort value)
         {
-            checked { return (float)_value; }
+            return ushort.TryParse(_value, out value);
         }
 
-        public double GetDouble() => _value;
-
-        public decimal GetDecimal()
+        public bool TryGetLong(out long value)
         {
-            checked { return (decimal)_value; }
+            return long.TryParse(_value, out value);
         }
+
+        public bool TryGetULong(out ulong value)
+        {
+            return ulong.TryParse(_value, out value);
+        }
+
+        public bool TryGetFloat(out float value)
+        {
+            return float.TryParse(_value, out value);
+        }
+
+        public bool TryGetDouble(out double value)
+        {
+            return double.TryParse(_value, out value);
+        }
+        public bool TryGetDecimal(out decimal value)
+        {
+            return decimal.TryParse(_value, out value);
+        }
+
+        public override string ToString() => _value;
 
         public bool Equals(JsonNumber other) => other != null && this._value.Equals(other._value);
 
         public override bool Equals(object obj) => obj is JsonNumber jsonNumber && Equals(jsonNumber);
 
-        public override string ToString() => _value.ToString();
-
         public override int GetHashCode() => _value.GetHashCode();
-
-        public override object To(Type type)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

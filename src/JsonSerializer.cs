@@ -21,6 +21,18 @@ namespace Rapidity.Json
             return (T)Deserialize(reader, typeof(T));
         }
 
+        public object Deserialize(JsonToken token, Type type)
+        {
+            var provider = new DefaultTypeConverterProvider();
+            var convert = provider.Build(type);
+            return convert.FromToken(token);
+        }
+
+        public T Deserialize<T>(JsonToken token)
+        {
+            return (T)Deserialize(token, typeof(T));
+        }
+
         public string Serialize(object obj)
         {
             if (obj == null) throw new JsonException("序列化对象的值不能为Null");

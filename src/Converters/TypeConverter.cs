@@ -46,10 +46,10 @@ namespace Rapidity.Json.Converters
             return expression.Compile();
         }
 
-        public abstract object FromReader(JsonReader read);
+        public abstract object FromReader(JsonReader reader);
 
         public abstract object FromToken(JsonToken token);
 
-        public abstract void WriteTo(JsonWriter write, object obj);
+        public abstract void WriteTo(JsonWriter writer, object obj);
     }
 }

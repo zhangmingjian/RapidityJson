@@ -51,8 +51,7 @@ namespace Rapidity.Json.Converters
                 || type == typeof(decimal)
                 || type == typeof(Guid)
                 || type == typeof(DateTime)
-                || type == typeof(DateTimeOffset)
-                || type.IsEnum)
+                || type == typeof(DateTimeOffset))
                 return true;
             return false;
         }
@@ -74,16 +73,11 @@ namespace Rapidity.Json.Converters
                 case JsonTokenType.Number:
                 case JsonTokenType.Null:
                     return GetValue(reader);
-                default: throw new JsonException($"无效的JSON Value Type:{reader.TokenType},序列化对象:{Type}", reader.Line, reader.Position);
+                default: throw new JsonException($"无效的JSON Token:{reader.TokenType},序列化对象:{Type}", reader.Line, reader.Position);
             }
         }
 
-        public override object FromToken(JsonToken token)
-        {
-            throw new NotImplementedException();
-        }
-
-        #region Get Value
+        #region Get Value from reader
 
         private object GetValue(JsonReader reader)
         {
@@ -114,127 +108,337 @@ namespace Rapidity.Json.Converters
                         var convert = Provider.Build(valueType);
                         return convert.FromReader(reader);
                     }
-                    throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+                    throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
             }
         }
 
         private string GetString(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.String) return reader.Value;
+            if (reader.TokenType == JsonTokenType.String) return reader.Text;
             if (reader.TokenType == JsonTokenType.Null) return null;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private char GetChar(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.String && char.TryParse(reader.Value, out char value))
+            if (reader.TokenType == JsonTokenType.String && char.TryParse(reader.Text, out char value))
             {
                 return value;
             }
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private byte GetByte(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && byte.TryParse(reader.Value, out byte value))
+            if (reader.TokenType == JsonTokenType.Number && byte.TryParse(reader.Text, out byte value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private sbyte GetSByte(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && sbyte.TryParse(reader.Value, out sbyte value))
+            if (reader.TokenType == JsonTokenType.Number && sbyte.TryParse(reader.Text, out sbyte value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private int GetInt(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && int.TryParse(reader.Value, out int value))
+            if (reader.TokenType == JsonTokenType.Number && int.TryParse(reader.Text, out int value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private uint GetUInt(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && uint.TryParse(reader.Value, out uint value))
+            if (reader.TokenType == JsonTokenType.Number && uint.TryParse(reader.Text, out uint value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private short GetShort(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && short.TryParse(reader.Value, out short value))
+            if (reader.TokenType == JsonTokenType.Number && short.TryParse(reader.Text, out short value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private ushort GetUShort(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && ushort.TryParse(reader.Value, out ushort value))
+            if (reader.TokenType == JsonTokenType.Number && ushort.TryParse(reader.Text, out ushort value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private long GetLong(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && long.TryParse(reader.Value, out long value))
+            if (reader.TokenType == JsonTokenType.Number && long.TryParse(reader.Text, out long value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private ulong GetULong(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && ulong.TryParse(reader.Value, out ulong value))
+            if (reader.TokenType == JsonTokenType.Number && ulong.TryParse(reader.Text, out ulong value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private float GetFloat(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && float.TryParse(reader.Value, out float value))
-                return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            switch (reader.TokenType)
+            {
+                case JsonTokenType.Number:
+                    if (float.TryParse(reader.Text, out float value))
+                        return value;
+                    break;
+                case JsonTokenType.String:
+                    if (float.TryParse(reader.Text, out float val) &&
+                        (float.IsNaN(val)) || float.IsNegativeInfinity(val) || float.IsPositiveInfinity(val))
+                    {
+                        return val;
+                    }
+                    break;
+                default: break;
+            }
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private double GetDouble(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && double.TryParse(reader.Value, out double value))
+            if (reader.TokenType == JsonTokenType.Number && double.TryParse(reader.Text, out double value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
         private decimal GetDecimal(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.Number && decimal.TryParse(reader.Value, out decimal value))
+            if (reader.TokenType == JsonTokenType.Number && decimal.TryParse(reader.Text, out decimal value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private bool GetBoolean(JsonReader reader)
         {
             if (reader.TokenType == JsonTokenType.True) return true;
             if (reader.TokenType == JsonTokenType.False) return false;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private Guid GetGuid(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.String && Guid.TryParse(reader.Value, out Guid value))
+            if (reader.TokenType == JsonTokenType.String && Guid.TryParse(reader.Text, out Guid value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private DBNull GetDBNull(JsonReader reader)
         {
             if (reader.TokenType == JsonTokenType.Null) return DBNull.Value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private DateTime GetDateTime(JsonReader reader)
         {
-            if (reader.TokenType == JsonTokenType.String && DateTime.TryParse(reader.Value, out DateTime value))
+            if (reader.TokenType == JsonTokenType.String && DateTime.TryParse(reader.Text, out DateTime value))
                 return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Value},序列化对象:{Type}", reader.Line, reader.Position);
+            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
+        }
+
+        #endregion
+
+        public override object FromToken(JsonToken token)
+        {
+            switch (Type.GetTypeCode(Type))
+            {
+                case TypeCode.Byte: return GetByte(token);
+                case TypeCode.SByte: return GetSByte(token);
+                case TypeCode.Int16: return GetShort(token);
+                case TypeCode.UInt16: return GetUShort(token);
+                case TypeCode.Int32: return GetInt(token);
+                case TypeCode.UInt32: return GetUInt(token);
+                case TypeCode.Int64: return GetLong(token);
+                case TypeCode.UInt64: return GetULong(token);
+                case TypeCode.Single: return GetFloat(token);
+                case TypeCode.Double: return GetDouble(token);
+                case TypeCode.Decimal: return GetDecimal(token);
+                case TypeCode.String: return GetString(token);
+                case TypeCode.Char: return GetChar(token);
+                case TypeCode.Boolean: return GetBoolean(token);
+                case TypeCode.DateTime: return GetDateTime(token);
+                default:
+                    if (Type == typeof(Guid)) return GetGuid(token);
+                    if (Type == typeof(DBNull)) return GetDBNull(token);
+                    var valueType = Nullable.GetUnderlyingType(Type);
+                    if (valueType != null)
+                    {
+                        if (token.ValueType == JsonValueType.Null) return null;
+                        var convert = Provider.Build(valueType);
+                        return convert.FromToken(token);
+                    }
+                    throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
+            }
+        }
+
+        #region  get value from jsontoken
+
+        private object GetString(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.String)
+            {
+                return ((JsonString)token).Value;
+            }
+            if (token.ValueType == JsonValueType.Null)
+            {
+                return null;
+            }
+            return Throw(token);
+        }
+
+        private object GetChar(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.String 
+                && char.TryParse(((JsonString)token).Value,out char value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetBoolean(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Boolean)
+            {
+                return ((JsonBoolean)token).Value;
+            }
+            return Throw(token);
+        }
+
+        private object GetByte(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetByte(out byte value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetSByte(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetSByte(out sbyte value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetInt(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetInt(out int value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetShort(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetShort(out short value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetUShort(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetUShort(out ushort value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+        private object GetUInt(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetUInt(out uint value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+        private object GetLong(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetLong(out long value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetULong(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetULong(out ulong value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetFloat(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetFloat(out float value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+        private object GetDouble(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetDouble(out double value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetDecimal(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetDecimal(out decimal value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetGuid(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.String &&Guid.TryParse(((JsonString)token).Value,out Guid value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object GetDBNull(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.Null)
+            {
+                return DBNull.Value;
+            }
+            return Throw(token);
+        }
+
+        private object GetDateTime(JsonToken token)
+        {
+            if (token.ValueType == JsonValueType.String && DateTime.TryParse(((JsonString)token).Value, out DateTime value))
+            {
+                return value;
+            }
+            return Throw(token);
+        }
+
+        private object Throw(JsonToken token)
+        {
+            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
         }
 
         #endregion

@@ -32,7 +32,7 @@ namespace Rapidity.Json
             var read = new JsonReader(GetJson());
             while (read.Read())
             {
-                var value = read.Value?.ToString() ?? string.Empty;
+                var value = read.Text ?? string.Empty;
                 _output.WriteLine(read.TokenType.ToString() + ": " + value);
             }
             watch.Stop();

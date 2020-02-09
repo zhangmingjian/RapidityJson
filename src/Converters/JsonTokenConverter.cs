@@ -29,8 +29,8 @@ namespace Rapidity.Json.Converters
                     return FromReader(reader);
                 case JsonTokenType.StartObject: return ReadObject(reader);
                 case JsonTokenType.StartArray: return ReadArray(reader);
-                case JsonTokenType.String: return new JsonString(reader.Value);
-                case JsonTokenType.Number: return new JsonNumber(reader.Value);
+                case JsonTokenType.String: return new JsonString(reader.Text);
+                case JsonTokenType.Number: return new JsonNumber(reader.Text);
                 case JsonTokenType.True: return new JsonBoolean(true);
                 case JsonTokenType.False: return new JsonBoolean(false);
                 case JsonTokenType.Null: return new JsonNull();
@@ -53,7 +53,7 @@ namespace Rapidity.Json.Converters
                 {
                     case JsonTokenType.EndObject: return token;
                     case JsonTokenType.PropertyName:
-                        property = reader.Value;
+                        property = reader.Text;
                         break;
                     case JsonTokenType.StartObject:
                         token.AddProperty(property, ReadObject(reader));
@@ -62,10 +62,10 @@ namespace Rapidity.Json.Converters
                         token.AddProperty(property, ReadArray(reader));
                         break;
                     case JsonTokenType.String:
-                        token.AddProperty(property, new JsonString(reader.Value));
+                        token.AddProperty(property, new JsonString(reader.Text));
                         break;
                     case JsonTokenType.Number:
-                        token.AddProperty(property, new JsonNumber(reader.Value));
+                        token.AddProperty(property, new JsonNumber(reader.Number.Value));
                         break;
                     case JsonTokenType.True:
                         token.AddProperty(property, new JsonBoolean(true));
@@ -101,10 +101,10 @@ namespace Rapidity.Json.Converters
                         token.Add(ReadObject(reader));
                         break;
                     case JsonTokenType.String:
-                        token.Add(new JsonString(reader.Value));
+                        token.Add(new JsonString(reader.Text));
                         break;
                     case JsonTokenType.Number:
-                        token.Add(new JsonNumber(reader.Value));
+                        token.Add(new JsonNumber(reader.Text));
                         break;
                     case JsonTokenType.True:
                         token.Add(new JsonBoolean(true));
@@ -120,19 +120,34 @@ namespace Rapidity.Json.Converters
             return token;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public override object FromToken(JsonToken token)
         {
             if (Type == typeof(object)
-                || Type == typeof(JsonToken)
                 || typeof(JsonToken).IsAssignableFrom(Type))
                 return token;
             var convert = Provider.Build(Type);
             return convert.FromToken(token);
         }
 
-        public override void WriteTo(JsonWriter write, object obj)
+        public override void WriteTo(JsonWriter writer, object obj)
         {
-            throw new NotImplementedException();
+            if (obj == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+            var token = obj as JsonToken;
+            if (token != null)
+            {
+                writer.WriteToken(token);
+                return;
+            }
+            throw new JsonException($"序列化{obj.GetType()}类型失败");
         }
     }
 }

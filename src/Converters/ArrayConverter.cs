@@ -49,5 +49,11 @@ namespace Rapidity.Json.Converters
             var list =  base.FromReader(reader);
             return ToArray(list);
         }
+
+        public override object FromToken(JsonToken token)
+        {
+            var list = base.FromToken(token);
+            return ToArray(list);
+        }
     }
 }

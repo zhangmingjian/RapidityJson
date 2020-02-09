@@ -97,17 +97,21 @@ namespace Rapidity.Json.Converters
             {
                 switch (reader.TokenType)
                 {
-                    case JsonTokenType.StartObject: instance = CreateInstance(); break;
-                    case JsonTokenType.Null:
+                    case JsonTokenType.None: break;
                     case JsonTokenType.EndObject: return instance;
+                    case JsonTokenType.StartObject:
+                        if (instance == null) instance = CreateInstance();
+                        break;
                     case JsonTokenType.PropertyName:
-                        var property = GetMemberDefinition(reader.Value);
-                        var converter = Provider.Build(property.MemberType);
+                        var member = GetMemberDefinition(reader.Text);
+                        var converter = Provider.Build(member?.MemberType ?? typeof(object));
                         reader.Read();
                         var value = converter.FromReader(reader);
-                        property?.SetValue(instance, value);
+                        member?.SetValue(instance, value);
                         break;
-                    case JsonTokenType.None: break;
+                    case JsonTokenType.Null:
+                        if (instance == null) return instance;
+                        break;
                     default: throw new JsonException($"无效的JSON Token:{reader.TokenType}", reader.Line, reader.Position);
                 }
             }
@@ -118,7 +122,24 @@ namespace Rapidity.Json.Converters
 
         public override object FromToken(JsonToken token)
         {
-            throw new NotImplementedException();
+            if (token.ValueType == JsonValueType.Null) return null;
+            if (token.ValueType == JsonValueType.Object)
+            {
+                var instance = CreateInstance();
+                var objToken = (JsonObject)token;
+                foreach (var property in objToken.GetAllProperty())
+                {
+                    var member = GetMemberDefinition(property.Name);
+                    if (member != null)
+                    {
+                        var convert = Provider.Build(member.MemberType);
+                        var value = convert.FromToken(property.Value);
+                        member.SetValue(instance, value);
+                    }
+                }
+                return instance;
+            }
+            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
         }
 
         public override void WriteTo(JsonWriter writer, object obj)
@@ -133,8 +154,12 @@ namespace Rapidity.Json.Converters
             {
                 writer.WritePropertyName(member.JsonProperty);
                 var value = GetValue(obj, member.JsonProperty);
-                var convert = Provider.Build(member.MemberType);
-                convert.WriteTo(writer, value);
+                if (value == null) writer.WriteNull();
+                else
+                {
+                    var convert = Provider.Build(value.GetType());
+                    convert.WriteTo(writer, value);
+                }
             }
             writer.WriteEndObject();
         }

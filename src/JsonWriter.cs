@@ -308,9 +308,9 @@ namespace Rapidity.Json
                         case JsonTokenType.StartArray: WriteStartArray(); break;
                         case JsonTokenType.EndObject: WriteEndObject(); break;
                         case JsonTokenType.EndArray: WriteEndArray(); break;
-                        case JsonTokenType.PropertyName: WritePropertyName(read.Value); break;
-                        case JsonTokenType.String: WriteString(read.Value); break;
-                        case JsonTokenType.Number: WriteNumber(read.Value); break;
+                        case JsonTokenType.PropertyName: WritePropertyName(read.Text); break;
+                        case JsonTokenType.String: WriteString(read.Text); break;
+                        case JsonTokenType.Number: WriteNumber(read.Text); break;
                         case JsonTokenType.True: WriteBoolean(true); break;
                         case JsonTokenType.False: WriteBoolean(false); break;
                         case JsonTokenType.Null: WriteNull(); break;

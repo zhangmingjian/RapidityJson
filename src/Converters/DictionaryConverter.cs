@@ -132,7 +132,7 @@ namespace Rapidity.Json.Converters
                             SetKeyValue(instance, key, convert.FromReader(reader));
                         break;
                     case JsonTokenType.PropertyName:
-                        key = reader.Value;
+                        key = reader.Text;
                         break;
                     case JsonTokenType.StartArray:
                     case JsonTokenType.String:
@@ -154,7 +154,20 @@ namespace Rapidity.Json.Converters
 
         public override object FromToken(JsonToken token)
         {
-            throw new NotImplementedException();
+            if (token.ValueType == JsonValueType.Null) return null;
+            if (token.ValueType == JsonValueType.Object)
+            {
+                var dic = CreateInstance();
+                var objToken = (JsonObject)token;
+                foreach (var property in objToken.GetAllProperty())
+                {
+                    var convert = Provider.Build(ValueType);
+                    var value = convert.FromToken(property.Value);
+                    SetKeyValue(dic, property.Name, value);
+                }
+                return dic;
+            }
+            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
         }
 
         public override void WriteTo(JsonWriter writer, object obj)
@@ -170,6 +183,11 @@ namespace Rapidity.Json.Converters
             {
                 writer.WritePropertyName(keys.Current.ToString());
                 var value = GetValue(obj, keys.Current);
+                if (value == null)
+                {
+                    writer.WriteNull();
+                    continue;
+                }
                 var convert = Provider.Build(value.GetType());
                 convert.WriteTo(writer, value);
             }
