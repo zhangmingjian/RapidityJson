@@ -21,10 +21,5 @@ namespace Rapidity.Json
         {
             return Value.Equals(other.Value);
         }
-
-        public override object To(Type type)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

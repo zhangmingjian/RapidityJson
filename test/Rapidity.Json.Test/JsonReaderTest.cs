@@ -52,7 +52,7 @@ namespace Rapidity.Json
             }
             {
                 var watch = Stopwatch.StartNew();
-                var token = new JsonParser().Parse(json);
+                var token = JsonToken.Parse(json);
                 watch.Stop();
                 _output.WriteLine($"用时：{watch.ElapsedMilliseconds}ms");
                 var str = token.ToString();
@@ -66,7 +66,7 @@ namespace Rapidity.Json
         public void ReadQuoteTest()
         {
             var json = "{'name':'张三\','age':10,'\"remark\"':'安慰剂flaw金额flak文件'}";
-            var data = new JsonParser().Parse(json);
+            var data = JsonToken.Parse(json);
         }
 
 
@@ -120,7 +120,7 @@ namespace Rapidity.Json
                 var watch = Stopwatch.StartNew();
                 for (int i = 1; i <= total; i++)
                 {
-                    var token = new JsonParser().Parse(json);
+                    var token = JsonToken.Parse(json);
                 }
                 watch.Stop();
                 _output.WriteLine($"Rapidity.Json读+解析{total}次用时：{watch.ElapsedMilliseconds}ms");

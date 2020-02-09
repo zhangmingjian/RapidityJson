@@ -44,15 +44,15 @@ namespace Rapidity.Json.Converters
             return new ArrayConverter(listType, elementType, provider);
         }
 
-        public override object FromReader(JsonReader reader)
+        public override object FromReader(JsonReader reader, JsonOption option)
         {
-            var list =  base.FromReader(reader);
+            var list = base.FromReader(reader, option);
             return ToArray(list);
         }
 
-        public override object FromToken(JsonToken token)
+        public override object FromToken(JsonToken token, JsonOption option)
         {
-            var list = base.FromToken(token);
+            var list = base.FromToken(token, option);
             return ToArray(list);
         }
     }

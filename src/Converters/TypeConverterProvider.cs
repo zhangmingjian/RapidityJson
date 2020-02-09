@@ -14,6 +14,9 @@ namespace Rapidity.Json.Converters
         public abstract TypeConverter Build(Type type);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     internal class DefaultTypeConverterProvider : TypeConverterProvider
     {
         private static ConcurrentDictionary<Type, TypeConverter> _dictionary = new ConcurrentDictionary<Type, TypeConverter>();
@@ -59,7 +62,7 @@ namespace Rapidity.Json.Converters
                     break;
                 }
             }
-            if (convert == null) throw new JsonException($"不支持的类型{type},无法创建{type}的{nameof(TypeConverter)}");
+            if (convert == null) throw new JsonException($"创建{type}的{nameof(TypeConverter)}失败，不支持的类型");
             return convert;
         }
     }

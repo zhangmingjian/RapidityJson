@@ -20,7 +20,7 @@ namespace Rapidity.Json.Converters
             return new EnumConverter(type, provider);
         }
 
-        public override object FromReader(JsonReader reader)
+        public override object FromReader(JsonReader reader, JsonOption option)
         {
             if (reader.TokenType == JsonTokenType.None)
                 reader.Read();
@@ -48,23 +48,23 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        public override object FromToken(JsonToken token)
+        public override object FromToken(JsonToken token, JsonOption option)
         {
             switch (token.ValueType)
             {
                 case JsonValueType.Number:
                     var numberToken = (JsonNumber)token;
                     if (numberToken.TryGetInt(out int num)) return num;
-                    throw new JsonException($"无效的{Type}值：{numberToken.ToString()}");
+                    throw new JsonException($"无效的{Type}值：{numberToken.ToString()},{nameof(EnumConverter)}反序列化{Type}失败");
                 case JsonValueType.String:
                     var strToken = (JsonString)token;
                     if (TryParse(strToken.Value, out object val)) return val;
-                    throw new JsonException($"无效的{Type}值：{strToken.Value}");
+                    throw new JsonException($"无效的{Type}值：{strToken.Value},{nameof(EnumConverter)}反序列化{Type}失败");
             }
-            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
+            throw new JsonException($"无法从{token.ValueType}转换为{Type},{nameof(EnumConverter)}反序列化{Type}失败");
         }
 
-        public override void WriteTo(JsonWriter write, object obj)
+        public override void WriteTo(JsonWriter write, object obj, JsonOption option)
         {
             //write.WriteInt((int)obj);
             write.WriteString(obj.ToString());

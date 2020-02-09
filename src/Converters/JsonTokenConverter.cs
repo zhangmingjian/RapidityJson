@@ -20,13 +20,13 @@ namespace Rapidity.Json.Converters
             return new JsonTokenConverter(type, provider);
         }
 
-        public override object FromReader(JsonReader reader)
+        public override object FromReader(JsonReader reader, JsonOption option)
         {
             switch (reader.TokenType)
             {
                 case JsonTokenType.None:
                     reader.Read();
-                    return FromReader(reader);
+                    return FromReader(reader, option);
                 case JsonTokenType.StartObject: return ReadObject(reader);
                 case JsonTokenType.StartArray: return ReadArray(reader);
                 case JsonTokenType.String: return new JsonString(reader.Text);
@@ -125,29 +125,24 @@ namespace Rapidity.Json.Converters
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public override object FromToken(JsonToken token)
+        public override object FromToken(JsonToken token, JsonOption option)
         {
             if (Type == typeof(object)
                 || typeof(JsonToken).IsAssignableFrom(Type))
                 return token;
             var convert = Provider.Build(Type);
-            return convert.FromToken(token);
+            return convert.FromToken(token, option);
         }
 
-        public override void WriteTo(JsonWriter writer, object obj)
+        public override void WriteTo(JsonWriter writer, object obj, JsonOption option)
         {
-            if (obj == null)
-            {
-                writer.WriteNull();
-                return;
-            }
             var token = obj as JsonToken;
             if (token != null)
             {
                 writer.WriteToken(token);
                 return;
             }
-            throw new JsonException($"序列化{obj.GetType()}类型失败");
+            throw new JsonException($"不支持的类型{obj.GetType()}，{nameof(JsonTokenConverter)}序列化失败");
         }
     }
 }

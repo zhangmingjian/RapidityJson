@@ -28,7 +28,10 @@ namespace Rapidity.Json
 
         public static JsonArray Create(string json)
         {
-            return new JsonParser().ParseArray(json);
+            using (var read = new JsonReader(json))
+            {
+                return new JsonSerializer().Deserialize<JsonArray>(read);
+            }
         }
 
         public void Add(JsonToken token)
@@ -64,11 +67,6 @@ namespace Rapidity.Json
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _list.GetEnumerator();
-        }
-
-        public override object To(Type type)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -36,10 +36,5 @@ namespace Rapidity.Json
 
         #endregion
         public bool Equals(JsonString other) => other != null && this.Value.Equals(other.Value);
-
-        public override object To(Type type)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

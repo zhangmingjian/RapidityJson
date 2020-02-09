@@ -61,7 +61,7 @@ namespace Rapidity.Json.Converters
             return new ValueConverter(type, provider);
         }
 
-        public override object FromReader(JsonReader reader)
+        public override object FromReader(JsonReader reader, JsonOption option)
         {
             if (reader.TokenType == JsonTokenType.None)
                 reader.Read();
@@ -72,14 +72,14 @@ namespace Rapidity.Json.Converters
                 case JsonTokenType.String:
                 case JsonTokenType.Number:
                 case JsonTokenType.Null:
-                    return GetValue(reader);
+                    return GetValue(reader, option);
                 default: throw new JsonException($"无效的JSON Token:{reader.TokenType},序列化对象:{Type}", reader.Line, reader.Position);
             }
         }
 
         #region Get Value from reader
 
-        private object GetValue(JsonReader reader)
+        private object GetValue(JsonReader reader, JsonOption option)
         {
             switch (Type.GetTypeCode(Type))
             {
@@ -106,7 +106,7 @@ namespace Rapidity.Json.Converters
                     {
                         if (reader.TokenType == JsonTokenType.Null) return null;
                         var convert = Provider.Build(valueType);
-                        return convert.FromReader(reader);
+                        return convert.FromReader(reader, option);
                     }
                     throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
             }
@@ -246,7 +246,7 @@ namespace Rapidity.Json.Converters
 
         #endregion
 
-        public override object FromToken(JsonToken token)
+        public override object FromToken(JsonToken token, JsonOption option)
         {
             switch (Type.GetTypeCode(Type))
             {
@@ -273,7 +273,7 @@ namespace Rapidity.Json.Converters
                     {
                         if (token.ValueType == JsonValueType.Null) return null;
                         var convert = Provider.Build(valueType);
-                        return convert.FromToken(token);
+                        return convert.FromToken(token, option);
                     }
                     throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
             }
@@ -296,8 +296,8 @@ namespace Rapidity.Json.Converters
 
         private object GetChar(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.String 
-                && char.TryParse(((JsonString)token).Value,out char value))
+            if (token.ValueType == JsonValueType.String
+                && char.TryParse(((JsonString)token).Value, out char value))
             {
                 return value;
             }
@@ -411,7 +411,7 @@ namespace Rapidity.Json.Converters
 
         private object GetGuid(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.String &&Guid.TryParse(((JsonString)token).Value,out Guid value))
+            if (token.ValueType == JsonValueType.String && Guid.TryParse(((JsonString)token).Value, out Guid value))
             {
                 return value;
             }
@@ -443,13 +443,8 @@ namespace Rapidity.Json.Converters
 
         #endregion
 
-        public override void WriteTo(JsonWriter writer, object value)
+        public override void WriteTo(JsonWriter writer, object value, JsonOption option)
         {
-            if (value == null)
-            {
-                writer.WriteNull();
-                return;
-            }
             var type = value.GetType();
             var typeCode = Type.GetTypeCode(type);
             switch (typeCode)
@@ -473,17 +468,17 @@ namespace Rapidity.Json.Converters
                 case TypeCode.DBNull: writer.WriteNull(); break;
                 case TypeCode.Object:
                     if (type == typeof(Guid))
-                        writer.WriteGuid((Guid)value);
-                    else
                     {
-                        var valueType = Nullable.GetUnderlyingType(type);
-                        if (valueType != null)
-                        {
-                            WriteTo(writer, Convert.ChangeType(value, valueType));
-                            break;
-                        }
+                        writer.WriteGuid((Guid)value);
+                        break;
                     }
-                    break;
+                    var valueType = Nullable.GetUnderlyingType(type);
+                    if (valueType != null)
+                    {
+                        WriteTo(writer, Convert.ChangeType(value, valueType), option);
+                        break;
+                    }
+                    throw new JsonException($"不支持的类型{value.GetType()}，{nameof(ValueConverter)}序列化失败");
             }
         }
     }

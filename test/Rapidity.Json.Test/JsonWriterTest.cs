@@ -314,7 +314,7 @@ namespace Rapidity.Json
         {
             var json = GetJson();
 
-            var token = new JsonParser().Parse(json);
+            var token = JsonToken.Parse(json);
             _output.WriteLine(token.ToString());
         }
 
@@ -326,7 +326,7 @@ namespace Rapidity.Json
         {
             var json = GetJson();
 
-            var token = new JsonParser().Parse(json);
+            var token = JsonToken.Parse(json);
 
             var file = new FileInfo(AppDomain.CurrentDomain.BaseDirectory + "write.json");
             var stream = file.OpenWrite();

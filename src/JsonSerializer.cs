@@ -1,20 +1,29 @@
 ﻿using Rapidity.Json.Converters;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace Rapidity.Json
 {
     public class JsonSerializer
     {
+        private readonly JsonOption _option;
+
+        public JsonSerializer() : this(JsonOption.Defalut)
+        {
+        }
+
+        public JsonSerializer(JsonOption option)
+        {
+            if (option == null) throw new ArgumentNullException(nameof(option));
+            this._option = option;
+        }
+
         public object Deserialize(JsonReader reader, Type type)
         {
-            var provider = new DefaultTypeConverterProvider();
-            var convert = provider.Build(type);
-            return convert.FromReader(reader);
+            var convert = _option.ConverterFactory.Build(type);
+            return convert.FromReader(reader, _option);
         }
+
 
         public T Deserialize<T>(JsonReader reader)
         {
@@ -25,7 +34,7 @@ namespace Rapidity.Json
         {
             var provider = new DefaultTypeConverterProvider();
             var convert = provider.Build(type);
-            return convert.FromToken(token);
+            return convert.FromToken(token, _option);
         }
 
         public T Deserialize<T>(JsonToken token)
@@ -35,7 +44,6 @@ namespace Rapidity.Json
 
         public string Serialize(object obj)
         {
-            if (obj == null) throw new JsonException("序列化对象的值不能为Null");
             using (var sw = new StringWriter())
             using (var writer = new JsonWriter(sw))
             {
@@ -53,7 +61,7 @@ namespace Rapidity.Json
             }
             var provider = new DefaultTypeConverterProvider();
             var convert = provider.Build(obj.GetType());
-            convert.WriteTo(writer, obj);
+            convert.WriteTo(writer, obj, _option);
         }
     }
 }

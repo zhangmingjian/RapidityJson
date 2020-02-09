@@ -34,10 +34,14 @@ namespace Rapidity.Json.Converters
             foreach (var property in type.GetProperties())
             {
                 if (!property.CanRead) continue;
+                //跳过委托
+                if (typeof(Delegate).IsAssignableFrom(property.PropertyType)) continue;
                 list.Add(new MemberDefinition(property));
             }
             foreach (var field in type.GetFields())
             {
+                //跳过委托
+                if (typeof(Delegate).IsAssignableFrom(field.FieldType)) continue;
                 list.Add(new MemberDefinition(field));
             }
             return list;
@@ -69,19 +73,15 @@ namespace Rapidity.Json.Converters
         public bool CanConvert(Type type)
         {
             if (type.IsClass
-                && type != typeof(object)
-                && type != typeof(DBNull)
                 && !type.IsAbstract
-                && !typeof(IEnumerable).IsAssignableFrom(type)
-                && !typeof(Delegate).IsAssignableFrom(type))
+                && type != typeof(object)
+                && type != typeof(DBNull) //不是DBnull
+                && !typeof(IEnumerable).IsAssignableFrom(type) //不是迭代器
+                && !typeof(Delegate).IsAssignableFrom(type)    //不是委托
+                )
                 return true;
-            //值类型且不是基元类型
-            if (type.IsValueType
-                && !type.IsPrimitive
-                && type != typeof(DateTime)
-                && type != typeof(decimal)
-                && type != typeof(Guid))
-                return true;
+            //除datetime/decimal/guid以外的struct
+            if (IsCustomStruct(type)) return true;
             return false;
         }
 
@@ -90,7 +90,15 @@ namespace Rapidity.Json.Converters
             return new ObjectConverter(type, provider);
         }
 
-        public override object FromReader(JsonReader reader)
+        private bool IsCustomStruct(Type type)
+        {
+            return type.IsValueType && !type.IsPrimitive //struct
+                 && type != typeof(DateTime)
+                 && type != typeof(decimal)
+                 && type != typeof(Guid);
+        }
+
+        public override object FromReader(JsonReader reader, JsonOption option)
         {
             object instance = null;
             do
@@ -106,7 +114,7 @@ namespace Rapidity.Json.Converters
                         var member = GetMemberDefinition(reader.Text);
                         var converter = Provider.Build(member?.MemberType ?? typeof(object));
                         reader.Read();
-                        var value = converter.FromReader(reader);
+                        var value = converter.FromReader(reader, option);
                         member?.SetValue(instance, value);
                         break;
                     case JsonTokenType.Null:
@@ -120,7 +128,7 @@ namespace Rapidity.Json.Converters
             return instance;
         }
 
-        public override object FromToken(JsonToken token)
+        public override object FromToken(JsonToken token, JsonOption option)
         {
             if (token.ValueType == JsonValueType.Null) return null;
             if (token.ValueType == JsonValueType.Object)
@@ -133,32 +141,30 @@ namespace Rapidity.Json.Converters
                     if (member != null)
                     {
                         var convert = Provider.Build(member.MemberType);
-                        var value = convert.FromToken(property.Value);
+                        var value = convert.FromToken(property.Value, option);
                         member.SetValue(instance, value);
                     }
                 }
                 return instance;
             }
-            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
+            throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
         }
 
-        public override void WriteTo(JsonWriter writer, object obj)
+        public override void WriteTo(JsonWriter writer, object obj, JsonOption option)
         {
-            if (obj == null)
-            {
-                writer.WriteNull();
-                return;
-            }
             writer.WriteStartObject();
             foreach (var member in this.MemberDefinitions)
             {
+                //struct时 跳过与类型相同的属性类型，否则会死循环
+                var type = obj.GetType();
+                if (IsCustomStruct(type) && member.MemberType == type) continue;
                 writer.WritePropertyName(member.JsonProperty);
                 var value = GetValue(obj, member.JsonProperty);
                 if (value == null) writer.WriteNull();
                 else
                 {
                     var convert = Provider.Build(value.GetType());
-                    convert.WriteTo(writer, value);
+                    convert.WriteTo(writer, value, option);
                 }
             }
             writer.WriteEndObject();
@@ -192,8 +198,20 @@ namespace Rapidity.Json.Converters
         protected virtual Func<object, object> BuildGetValueMethod()
         {
             var instanceExp = Expression.Parameter(typeof(object), "instance");
-            var instanceTypeExp = Expression.TypeAs(instanceExp, MemberInfo.DeclaringType);
-            MemberExpression memberExp = Expression.PropertyOrField(instanceTypeExp, MemberInfo.Name);
+            MemberExpression memberExp;
+            if (MemberInfo is PropertyInfo property && property.GetGetMethod().IsStatic)
+            {
+                memberExp = Expression.Property(null, MemberInfo.DeclaringType, MemberInfo.Name);
+            }
+            else if (MemberInfo is FieldInfo field && field.IsStatic)
+            {
+                memberExp = Expression.Field(null, MemberInfo.DeclaringType, MemberInfo.Name);
+            }
+            else
+            {
+                var instanceTypeExp = Expression.Convert(instanceExp, MemberInfo.DeclaringType);
+                memberExp = Expression.PropertyOrField(instanceTypeExp, MemberInfo.Name);
+            }
             var body = Expression.TypeAs(memberExp, typeof(object));
             Expression<Func<object, object>> exp = Expression.Lambda<Func<object, object>>(body, instanceExp);
             return exp.Compile();
@@ -211,13 +229,28 @@ namespace Rapidity.Json.Converters
             var instanceExp = Expression.Parameter(typeof(object), "instance");
             var valueExp = Expression.Parameter(typeof(object), "memberValue");
 
+            var isProperty = MemberInfo is PropertyInfo;
             Expression body;
-            if (MemberInfo is PropertyInfo property && !property.CanWrite)
+            if (isProperty && !((PropertyInfo)MemberInfo).CanWrite)
                 body = Expression.Label(Expression.Label());
             else
             {
-                var instanceTypeExp = Expression.TypeAs(instanceExp, MemberInfo.DeclaringType);
-                MemberExpression memberExp = Expression.PropertyOrField(instanceTypeExp, MemberInfo.Name);
+                MemberExpression memberExp;
+                //静态属性赋值
+                if (isProperty && ((PropertyInfo)MemberInfo).GetSetMethod().IsStatic)
+                {
+                    memberExp = Expression.Property(null, MemberInfo.DeclaringType, MemberInfo.Name);
+                }
+                //静态字段赋值
+                else if ((MemberInfo is FieldInfo field) && field.IsStatic)
+                {
+                    memberExp = Expression.Field(null, MemberInfo.DeclaringType, MemberInfo.Name);
+                }
+                else   //实例字段
+                {
+                    var instanceTypeExp = Expression.TypeAs(instanceExp, MemberInfo.DeclaringType);
+                    memberExp = Expression.PropertyOrField(instanceTypeExp, MemberInfo.Name);
+                }
                 body = Expression.Assign(memberExp, Expression.Convert(valueExp, MemberType));
             }
             Expression<Action<object, object>> exp = Expression.Lambda<Action<object, object>>(body, instanceExp, valueExp);

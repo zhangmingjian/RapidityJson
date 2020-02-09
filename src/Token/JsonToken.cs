@@ -30,7 +30,22 @@ namespace Rapidity.Json
         /// <returns></returns>
         public virtual object To(Type type)
         {
-            return null;
+            return new JsonSerializer().Deserialize(this, type);
+        }
+
+        public virtual object To(Type type, JsonOption option)
+        {
+            return new JsonSerializer(option).Deserialize(this, type);
+        }
+
+        public virtual T To<T>()
+        {
+            return new JsonSerializer().Deserialize<T>(this);
+        }
+
+        public virtual T To<T>(Type type, JsonOption option)
+        {
+            return new JsonSerializer(option).Deserialize<T>(this);
         }
 
         public override string ToString()

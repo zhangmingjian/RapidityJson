@@ -51,7 +51,7 @@ namespace Rapidity.Json.Converters
 
         public abstract TypeConverter Create(Type type, TypeConverterProvider provider);
 
-        public override object FromReader(JsonReader reader)
+        public override object FromReader(JsonReader reader, JsonOption option)
         {
             object instance = null;
             var convert = Provider.Build(ItemType);
@@ -64,7 +64,7 @@ namespace Rapidity.Json.Converters
                         if (instance == null) instance = CreateInstance();
                         else
                         {
-                            AddItem(instance, convert.FromReader(reader));
+                            AddItem(instance, convert.FromReader(reader, option));
                         }
                         break;
                     case JsonTokenType.StartObject:
@@ -72,7 +72,7 @@ namespace Rapidity.Json.Converters
                     case JsonTokenType.Number:
                     case JsonTokenType.True:
                     case JsonTokenType.False:
-                        var valueItem = convert.FromReader(reader);
+                        var valueItem = convert.FromReader(reader, option);
                         AddItem(instance, valueItem);
                         break;
                     case JsonTokenType.Null:
@@ -86,7 +86,7 @@ namespace Rapidity.Json.Converters
             return instance;
         }
 
-        public override object FromToken(JsonToken token)
+        public override object FromToken(JsonToken token, JsonOption option)
         {
             if (token.ValueType == JsonValueType.Null) return null;
             if (token.ValueType == JsonValueType.Array)
@@ -96,21 +96,16 @@ namespace Rapidity.Json.Converters
                 foreach (var item in arrayToken)
                 {
                     var convert = Provider.Build(ItemType);
-                    var itemValue = convert.FromToken(item);
+                    var itemValue = convert.FromToken(item, option);
                     AddItem(list, itemValue);
                 }
                 return list;
             }
-            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
+            throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
         }
 
-        public override void WriteTo(JsonWriter writer, object obj)
+        public override void WriteTo(JsonWriter writer, object obj, JsonOption option)
         {
-            if (obj == null)
-            {
-                writer.WriteNull();
-                return;
-            }
             writer.WriteStartArray();
             var enumer = GetEnumerator(obj);
             while (enumer.MoveNext())
@@ -119,10 +114,12 @@ namespace Rapidity.Json.Converters
                 if (current == null)
                 {
                     writer.WriteNull();
-                    continue;
                 }
-                var convert = Provider.Build(current.GetType());
-                convert.WriteTo(writer, current);
+                else
+                {
+                    var convert = Provider.Build(current.GetType());
+                    convert.WriteTo(writer, current, option);
+                }
             }
             writer.WriteEndArray();
         }

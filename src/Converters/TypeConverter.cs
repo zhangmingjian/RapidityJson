@@ -9,6 +9,7 @@ namespace Rapidity.Json.Converters
     public abstract class TypeConverter
     {
         public TypeConverterProvider Provider { get; protected set; }
+
         public Type Type { get; protected set; }
 
         public TypeConverter(Type type, TypeConverterProvider provider)
@@ -46,10 +47,10 @@ namespace Rapidity.Json.Converters
             return expression.Compile();
         }
 
-        public abstract object FromReader(JsonReader reader);
+        public abstract object FromReader(JsonReader reader, JsonOption option);
 
-        public abstract object FromToken(JsonToken token);
+        public abstract object FromToken(JsonToken token, JsonOption option);
 
-        public abstract void WriteTo(JsonWriter writer, object obj);
+        public abstract void WriteTo(JsonWriter writer, object obj, JsonOption option);
     }
 }

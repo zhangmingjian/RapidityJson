@@ -12,10 +12,8 @@ namespace Rapidity.Json.Tests
         [Fact]
         public void ParseObjectTest()
         {
-            var json = "{'id':'jwjeflwei金风科技了',\"NAME\":'\u12df\uff4a你好\\//',\"url\":'http:\\/\\/www.baidu.com'}";
-            var person = new JsonParser().To<Person>(json);
-        }
 
+        }
     }
 
 }

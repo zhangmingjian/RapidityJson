@@ -68,6 +68,11 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
+        public void WriteListTest()
+        {
+        }
+
+        [Fact]
         public void WriteDictionaryTest()
         {
             //var dic = new NameValueCollection();
@@ -114,6 +119,14 @@ namespace Rapidity.Json.Test
             };
             var serialize = new JsonSerializer();
             var json = serialize.Serialize(obj);
+        }
+
+        [Fact]
+        public void WriteStructTest()
+        {
+            var option = JsonWriteOption.Default;
+            var serialize = new JsonSerializer();
+            var json = serialize.Serialize(option);
         }
 
         [Fact]

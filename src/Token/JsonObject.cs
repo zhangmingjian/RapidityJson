@@ -39,7 +39,10 @@ namespace Rapidity.Json
         /// <returns></returns>
         public static JsonObject Create(string json)
         {
-            return new JsonParser().ParseObject(json);
+            using (var read = new JsonReader(json))
+            {
+                return new JsonSerializer().Deserialize<JsonObject>(read);
+            }
         }
 
         /// <summary>
@@ -103,11 +106,6 @@ namespace Rapidity.Json
         IEnumerator IEnumerable.GetEnumerator()
         {
             return new Dictionary<string, JsonToken>.Enumerator();
-        }
-
-        public override object To(Type type)
-        {
-            throw new NotImplementedException();
         }
     }
 
