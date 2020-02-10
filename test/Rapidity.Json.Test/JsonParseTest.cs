@@ -15,5 +15,4 @@ namespace Rapidity.Json.Tests
 
         }
     }
-
 }

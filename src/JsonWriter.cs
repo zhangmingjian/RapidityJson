@@ -11,25 +11,24 @@ namespace Rapidity.Json
     public class JsonWriter : IDisposable
     {
         private TextWriter _writer;
-        private JsonWriteOption _option;
+        private JsonOption _option;
         private TokenValidator _tokenValidator;
         private string _indeteChars; //缩进字符
-        private char _quoteSymbol;   //引号字符
+        private char _quoteSymbol = JsonConstants.Quote;   //引号字符
         private int _depth;
         private JsonTokenType _tokenType;
         public JsonTokenType TokenType => _tokenType;
         public int Depth => _depth;
 
-        public JsonWriter(TextWriter writer) : this(writer, default)
+        public JsonWriter(TextWriter writer) : this(writer, new JsonOption())
         {
         }
 
-        public JsonWriter(TextWriter writer, JsonWriteOption option)
+        public JsonWriter(TextWriter writer, JsonOption option)
         {
             _writer = writer;
-            _option = option;
+            _option = option ?? throw new ArgumentNullException(nameof(option));
             _tokenValidator = _option.SkipValidated ? TokenValidator.None : TokenValidator.Default;
-            _quoteSymbol = _option.UseSingleQuote ? JsonConstants.SingleQuote : JsonConstants.Quote;
             if (_option.Indented || _option.IndenteLength > 0)
             {
                 if (_option.IndenteLength <= 0) _indeteChars = JsonConstants.Tab.ToString();

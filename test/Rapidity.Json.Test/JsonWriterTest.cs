@@ -24,7 +24,7 @@ namespace Rapidity.Json
             var file = new FileInfo(path);
             var stream = file.OpenWrite();
             var textWriter = new StreamWriter(stream);
-            var writer = new JsonWriter(textWriter, new JsonWriteOption() { SkipValidated = true });
+            var writer = new JsonWriter(textWriter, new JsonOption() { SkipValidated = true });
             writer.WriteString("afeawefewf");
             writer.WriteString("afeawefewf");
             var json = writer.ToString();
@@ -150,7 +150,7 @@ namespace Rapidity.Json
         [Fact]
         public void WriteIndentedTest()
         {
-            var option = new JsonWriteOption
+            var option = new JsonOption
             {
                 //SkipValidated = true,
                 IndenteLength = 4,
@@ -203,7 +203,7 @@ namespace Rapidity.Json
         [Fact]
         public void WriteIndentedTest2()
         {
-            var option = new JsonWriteOption
+            var option = new JsonOption
             {
                 //SkipValidated = true,
                 IndenteLength = 4,
@@ -260,7 +260,7 @@ namespace Rapidity.Json
         [Fact]
         public void WriteRawTest()
         {
-            var option = new JsonWriteOption
+            var option = new JsonOption
             {
                 //Indented = true
             };
@@ -278,7 +278,7 @@ namespace Rapidity.Json
         [Fact]
         public void WriteRawJsonTest()
         {
-            var option = new JsonWriteOption
+            var option = new JsonOption
             {
                 Indented = true,
                 //UseSingleQuote = true
@@ -333,7 +333,7 @@ namespace Rapidity.Json
             var textWriter = new StreamWriter(stream);
             var watch = Stopwatch.StartNew();
 
-            var option = new JsonWriteOption
+            var option = new JsonOption
             {
                 SkipValidated = true,
                 IndenteLength = 2,

@@ -61,7 +61,7 @@ namespace Rapidity.Json
         /// 
         /// </summary>
         /// <param name="json"></param>
-        public JsonReader(string json) : this(new StringReader(json), JsonOption.Defalut)
+        public JsonReader(string json) : this(new StringReader(json), new JsonOption())
         {
         }
 
@@ -69,15 +69,15 @@ namespace Rapidity.Json
         {
         }
 
-        public JsonReader(TextReader reader) : this(reader, JsonOption.Defalut)
+        public JsonReader(TextReader reader) : this(reader, new JsonOption())
         {
         }
 
         public JsonReader(TextReader reader, JsonOption option)
         {
             _reader = reader;
+            _option = option ?? throw new ArgumentNullException(nameof(option));
             _tokens = new Stack<JsonTokenType>();
-            _option = option ?? JsonOption.Defalut;
             _buffer = new StringBuilder(64);
             _containerType = JsonContainerType.None;
         }
@@ -412,15 +412,15 @@ namespace Rapidity.Json
                     default: throw new JsonException($"无效的JSON Number {_buffer.Append(next)}", _line, _position);
                 }
             } while (canRead);
-            var value = _buffer.ToString();
-            if (double.TryParse(value, out double number))
+            var text = _buffer.ToString();
+            if (double.TryParse(text, out double number))
             {
                 _buffer.Length = 0;
                 _state = ReadState.Value;
-                SetToken(JsonTokenType.Number, value, number);
+                SetToken(JsonTokenType.Number, text, number);
                 return true;
             }
-            throw new JsonException($"无效的JSON Number {value}", _line, _position);
+            throw new JsonException($"无效的JSON Number {text}", _line, _position);
         }
 
         #endregion

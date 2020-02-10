@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Xunit;
@@ -18,6 +17,7 @@ namespace Rapidity.Json.Test
             var serializer = new JsonSerializer();
             var person = serializer.Deserialize<Person>(reader);
         }
+
 
         [Fact]
         public void ConvertListTest()
@@ -41,17 +41,17 @@ namespace Rapidity.Json.Test
         public void SerializeListTest()
         {
             var list = new Collection<Person>();
-            list.Add(new Person()
+            var p1 = new Person()
             {
                 Id = Environment.TickCount,
                 Name = "测试数据",
                 Birthday = DateTime.Now,
-                Child = new Person(),
                 strField = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
                 Number = Guid.Empty,
                 floadField = float.NegativeInfinity
-            });
-
+            };
+            p1.Child = p1;
+            list.Add(p1);
             list.Add(new Person()
             {
                 Id = Environment.TickCount,
@@ -59,8 +59,10 @@ namespace Rapidity.Json.Test
                 Birthday = DateTime.Now,
                 strField = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
                 floadField = float.NaN,
-                dateTimeKinds = new Collection<DateTimeKind?>() { DateTimeKind.Utc, null }
+                dateTimeKinds = new Collection<DateTimeKind?>() { DateTimeKind.Utc, null },
+                Child = p1
             });
+
             var serializer = new JsonSerializer();
             var json2 = serializer.Serialize(list);
 
@@ -70,6 +72,11 @@ namespace Rapidity.Json.Test
         [Fact]
         public void WriteListTest()
         {
+            var list = new List<object>();
+            list.Add(list);
+            list.Add(1);
+            list.Add(new Person());
+            var json = new JsonSerializer().Serialize(list);
         }
 
         [Fact]
@@ -79,6 +86,7 @@ namespace Rapidity.Json.Test
             var dic = new SortedDictionary<string, string>();
             dic.Add("aaaa", "1111");
             dic.Add("bbbb", "efoioweu");
+            dic.Add("nnnn", null);
             var json = new JsonSerializer().Serialize(dic);
         }
 
@@ -87,7 +95,7 @@ namespace Rapidity.Json.Test
         {
             var token = new JsonObject();
             token.AddProperty("name", new JsonString("张三"));
-            token.AddProperty("age", new JsonNumber(103));
+            token.AddProperty("id", new JsonNumber(103));
             token.AddProperty("dateTimeKinds", new JsonArray() { new JsonString("Local"), new JsonNull() });
 
             var serialize = new JsonSerializer();
@@ -117,22 +125,37 @@ namespace Rapidity.Json.Test
                 list = new List<Person>() { new Person() },
                 Dic = new Dictionary<object, object>() { ["name"] = "fefe", [new Person()] = Guid.NewGuid() }
             };
+
+            dynamic obj2 = new Person();
+            obj2.Name = "afaef";
             var serialize = new JsonSerializer();
-            var json = serialize.Serialize(obj);
+            var json = serialize.Serialize(obj2);
         }
 
         [Fact]
         public void WriteStructTest()
         {
-            var option = JsonWriteOption.Default;
-            var serialize = new JsonSerializer();
-            var json = serialize.Serialize(option);
+            var person = new Person
+            {
+                Id = 100,
+                Name = "aefawef",
+                Child = new Person() { Birthday = DateTime.Now },
+                dateTimeKinds = new List<DateTimeKind?>()
+            };
+            var option = new JsonOption
+            {
+                Indented = true,
+                CamelCaseNamed = true,
+                IgnoreNullValue = true
+            };
+            var json = new JsonSerializer(option).Serialize(person);
         }
 
         [Fact]
         public void ValueTypeTest()
         {
-            var f = typeof(JsonToken).IsAssignableFrom(typeof(JsonObject));
+
         }
+
     }
 }

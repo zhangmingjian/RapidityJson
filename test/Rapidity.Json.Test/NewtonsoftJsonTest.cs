@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 using Xunit;
 
 namespace Rapidity.Json.Test
@@ -30,7 +29,20 @@ namespace Rapidity.Json.Test
                 Number = Guid.Empty,
                 floadField = float.NegativeInfinity
             });
-            var json = JsonConvert.SerializeObject(list);
+            list.Add(null);
+            var setting = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            };
+
+            var dic = new Dictionary<string, string>()
+            {
+                ["aaa"] = "aaaa",
+                ["nnnn"] = null
+            };
+            //CamelCasePropertyName
+            var json = JsonConvert.SerializeObject(dic, setting);
+            //JsonPropertyAttribute
         }
     }
 }

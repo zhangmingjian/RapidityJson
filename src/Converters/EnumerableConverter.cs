@@ -42,7 +42,7 @@ namespace Rapidity.Json.Converters
             var listExp = Expression.TypeAs(paramExp, type);
             var method = type.GetMethod(nameof(IEnumerable.GetEnumerator));
             var callExp = Expression.Call(listExp, method);
-            var body = Expression.TypeAs(callExp,typeof(IEnumerator));
+            var body = Expression.TypeAs(callExp, typeof(IEnumerator));
             var expression = Expression.Lambda<Func<object, IEnumerator>>(body, paramExp);
             return expression.Compile();
         }
@@ -111,15 +111,12 @@ namespace Rapidity.Json.Converters
             while (enumer.MoveNext())
             {
                 var current = enumer.Current;
-                if (current == null)
+                //跳过循环引用
+                if (current != null && current.GetType() == obj.GetType() && current.GetHashCode() == obj.GetHashCode())
                 {
-                    writer.WriteNull();
+                    continue;
                 }
-                else
-                {
-                    var convert = Provider.Build(current.GetType());
-                    convert.WriteTo(writer, current, option);
-                }
+                base.WriteTo(writer, current, option);
             }
             writer.WriteEndArray();
         }

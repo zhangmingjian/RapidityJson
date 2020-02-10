@@ -64,10 +64,10 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无法从{token.ValueType}转换为{Type},{nameof(EnumConverter)}反序列化{Type}失败");
         }
 
-        public override void WriteTo(JsonWriter write, object obj, JsonOption option)
+        public override void WriteTo(JsonWriter writer, object obj, JsonOption option)
         {
-            //write.WriteInt((int)obj);
-            write.WriteString(obj.ToString());
+            if (option.WriteEnumValue) writer.WriteInt((int)obj);
+            else writer.WriteString(obj.ToString());
         }
     }
 }

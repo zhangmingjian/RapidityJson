@@ -6,22 +6,21 @@ namespace Rapidity.Json
 {
     public class JsonSerializer
     {
-        private readonly JsonOption _option;
+        public JsonOption Option { get; }
 
-        public JsonSerializer() : this(JsonOption.Defalut)
+        public JsonSerializer() : this(new JsonOption { SkipValidated = true })
         {
         }
 
         public JsonSerializer(JsonOption option)
         {
-            if (option == null) throw new ArgumentNullException(nameof(option));
-            this._option = option;
+            Option = option ?? throw new ArgumentNullException(nameof(option));
         }
 
         public object Deserialize(JsonReader reader, Type type)
         {
-            var convert = _option.ConverterFactory.Build(type);
-            return convert.FromReader(reader, _option);
+            var convert = Option.ConverterFactory.Build(type);
+            return convert.FromReader(reader, Option);
         }
 
 
@@ -32,10 +31,10 @@ namespace Rapidity.Json
 
         public object Deserialize(JsonToken token, Type type)
         {
-            var provider = new DefaultTypeConverterProvider();
-            var convert = provider.Build(type);
-            return convert.FromToken(token, _option);
+            var convert = Option.ConverterFactory.Build(type);
+            return convert.FromToken(token, Option);
         }
+
 
         public T Deserialize<T>(JsonToken token)
         {
@@ -45,7 +44,7 @@ namespace Rapidity.Json
         public string Serialize(object obj)
         {
             using (var sw = new StringWriter())
-            using (var writer = new JsonWriter(sw))
+            using (var writer = new JsonWriter(sw, Option))
             {
                 Serialize(writer, obj);
                 return sw.ToString();
@@ -59,9 +58,8 @@ namespace Rapidity.Json
                 writer.WriteNull();
                 return;
             }
-            var provider = new DefaultTypeConverterProvider();
-            var convert = provider.Build(obj.GetType());
-            convert.WriteTo(writer, obj, _option);
+            var convert = Option.ConverterFactory.Build(obj.GetType());
+            convert.WriteTo(writer, obj, Option);
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Rapidity.Json
 {
-    public class Stack<T>
+    internal class Stack<T>
     {
         private const int InitialCapacity = 8;
         private T[] _array;

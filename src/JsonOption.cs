@@ -1,7 +1,4 @@
 ﻿using Rapidity.Json.Converters;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Rapidity.Json
 {
@@ -12,13 +9,18 @@ namespace Rapidity.Json
         /// </summary>
         public int MaxDepth { get; set; } = 32;
         /// <summary>
-        /// 是否忽略默认值
-        /// </summary>
-        public bool IgnoreDefalutValue { get; set; }
-        /// <summary>
         /// 是否忽略null值
         /// </summary>
         public bool IgnoreNullValue { get; set; }
+        /// <summary>
+        /// 属性驼峰命名
+        /// </summary>
+        public bool CamelCaseNamed { get; set; }
+
+        /// <summary>
+        /// 默认序列化写枚举的name,开启后写枚举value
+        /// </summary>
+        public bool WriteEnumValue { get; set; }
 
         #region  JsonWriter Options
         /// <summary>
@@ -30,17 +32,13 @@ namespace Rapidity.Json
         /// </summary>
         public int IndenteLength { get; set; }
         /// <summary>
-        /// DateTime格式FormatString
-        /// </summary>
-        public string DateTimeFormat { get; set; }
-        /// <summary>
         /// 关闭 验证写入的token,默认开启验证
         /// </summary>
         public bool SkipValidated { get; set; }
         /// <summary>
-        /// 属性/字符串-使用单引号
+        /// DateTime格式FormatString
         /// </summary>
-        public bool UseSingleQuote { get; set; }
+        public string DateTimeFormat { get; set; }
 
         #endregion
 
@@ -51,40 +49,5 @@ namespace Rapidity.Json
             get => _converterFactory = _converterFactory ?? new DefaultTypeConverterProvider();
             set => _converterFactory = value;
         }
-
-        public static JsonOption Defalut => new JsonOption
-        {
-            MaxDepth = 32
-        };
-    }
-
-    public struct JsonWriteOption
-    {
-        /// <summary>
-        /// 是否缩进
-        /// </summary>
-        public bool Indented { get; set; }
-        /// <summary>
-        ///缩进字符数
-        /// </summary>
-        public int IndenteLength { get; set; }
-        /// <summary>
-        /// DateTime格式FormatString
-        /// </summary>
-        public string DateTimeFormat { get; set; }
-        /// <summary>
-        /// 关闭 验证写入的token,默认开启验证
-        /// </summary>
-        public bool SkipValidated { get; set; }
-        /// <summary>
-        /// 属性/字符串-使用单引号
-        /// </summary>
-        public bool UseSingleQuote { get; set; }
-
-        public static JsonWriteOption Default => new JsonWriteOption
-        {
-            Indented = true,
-            SkipValidated = true
-        };
     }
 }

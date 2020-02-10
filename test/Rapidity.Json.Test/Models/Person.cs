@@ -6,6 +6,7 @@ namespace Rapidity.Json.Test
 {
     public class Person
     {
+        [Property(Sort = 10)]
         public int Id { get; set; }
 
         public string Name { get; set; }
@@ -14,6 +15,7 @@ namespace Rapidity.Json.Test
 
         public DateTime Birthday { get; set; }
 
+        [Property("Children", Sort = -1)]
         public Person Child { get; set; }
 
         public float floadField;
@@ -22,6 +24,7 @@ namespace Rapidity.Json.Test
 
         public ICollection<DateTimeKind?> dateTimeKinds { get; set; }
 
+        [Property(Ignore = true)]
         public EnvironmentVariableTarget EnumField;
 
     }

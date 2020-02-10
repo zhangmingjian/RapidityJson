@@ -7,7 +7,7 @@ namespace Rapidity.Json.Converters
 {
     public abstract class TypeConverterProvider
     {
-        public abstract IReadOnlyCollection<IConverterCreator> ConverterFactories { get; }
+        public abstract IReadOnlyCollection<IConverterCreator> AllConverterFactories();
 
         public abstract void AddConverterFactory(IConverterCreator converter);
 
@@ -23,7 +23,7 @@ namespace Rapidity.Json.Converters
 
         private List<IConverterCreator> _converters;
 
-        public override IReadOnlyCollection<IConverterCreator> ConverterFactories => _converters;
+        public override IReadOnlyCollection<IConverterCreator> AllConverterFactories() => _converters;
 
         public DefaultTypeConverterProvider()
         {
@@ -54,7 +54,7 @@ namespace Rapidity.Json.Converters
         private TypeConverter Find(Type type)
         {
             TypeConverter convert = null;
-            foreach (var creator in ConverterFactories)
+            foreach (var creator in AllConverterFactories())
             {
                 if (creator.CanConvert(type))
                 {

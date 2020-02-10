@@ -16,10 +16,7 @@ namespace Rapidity.Json
         /// <returns></returns>
         public static T To<T>(string json)
         {
-            using (var read = new JsonReader(json))
-            {
-                return new JsonSerializer().Deserialize<T>(read);
-            }
+            return To<T>(json, new JsonOption());
         }
 
         public static T To<T>(string json, JsonOption option)
@@ -32,14 +29,21 @@ namespace Rapidity.Json
 
         public static string ToJson(object obj)
         {
-            return new JsonSerializer().Serialize(obj);
+            var option = new JsonOption
+            {
+                SkipValidated = true
+            };
+            return ToJson(obj, option);
         }
 
         public static string ToJson(object obj, bool indented)
         {
-            var option = JsonOption.Defalut;
-            option.Indented = indented;
-            return new JsonSerializer(option).Serialize(obj);
+            var option = new JsonOption
+            {
+                Indented = indented,
+                SkipValidated = true
+            };
+            return ToJson(obj, option);
         }
 
         public static string ToJson(object obj, JsonOption option)

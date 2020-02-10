@@ -119,7 +119,7 @@ namespace Rapidity.Json.Converters
             return new DictionaryConverter(dicType, arguments[0], arguments[1], provider);
         }
 
-        public override object FromReader(JsonReader reader,JsonOption option)
+        public override object FromReader(JsonReader reader, JsonOption option)
         {
             object instance = null;
             object key = null;
@@ -179,17 +179,12 @@ namespace Rapidity.Json.Converters
             var keys = GetKeys(obj);
             while (keys.MoveNext())
             {
-                writer.WritePropertyName(keys.Current.ToString());
                 var value = GetValue(obj, keys.Current);
-                if (value == null)
-                {
-                    writer.WriteNull();
-                }
-                else
-                {
-                    var convert = Provider.Build(value.GetType());
-                    convert.WriteTo(writer, value, option);
-                }
+                if (value != null && value.GetType() == obj.GetType() && obj.GetHashCode() == value.GetHashCode())
+                    continue;
+                var name = option.CamelCaseNamed ? keys.Current.ToString().ToCamelCase() : keys.Current.ToString();
+                writer.WritePropertyName(name);
+                base.WriteTo(writer, value, option);
             }
             writer.WriteEndObject();
         }

@@ -50,17 +50,17 @@ namespace Rapidity.Json
 
         public override string ToString()
         {
-            return ToString(JsonWriteOption.Default);
+            var option = new JsonOption
+            {
+                Indented = true,
+                SkipValidated = true
+            };
+            return ToString(option);
         }
 
-        public string ToString(JsonWriteOption option)
+        public string ToString(JsonOption option)
         {
-            using (var sw = new StringWriter(new StringBuilder(1024)))
-            using (var write = new JsonWriter(sw, option))
-            {
-                write.WriteToken(this);
-                return sw.ToString();
-            }
+            return new JsonSerializer(option).Serialize(this);
         }
 
         #region 基本类型转换

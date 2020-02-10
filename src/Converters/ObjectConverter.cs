@@ -21,7 +21,7 @@ namespace Rapidity.Json.Converters
 
 
         public MemberDefinition GetMemberDefinition(string name)
-            => MemberDefinitions.FirstOrDefault(x => x.JsonProperty.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+            => MemberDefinitions.FirstOrDefault(x => x.PropertyName.Equals(name, StringComparison.CurrentCultureIgnoreCase));
 
         /// <summary>
         /// 
@@ -31,20 +31,26 @@ namespace Rapidity.Json.Converters
         private IEnumerable<MemberDefinition> GetMemberDefinitions(Type type)
         {
             var list = new List<MemberDefinition>();
+            if (type == null) return list;
             foreach (var property in type.GetProperties())
             {
-                if (!property.CanRead) continue;
+                //无读权限，静态属性跳过
+                if (!property.CanRead || property.GetGetMethod().IsStatic) continue;
                 //跳过委托
                 if (typeof(Delegate).IsAssignableFrom(property.PropertyType)) continue;
-                list.Add(new MemberDefinition(property));
+                var attr = property.GetCustomAttribute<PropertyAttribute>();
+                if (attr != null && attr.Ignore) continue;
+                list.Add(new MemberDefinition(property, attr));
             }
             foreach (var field in type.GetFields())
             {
-                //跳过委托
-                if (typeof(Delegate).IsAssignableFrom(field.FieldType)) continue;
-                list.Add(new MemberDefinition(field));
+                //跳过委托，静态字段
+                if (field.IsStatic || typeof(Delegate).IsAssignableFrom(field.FieldType)) continue;
+                var attr = field.GetCustomAttribute<PropertyAttribute>();
+                if (attr != null && attr.Ignore) continue;
+                list.Add(new MemberDefinition(field, attr));
             }
-            return list;
+            return list.OrderBy(o => o.Sort);
         }
 
         /// <summary>
@@ -155,17 +161,14 @@ namespace Rapidity.Json.Converters
             writer.WriteStartObject();
             foreach (var member in this.MemberDefinitions)
             {
-                //struct时 跳过与类型相同的属性类型，否则会死循环
-                var type = obj.GetType();
-                if (IsCustomStruct(type) && member.MemberType == type) continue;
-                writer.WritePropertyName(member.JsonProperty);
-                var value = GetValue(obj, member.JsonProperty);
-                if (value == null) writer.WriteNull();
-                else
-                {
-                    var convert = Provider.Build(value.GetType());
-                    convert.WriteTo(writer, value, option);
-                }
+                var value = GetValue(obj, member.PropertyName);
+                if (value == null && option.IgnoreNullValue) continue;
+                //属性循环引用：属性类型与当前类相同，且同一实例时
+                if (value != null && member.MemberType == obj.GetType()
+                    && obj.GetHashCode() == value.GetHashCode()) continue;
+                var name = option.CamelCaseNamed ? member.PropertyName.ToCamelCase() : member.PropertyName;
+                writer.WritePropertyName(name);
+                base.WriteTo(writer, value, option);
             }
             writer.WriteEndObject();
         }
@@ -173,19 +176,27 @@ namespace Rapidity.Json.Converters
 
     internal class MemberDefinition
     {
-        public MemberInfo MemberInfo { get; }
-
-        public MemberDefinition(MemberInfo memberInfo)
+        public MemberDefinition(MemberInfo memberInfo, PropertyAttribute attribute)
         {
             this.MemberInfo = memberInfo;
             if (MemberInfo.MemberType == MemberTypes.Property) MemberType = ((PropertyInfo)MemberInfo).PropertyType;
             else if (MemberInfo.MemberType == MemberTypes.Field) MemberType = ((FieldInfo)MemberInfo).FieldType;
-            JsonProperty = MemberInfo.Name;
+            JsonProperty = attribute;
+            PropertyName = JsonProperty?.Name ?? MemberInfo.Name;
+            Sort = JsonProperty?.Sort ?? 0;
         }
 
-        public string JsonProperty { get; }
+        public MemberInfo MemberInfo { get; }
+        /// <summary>
+        /// jsonProperty settings
+        /// </summary>
+        public PropertyAttribute JsonProperty { get; }
+
+        public string PropertyName { get; }
 
         public Type MemberType { get; }
+
+        public int Sort { get; }
 
         private Func<object, object> _getValue;
 
