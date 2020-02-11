@@ -6,16 +6,13 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    public abstract class TypeConverter
+    internal abstract class TypeConverterBase : ITypeConverter
     {
-        public TypeConverterProvider Provider { get; protected set; }
-
         public Type Type { get; protected set; }
 
-        public TypeConverter(Type type, TypeConverterProvider provider)
+        public TypeConverterBase(Type type)
         {
             this.Type = type;
-            this.Provider = provider;
         }
 
         private Func<object> _createInstance;
@@ -37,8 +34,8 @@ namespace Rapidity.Json.Converters
                 List<Expression> parametExps = new List<Expression>();
                 foreach (var para in parameters)
                 {
-                    var converter = Provider.Build(para.ParameterType);
-                    ConstantExpression constant = Expression.Constant(converter.GetDefaultValue());
+                    var defaultValue = GetDefaultValue(para.ParameterType);
+                    ConstantExpression constant = Expression.Constant(defaultValue);
                     var paraValueExp = Expression.Convert(constant, para.ParameterType);
                     parametExps.Add(paraValueExp);
                 }
@@ -48,32 +45,25 @@ namespace Rapidity.Json.Converters
             return expression.Compile();
         }
 
-        private Func<object> _getDefaultValue;
-
-        /// <summary>
-        /// 获取默认值
-        /// </summary>
-        public Func<object> GetDefaultValue => _getDefaultValue = _getDefaultValue ?? BuildGetDefaultValueMethod(Type);
-
-        protected virtual Func<object> BuildGetDefaultValueMethod(Type type)
+        protected virtual object GetDefaultValue(Type type)
         {
             var defaultExp = Expression.Default(type);
             var body = Expression.TypeAs(defaultExp, typeof(object));
             var expression = Expression.Lambda<Func<object>>(body);
-            return expression.Compile();
+            return expression.Compile()();
         }
 
         public abstract object FromReader(JsonReader reader, JsonOption option);
 
         public abstract object FromToken(JsonToken token, JsonOption option);
 
-        public virtual void WriteTo(JsonWriter writer, object obj, JsonOption option)
+        public virtual void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
             if (obj == null) writer.WriteNull();
             else
             {
-                var convert = Provider.Build(obj.GetType());
-                convert.WriteTo(writer, obj, option);
+                var convert = option.ConverterFactory.Build(obj.GetType());
+                convert.ToWriter(writer, obj, option);
             }
         }
     }

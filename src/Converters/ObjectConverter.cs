@@ -8,9 +8,9 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class ObjectConverter : TypeConverter, IConverterCreator
+    internal class ObjectConverter : TypeConverterBase, IConverterCreator
     {
-        public ObjectConverter(Type type, TypeConverterProvider provider) : base(type, provider)
+        public ObjectConverter(Type type) : base(type)
         {
         }
 
@@ -91,9 +91,9 @@ namespace Rapidity.Json.Converters
             return false;
         }
 
-        public TypeConverter Create(Type type, TypeConverterProvider provider)
+        public ITypeConverter Create(Type type)
         {
-            return new ObjectConverter(type, provider);
+            return new ObjectConverter(type);
         }
 
         private bool IsCustomStruct(Type type)
@@ -118,7 +118,7 @@ namespace Rapidity.Json.Converters
                         break;
                     case JsonTokenType.PropertyName:
                         var member = GetMemberDefinition(reader.Text);
-                        var converter = Provider.Build(member?.MemberType ?? typeof(object));
+                        var converter = option.ConverterFactory.Build(member?.MemberType ?? typeof(object));
                         reader.Read();
                         var value = converter.FromReader(reader, option);
                         member?.SetValue(instance, value);
@@ -146,7 +146,7 @@ namespace Rapidity.Json.Converters
                     var member = GetMemberDefinition(property.Name);
                     if (member != null)
                     {
-                        var convert = Provider.Build(member.MemberType);
+                        var convert = option.ConverterFactory.Build(member.MemberType);
                         var value = convert.FromToken(property.Value, option);
                         member.SetValue(instance, value);
                     }
@@ -156,7 +156,7 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
         }
 
-        public override void WriteTo(JsonWriter writer, object obj, JsonOption option)
+        public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
             writer.WriteStartObject();
             foreach (var member in this.MemberDefinitions)
@@ -168,7 +168,7 @@ namespace Rapidity.Json.Converters
                     && obj.GetHashCode() == value.GetHashCode()) continue;
                 var name = option.CamelCaseNamed ? member.PropertyName.ToCamelCase() : member.PropertyName;
                 writer.WritePropertyName(name);
-                base.WriteTo(writer, value, option);
+                base.ToWriter(writer, value, option);
             }
             writer.WriteEndObject();
         }

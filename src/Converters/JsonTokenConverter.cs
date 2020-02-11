@@ -4,20 +4,20 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class JsonTokenConverter : TypeConverter, IConverterCreator
+    internal class JsonTokenConverter : TypeConverterBase, IConverterCreator
     {
-        public JsonTokenConverter(Type type, TypeConverterProvider provider) : base(type, provider)
+        public JsonTokenConverter(Type type) : base(type)
         {
         }
 
         public bool CanConvert(Type type)
         {
-            return type == typeof(object) || type == typeof(JsonToken) || typeof(JsonToken).IsAssignableFrom(type);
+            return type == typeof(object) || typeof(JsonToken).IsAssignableFrom(type);
         }
 
-        public TypeConverter Create(Type type, TypeConverterProvider provider)
+        public ITypeConverter Create(Type type)
         {
-            return new JsonTokenConverter(type, provider);
+            return new JsonTokenConverter(type);
         }
 
         public override object FromReader(JsonReader reader, JsonOption option)
@@ -29,11 +29,11 @@ namespace Rapidity.Json.Converters
                     return FromReader(reader, option);
                 case JsonTokenType.StartObject: return ReadObject(reader);
                 case JsonTokenType.StartArray: return ReadArray(reader);
-                case JsonTokenType.String: return new JsonString(reader.Text);
-                case JsonTokenType.Number: return new JsonNumber(reader.Text);
-                case JsonTokenType.True: return new JsonBoolean(true);
-                case JsonTokenType.False: return new JsonBoolean(false);
-                case JsonTokenType.Null: return new JsonNull();
+                case JsonTokenType.String: return reader.Text;
+                case JsonTokenType.Number: return reader.Number.Value;
+                case JsonTokenType.True: return true;
+                case JsonTokenType.False: return false;
+                case JsonTokenType.Null: return null;
                 default: throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type},应为：{JsonTokenType.StartArray}[", reader.Line, reader.Position);
             }
         }
@@ -62,19 +62,19 @@ namespace Rapidity.Json.Converters
                         token.AddProperty(property, ReadArray(reader));
                         break;
                     case JsonTokenType.String:
-                        token.AddProperty(property, new JsonString(reader.Text));
+                        token.AddProperty(property, reader.Text);
                         break;
                     case JsonTokenType.Number:
-                        token.AddProperty(property, new JsonNumber(reader.Number.Value));
+                        token.AddProperty(property, reader.Number.Value);
                         break;
                     case JsonTokenType.True:
-                        token.AddProperty(property, new JsonBoolean(true));
+                        token.AddProperty(property, true);
                         break;
                     case JsonTokenType.False:
-                        token.AddProperty(property, new JsonBoolean(false));
+                        token.AddProperty(property, false);
                         break;
                     case JsonTokenType.Null:
-                        token.AddProperty(property, new JsonNull());
+                        token.AddProperty(property, null);
                         break;
                 }
             }
@@ -101,19 +101,19 @@ namespace Rapidity.Json.Converters
                         token.Add(ReadObject(reader));
                         break;
                     case JsonTokenType.String:
-                        token.Add(new JsonString(reader.Text));
+                        token.Add(reader.Text);
                         break;
                     case JsonTokenType.Number:
-                        token.Add(new JsonNumber(reader.Text));
+                        token.Add(reader.Number.Value);
                         break;
                     case JsonTokenType.True:
-                        token.Add(new JsonBoolean(true));
+                        token.Add(true);
                         break;
                     case JsonTokenType.False:
-                        token.Add(new JsonBoolean(false));
+                        token.Add(false);
                         break;
                     case JsonTokenType.Null:
-                        token.Add(new JsonNull());
+                        token.Add(null);
                         break;
                 }
             }
@@ -127,14 +127,31 @@ namespace Rapidity.Json.Converters
         /// <returns></returns>
         public override object FromToken(JsonToken token, JsonOption option)
         {
-            if (Type == typeof(object)
-                || typeof(JsonToken).IsAssignableFrom(Type))
+            if (typeof(JsonToken).IsAssignableFrom(Type))
                 return token;
-            var convert = Provider.Build(Type);
+            if (Type == typeof(object))
+            {
+                switch (token.ValueType)
+                {
+                    case JsonValueType.String: return ((JsonString)token).Value;
+                    case JsonValueType.Boolean: return ((JsonBoolean)token).Value;
+                    case JsonValueType.Null: return null;
+                    case JsonValueType.Number:
+                        var number = (JsonNumber)token;
+                        if (number.TryGetInt(out int intVal)) return intVal;
+                        if (number.TryGetLong(out long longVal)) return longVal;
+                        if (number.TryGetFloat(out float floatVal)) return floatVal;
+                        if (number.TryGetDouble(out double doubleVal)) return doubleVal;
+                        if (number.TryGetDecimal(out decimal decimalVal)) return decimalVal;
+                        break;
+                    default: return token;
+                }
+            }
+            var convert = option.ConverterFactory.Build(Type);
             return convert.FromToken(token, option);
         }
 
-        public override void WriteTo(JsonWriter writer, object obj, JsonOption option)
+        public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
             var token = obj as JsonToken;
             if (token != null)

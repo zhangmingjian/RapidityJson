@@ -8,7 +8,7 @@ using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Rapidity.Json
+namespace Rapidity.Json.Test
 {
     public class JsonReaderTest
     {
@@ -83,10 +83,13 @@ namespace Rapidity.Json
         {
             var json = "[]{}";
             var read = new JsonReader(json);
-            while (read.Read())
+            Assert.Throws<JsonException>(() =>
             {
-                _output.WriteLine(read.TokenType.ToString());
-            }
+                while (read.Read())
+                {
+                    _output.WriteLine(read.TokenType.ToString());
+                }
+            });
         }
 
         /// <summary>
@@ -102,7 +105,7 @@ namespace Rapidity.Json
                 _output.WriteLine("==Rapidity.Json================");
                 var watch = Stopwatch.StartNew();
                 for (int i = 1; i <= total; i++)
-                {                  
+                {
                     int count = 0;
                     using (var read = new JsonReader(json))
                     {
@@ -110,7 +113,7 @@ namespace Rapidity.Json
                         {
                             count++;
                         }
-                    }                
+                    }
                 }
                 watch.Stop();
                 _output.WriteLine($"Rapidity.Json读{total}次用时：{watch.ElapsedMilliseconds}ms");

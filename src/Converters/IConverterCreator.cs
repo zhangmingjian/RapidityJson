@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Rapidity.Json.Converters
 {
@@ -8,6 +6,6 @@ namespace Rapidity.Json.Converters
     {
         bool CanConvert(Type type);
 
-        TypeConverter Create(Type type, TypeConverterProvider provider);
+        ITypeConverter Create(Type type);
     }
 }

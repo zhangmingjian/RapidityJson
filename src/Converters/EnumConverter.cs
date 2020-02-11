@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class EnumConverter : TypeConverter, IConverterCreator
+    internal class EnumConverter : TypeConverterBase, IConverterCreator
     {
-        public EnumConverter(Type type, TypeConverterProvider provider) : base(type, provider)
+        public EnumConverter(Type type) : base(type)
         {
         }
 
@@ -15,9 +15,9 @@ namespace Rapidity.Json.Converters
             return type.IsEnum;
         }
 
-        public TypeConverter Create(Type type, TypeConverterProvider provider)
+        public ITypeConverter Create(Type type)
         {
-            return new EnumConverter(type, provider);
+            return new EnumConverter(type);
         }
 
         public override object FromReader(JsonReader reader, JsonOption option)
@@ -64,7 +64,7 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无法从{token.ValueType}转换为{Type},{nameof(EnumConverter)}反序列化{Type}失败");
         }
 
-        public override void WriteTo(JsonWriter writer, object obj, JsonOption option)
+        public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
             if (option.WriteEnumValue) writer.WriteInt((int)obj);
             else writer.WriteString(obj.ToString());

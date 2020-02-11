@@ -70,6 +70,7 @@ namespace Rapidity.Json
             if (value == null) return new JsonNull();
             return new JsonString(value);
         }
+
         public static implicit operator JsonToken(DateTime value) => new JsonString(value);
         public static implicit operator JsonToken(DateTimeOffset value) => new JsonString(value);
         public static implicit operator JsonToken(Guid value) => new JsonString(value);

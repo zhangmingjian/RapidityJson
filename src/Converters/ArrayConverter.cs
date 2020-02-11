@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
@@ -7,8 +8,8 @@ namespace Rapidity.Json.Converters
 {
     internal class ArrayConverter : EnumerableConverter, IConverterCreator
     {
-        public ArrayConverter(Type type, Type elementType, TypeConverterProvider provider) :
-            base(type, elementType, provider)
+        public ArrayConverter(Type type, Type elementType) :
+            base(type, elementType)
         {
         }
 
@@ -37,11 +38,11 @@ namespace Rapidity.Json.Converters
             return type.IsArray;
         }
 
-        public override TypeConverter Create(Type type, TypeConverterProvider provider)
+        public override ITypeConverter Create(Type type)
         {
             var elementType = type.GetElementType();
             var listType = typeof(List<>).MakeGenericType(elementType);
-            return new ArrayConverter(listType, elementType, provider);
+            return new ArrayConverter(listType, elementType);
         }
 
         public override object FromReader(JsonReader reader, JsonOption option)
@@ -54,6 +55,23 @@ namespace Rapidity.Json.Converters
         {
             var list = base.FromToken(token, option);
             return ToArray(list);
+        }
+    }
+
+    internal class ArrayListConverter : EnumerableConverter, IConverterCreator
+    {
+        public ArrayListConverter(Type type) : base(type, typeof(object))
+        {
+        }
+
+        public override bool CanConvert(Type type)
+        {
+            return type == typeof(ArrayList);
+        }
+
+        public override ITypeConverter Create(Type type)
+        {
+            return new ArrayListConverter(type);
         }
     }
 }

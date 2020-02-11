@@ -4,15 +4,15 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class ValueConverter : TypeConverter, IConverterCreator
+    internal class ValueConverter : TypeConverterBase, IConverterCreator
     {
-        public ValueConverter(Type type, TypeConverterProvider provider) : base(type, provider)
+        public ValueConverter(Type type) : base(type)
         {
         }
 
         protected override Func<object> BuildCreateInstanceMethod(Type type)
         {
-            return base.BuildGetDefaultValueMethod(type);
+            return () => GetDefaultValue(type);
         }
 
         public bool CanConvert(Type type)
@@ -31,9 +31,9 @@ namespace Rapidity.Json.Converters
             return false;
         }
 
-        public TypeConverter Create(Type type, TypeConverterProvider provider)
+        public ITypeConverter Create(Type type)
         {
-            return new ValueConverter(type, provider);
+            return new ValueConverter(type);
         }
 
         public override object FromReader(JsonReader reader, JsonOption option)
@@ -80,7 +80,7 @@ namespace Rapidity.Json.Converters
                     if (valueType != null)
                     {
                         if (reader.TokenType == JsonTokenType.Null) return null;
-                        var convert = Provider.Build(valueType);
+                        var convert = option.ConverterFactory.Build(valueType);
                         return convert.FromReader(reader, option);
                     }
                     throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
@@ -247,7 +247,7 @@ namespace Rapidity.Json.Converters
                     if (valueType != null)
                     {
                         if (token.ValueType == JsonValueType.Null) return null;
-                        var convert = Provider.Build(valueType);
+                        var convert = option.ConverterFactory.Build(valueType);
                         return convert.FromToken(token, option);
                     }
                     throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
@@ -418,7 +418,7 @@ namespace Rapidity.Json.Converters
 
         #endregion
 
-        public override void WriteTo(JsonWriter writer, object value, JsonOption option)
+        public override void ToWriter(JsonWriter writer, object value, JsonOption option)
         {
             var type = value.GetType();
             var typeCode = Type.GetTypeCode(type);
@@ -450,7 +450,7 @@ namespace Rapidity.Json.Converters
                     var valueType = Nullable.GetUnderlyingType(type);
                     if (valueType != null)
                     {
-                        WriteTo(writer, Convert.ChangeType(value, valueType), option);
+                        ToWriter(writer, Convert.ChangeType(value, valueType), option);
                         break;
                     }
                     throw new JsonException($"不支持的类型{value.GetType()}，{nameof(ValueConverter)}序列化失败");

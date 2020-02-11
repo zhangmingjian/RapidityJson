@@ -11,7 +11,7 @@ namespace Rapidity.Json.Converters
 
         public abstract void AddConverterFactory(IConverterCreator converter);
 
-        public abstract TypeConverter Build(Type type);
+        public abstract ITypeConverter Build(Type type);
     }
 
     /// <summary>
@@ -19,7 +19,7 @@ namespace Rapidity.Json.Converters
     /// </summary>
     internal class DefaultTypeConverterProvider : TypeConverterProvider
     {
-        private static ConcurrentDictionary<Type, TypeConverter> _dictionary = new ConcurrentDictionary<Type, TypeConverter>();
+        private static ConcurrentDictionary<Type, ITypeConverter> _dictionary = new ConcurrentDictionary<Type, ITypeConverter>();
 
         private List<IConverterCreator> _converters;
 
@@ -29,14 +29,15 @@ namespace Rapidity.Json.Converters
         {
             _converters = new List<IConverterCreator>()
             {
-                new ValueConverter(null,null),
-                new EnumConverter(null,null),
-                new ObjectConverter(null,null),
-                new ListConverter(null,null,null),
-                new ArrayConverter(null,null,null),
-                new DictionaryConverter(null,null,null,null),
-                new StringKeyValueConverter(null,null),
-                new JsonTokenConverter(null,null)
+                new ValueConverter(null),
+                new EnumConverter(null),
+                new ObjectConverter(null),
+                new ListConverter(null,null),
+                new ArrayConverter(null,null),
+                new DictionaryConverter(null,null,null),
+                new StringKeyValueConverter(null),
+                new ArrayListConverter(null),
+                new JsonTokenConverter(null)
             };
         }
         public override void AddConverterFactory(IConverterCreator converter)
@@ -46,23 +47,23 @@ namespace Rapidity.Json.Converters
             _converters.Add(converter);
         }
 
-        public override TypeConverter Build(Type type)
+        public override ITypeConverter Build(Type type)
         {
             return _dictionary.GetOrAdd(type, Find);
         }
 
-        private TypeConverter Find(Type type)
+        private ITypeConverter Find(Type type)
         {
-            TypeConverter convert = null;
+            ITypeConverter convert = null;
             foreach (var creator in AllConverterFactories())
             {
                 if (creator.CanConvert(type))
                 {
-                    convert = creator.Create(type, this);
+                    convert = creator.Create(type);
                     break;
                 }
             }
-            if (convert == null) throw new JsonException($"创建{type}的{nameof(TypeConverter)}失败，不支持的类型");
+            if (convert == null) throw new JsonException($"创建{type}的{nameof(ITypeConverter)}失败，不支持的类型");
             return convert;
         }
     }

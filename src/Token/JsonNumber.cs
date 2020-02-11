@@ -14,11 +14,9 @@ namespace Rapidity.Json
         public JsonNumber(string value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
-            if (double.TryParse(value, out double val))
-            {
-                _value = value;
-            }
-            throw new JsonException($"无效的JSON Number值：{value}");
+            if (!double.TryParse(value, out double val))
+                throw new JsonException($"无效的JSON Number值：{value}");
+            _value = value;
         }
 
         public JsonNumber(int value) => _value = value.ToString();

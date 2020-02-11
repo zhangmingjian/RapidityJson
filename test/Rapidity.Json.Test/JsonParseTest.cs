@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 
-namespace Rapidity.Json.Tests
+namespace Rapidity.Json.Test
 {
     public class JsonParseTest
     {

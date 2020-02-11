@@ -7,7 +7,7 @@ using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Rapidity.Json
+namespace Rapidity.Json.Test
 {
     public class JsonWriterTest
     {

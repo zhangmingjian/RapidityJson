@@ -13,8 +13,7 @@ namespace Rapidity.Json.Converters
     internal class ListConverter : EnumerableConverter, IConverterCreator
     {
 
-        public ListConverter(Type type, Type itemType, TypeConverterProvider provider) :
-            base(type, itemType, provider)
+        public ListConverter(Type type, Type itemType) :  base(type, itemType)
         {
         }
 
@@ -41,17 +40,17 @@ namespace Rapidity.Json.Converters
         /// <param name="type"></param>
         /// <param name="provider"></param>
         /// <returns></returns>
-        public override TypeConverter Create(Type type, TypeConverterProvider provider)
+        public override ITypeConverter Create(Type type)
         {
             var itemType = type.GetGenericArguments()[0];
             if (type.IsClass && !type.IsAbstract)
-                return new ListConverter(type, itemType, provider);
+                return new ListConverter(type, itemType);
             var listType = typeof(List<>).MakeGenericType(itemType);
             if (type.IsAssignableFrom(listType))
-                return new ListConverter(listType, itemType, provider);
+                return new ListConverter(listType, itemType);
             var collectionType = typeof(Collection<>).MakeGenericType(itemType);
             if (type.IsAssignableFrom(collectionType))
-                return new ListConverter(collectionType, itemType, provider);
+                return new ListConverter(collectionType, itemType);
             return null;
         }
     }

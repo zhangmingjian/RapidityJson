@@ -6,11 +6,11 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal abstract class EnumerableConverter : TypeConverter, IConverterCreator
+    internal abstract class EnumerableConverter : TypeConverterBase, IConverterCreator
     {
         public Type ItemType { get; protected set; }
 
-        public EnumerableConverter(Type type, Type itemType, TypeConverterProvider provider) : base(type, provider)
+        public EnumerableConverter(Type type, Type itemType) : base(type)
         {
             ItemType = itemType;
         }
@@ -49,12 +49,12 @@ namespace Rapidity.Json.Converters
 
         public abstract bool CanConvert(Type type);
 
-        public abstract TypeConverter Create(Type type, TypeConverterProvider provider);
+        public abstract ITypeConverter Create(Type type);
 
         public override object FromReader(JsonReader reader, JsonOption option)
         {
             object instance = null;
-            var convert = Provider.Build(ItemType);
+            var convert = option.ConverterFactory.Build(ItemType);
             do
             {
                 switch (reader.TokenType)
@@ -95,7 +95,7 @@ namespace Rapidity.Json.Converters
                 var arrayToken = (JsonArray)token;
                 foreach (var item in arrayToken)
                 {
-                    var convert = Provider.Build(ItemType);
+                    var convert = option.ConverterFactory.Build(ItemType);
                     var itemValue = convert.FromToken(item, option);
                     AddItem(list, itemValue);
                 }
@@ -104,7 +104,7 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
         }
 
-        public override void WriteTo(JsonWriter writer, object obj, JsonOption option)
+        public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
             writer.WriteStartArray();
             var enumer = GetEnumerator(obj);
@@ -116,7 +116,7 @@ namespace Rapidity.Json.Converters
                 {
                     continue;
                 }
-                base.WriteTo(writer, current, option);
+                base.ToWriter(writer, current, option);
             }
             writer.WriteEndArray();
         }

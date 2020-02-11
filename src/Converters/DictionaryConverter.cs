@@ -10,13 +10,13 @@ namespace Rapidity.Json.Converters
     /// <summary>
     /// 
     /// </summary>
-    internal class DictionaryConverter : TypeConverter, IConverterCreator
+    internal class DictionaryConverter : TypeConverterBase, IConverterCreator
     {
         public Type KeyType { get; protected set; }
 
         public Type ValueType { get; protected set; }
 
-        public DictionaryConverter(Type type, Type keyType, Type valueType, TypeConverterProvider provider) : base(type, provider)
+        public DictionaryConverter(Type type, Type keyType, Type valueType) : base(type)
         {
             this.KeyType = keyType;
             this.ValueType = valueType;
@@ -110,20 +110,20 @@ namespace Rapidity.Json.Converters
             return false;
         }
 
-        public virtual TypeConverter Create(Type type, TypeConverterProvider provider)
+        public virtual ITypeConverter Create(Type type)
         {
             var arguments = type.GetGenericArguments();
             if (type.IsClass && !type.IsAbstract)
-                return new DictionaryConverter(type, arguments[0], arguments[1], provider);
+                return new DictionaryConverter(type, arguments[0], arguments[1]);
             var dicType = typeof(Dictionary<,>).MakeGenericType(arguments[0], arguments[1]);
-            return new DictionaryConverter(dicType, arguments[0], arguments[1], provider);
+            return new DictionaryConverter(dicType, arguments[0], arguments[1]);
         }
 
         public override object FromReader(JsonReader reader, JsonOption option)
         {
             object instance = null;
             object key = null;
-            var convert = Provider.Build(ValueType);
+            var convert = option.ConverterFactory.Build(ValueType);
             do
             {
                 switch (reader.TokenType)
@@ -164,7 +164,7 @@ namespace Rapidity.Json.Converters
                 var objToken = (JsonObject)token;
                 foreach (var property in objToken.GetAllProperty())
                 {
-                    var convert = Provider.Build(ValueType);
+                    var convert = option.ConverterFactory.Build(ValueType);
                     var value = convert.FromToken(property.Value, option);
                     SetKeyValue(dic, property.Name, value);
                 }
@@ -173,7 +173,7 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
         }
 
-        public override void WriteTo(JsonWriter writer, object obj, JsonOption option)
+        public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
             writer.WriteStartObject();
             var keys = GetKeys(obj);
@@ -184,7 +184,7 @@ namespace Rapidity.Json.Converters
                     continue;
                 var name = option.CamelCaseNamed ? keys.Current.ToString().ToCamelCase() : keys.Current.ToString();
                 writer.WritePropertyName(name);
-                base.WriteTo(writer, value, option);
+                base.ToWriter(writer, value, option);
             }
             writer.WriteEndObject();
         }
@@ -196,8 +196,7 @@ namespace Rapidity.Json.Converters
     internal class StringKeyValueConverter : DictionaryConverter, IConverterCreator
     {
 
-        public StringKeyValueConverter(Type type, TypeConverterProvider provider)
-            : base(type, typeof(string), typeof(string), provider)
+        public StringKeyValueConverter(Type type) : base(type, typeof(string), typeof(string))
         {
         }
 
@@ -206,9 +205,9 @@ namespace Rapidity.Json.Converters
             return type == typeof(StringDictionary) || type == typeof(NameValueCollection);
         }
 
-        public override TypeConverter Create(Type type, TypeConverterProvider provider)
+        public override ITypeConverter Create(Type type)
         {
-            return new StringKeyValueConverter(type, provider);
+            return new StringKeyValueConverter(type);
         }
     }
 }

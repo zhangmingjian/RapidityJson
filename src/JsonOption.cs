@@ -22,6 +22,14 @@ namespace Rapidity.Json
         /// </summary>
         public bool WriteEnumValue { get; set; }
 
+        private TypeConverterProvider _converterFactory;
+
+        public TypeConverterProvider ConverterFactory
+        {
+            get => _converterFactory = _converterFactory ?? new DefaultTypeConverterProvider();
+            set => _converterFactory = value;
+        }
+
         #region  JsonWriter Options
         /// <summary>
         /// 是否缩进
@@ -41,13 +49,5 @@ namespace Rapidity.Json
         public string DateTimeFormat { get; set; }
 
         #endregion
-
-        private TypeConverterProvider _converterFactory;
-
-        public TypeConverterProvider ConverterFactory
-        {
-            get => _converterFactory = _converterFactory ?? new DefaultTypeConverterProvider();
-            set => _converterFactory = value;
-        }
     }
 }
