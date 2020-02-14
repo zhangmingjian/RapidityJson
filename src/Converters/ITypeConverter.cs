@@ -6,6 +6,8 @@ namespace Rapidity.Json.Converters
 {
     public interface ITypeConverter
     {
+        Type Type { get; }
+
         object FromReader(JsonReader reader, JsonOption option);
 
         object FromToken(JsonToken token, JsonOption option);

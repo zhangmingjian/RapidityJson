@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Rapidity.Json.Converters
 {
@@ -11,7 +10,20 @@ namespace Rapidity.Json.Converters
 
         public abstract void AddConverterFactory(IConverterCreator converter);
 
-        public abstract ITypeConverter Build(Type type);
+        public virtual ITypeConverter Build(Type type)
+        {
+            ITypeConverter convert = null;
+            foreach (var creator in AllConverterFactories())
+            {
+                if (creator.CanConvert(type))
+                {
+                    convert = creator.Create(type);
+                    break;
+                }
+            }
+            if (convert == null) throw new JsonException($"创建{type}的{nameof(ITypeConverter)}失败，不支持的类型");
+            return convert;
+        }
     }
 
     /// <summary>
@@ -49,22 +61,7 @@ namespace Rapidity.Json.Converters
 
         public override ITypeConverter Build(Type type)
         {
-            return _dictionary.GetOrAdd(type, Find);
-        }
-
-        private ITypeConverter Find(Type type)
-        {
-            ITypeConverter convert = null;
-            foreach (var creator in AllConverterFactories())
-            {
-                if (creator.CanConvert(type))
-                {
-                    convert = creator.Create(type);
-                    break;
-                }
-            }
-            if (convert == null) throw new JsonException($"创建{type}的{nameof(ITypeConverter)}失败，不支持的类型");
-            return convert;
+            return _dictionary.GetOrAdd(type, base.Build);
         }
     }
 }

@@ -29,11 +29,13 @@ namespace Rapidity.Json.Converters
                 newExp = Expression.New(type);
             else
             {
+                //查找参数最少的一个构造函数
                 constructor = type.GetConstructors().OrderBy(t => t.GetParameters().Length).FirstOrDefault();
                 var parameters = constructor.GetParameters();
                 List<Expression> parametExps = new List<Expression>();
                 foreach (var para in parameters)
                 {
+                    //有参构造函数使用默认值填充
                     var defaultValue = GetDefaultValue(para.ParameterType);
                     ConstantExpression constant = Expression.Constant(defaultValue);
                     var paraValueExp = Expression.Convert(constant, para.ParameterType);
