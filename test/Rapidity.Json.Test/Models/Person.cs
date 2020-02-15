@@ -28,4 +28,5 @@ namespace Rapidity.Json.Test
         public EnvironmentVariableTarget EnumField;
 
     }
+
 }

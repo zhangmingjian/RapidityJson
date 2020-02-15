@@ -1,12 +1,9 @@
-﻿using System;
-using System.Reflection;
-
-namespace Rapidity.Json
+﻿namespace Rapidity.Json
 {
     /// <summary>
     /// 
     /// </summary>
-    public static class JsonParser
+    public static class JsonParse
     {
         /// <summary>
         /// 

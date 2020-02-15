@@ -22,12 +22,12 @@ namespace Rapidity.Json
         /// </summary>
         public bool WriteEnumValue { get; set; }
 
-        private TypeConverterProvider _converterFactory;
+        private TypeConverterProvider _converterProvider;
 
-        public TypeConverterProvider ConverterFactory
+        public TypeConverterProvider ConverterProvider
         {
-            get => _converterFactory = _converterFactory ?? new DefaultTypeConverterProvider();
-            set => _converterFactory = value;
+            get => _converterProvider = _converterProvider ?? new DefaultTypeConverterProvider();
+            set => _converterProvider = value;
         }
 
         #region  JsonWriter Options

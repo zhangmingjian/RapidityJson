@@ -64,7 +64,7 @@ namespace Rapidity.Json.Converters
             if (obj == null) writer.WriteNull();
             else
             {
-                var convert = option.ConverterFactory.Build(obj.GetType());
+                var convert = option.ConverterProvider.Build(obj.GetType());
                 convert.ToWriter(writer, obj, option);
             }
         }

@@ -6,6 +6,9 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
+    /// <summary>
+    /// 实现了IEnumerable类型的解析
+    /// </summary>
     internal abstract class EnumerableConverter : TypeConverterBase, IConverterCreator
     {
         public Type ItemType { get; protected set; }
@@ -36,7 +39,7 @@ namespace Rapidity.Json.Converters
 
         public Func<object, IEnumerator> GetEnumerator => _getEnumerator = _getEnumerator ?? BuildGetEnumberatorMethod(Type);
 
-        private Func<object, IEnumerator> BuildGetEnumberatorMethod(Type type)
+        protected virtual Func<object, IEnumerator> BuildGetEnumberatorMethod(Type type)
         {
             var paramExp = Expression.Parameter(typeof(object), "list");
             var listExp = Expression.TypeAs(paramExp, type);
@@ -54,7 +57,7 @@ namespace Rapidity.Json.Converters
         public override object FromReader(JsonReader reader, JsonOption option)
         {
             object instance = null;
-            var convert = option.ConverterFactory.Build(ItemType);
+            var convert = option.ConverterProvider.Build(ItemType);
             do
             {
                 switch (reader.TokenType)
@@ -95,7 +98,7 @@ namespace Rapidity.Json.Converters
                 var arrayToken = (JsonArray)token;
                 foreach (var item in arrayToken)
                 {
-                    var convert = option.ConverterFactory.Build(ItemType);
+                    var convert = option.ConverterProvider.Build(ItemType);
                     var itemValue = convert.FromToken(item, option);
                     AddItem(list, itemValue);
                 }

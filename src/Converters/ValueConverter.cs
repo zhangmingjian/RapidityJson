@@ -80,7 +80,7 @@ namespace Rapidity.Json.Converters
                     if (valueType != null)
                     {
                         if (reader.TokenType == JsonTokenType.Null) return null;
-                        var convert = option.ConverterFactory.Build(valueType);
+                        var convert = option.ConverterProvider.Build(valueType);
                         return convert.FromReader(reader, option);
                     }
                     throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
@@ -247,7 +247,7 @@ namespace Rapidity.Json.Converters
                     if (valueType != null)
                     {
                         if (token.ValueType == JsonValueType.Null) return null;
-                        var convert = option.ConverterFactory.Build(valueType);
+                        var convert = option.ConverterProvider.Build(valueType);
                         return convert.FromToken(token, option);
                     }
                     throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");

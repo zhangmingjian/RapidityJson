@@ -58,7 +58,8 @@ namespace Rapidity.Json.Converters
             Expression body = null;
             if (typeof(IEnumerator).IsAssignableFrom(property.PropertyType))
             {
-                body = Expression.TypeAs(propertyExp, typeof(IEnumerator));
+                //body = Expression.TypeAs(propertyExp, typeof(IEnumerator));
+                body = propertyExp;
             }
             else if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType))
             {
@@ -82,9 +83,7 @@ namespace Rapidity.Json.Converters
             var keyParaExp = Expression.Parameter(typeof(object), "key");
 
             var dicExp = Expression.TypeAs(objExp, Type);
-            Expression keyExp = KeyType != typeof(object)
-                                ? (Expression)Expression.Convert(keyParaExp, KeyType)
-                                : keyParaExp;
+            Expression keyExp = Expression.Convert(keyParaExp, KeyType);
             var property = type.GetProperty("Item", new Type[] { KeyType });
             var indexExp = Expression.MakeIndex(dicExp, property, new Expression[] { keyExp });
             var body = Expression.TypeAs(indexExp, typeof(object));
@@ -123,7 +122,7 @@ namespace Rapidity.Json.Converters
         {
             object instance = null;
             object key = null;
-            var convert = option.ConverterFactory.Build(ValueType);
+            var convert = option.ConverterProvider.Build(ValueType);
             do
             {
                 switch (reader.TokenType)
@@ -164,7 +163,7 @@ namespace Rapidity.Json.Converters
                 var objToken = (JsonObject)token;
                 foreach (var property in objToken.GetAllProperty())
                 {
-                    var convert = option.ConverterFactory.Build(ValueType);
+                    var convert = option.ConverterProvider.Build(ValueType);
                     var value = convert.FromToken(property.Value, option);
                     SetKeyValue(dic, property.Name, value);
                 }
@@ -180,6 +179,7 @@ namespace Rapidity.Json.Converters
             while (keys.MoveNext())
             {
                 var value = GetValue(obj, keys.Current);
+                //跳过对象循环引用的数据
                 if (value != null && value.GetType() == obj.GetType() && obj.GetHashCode() == value.GetHashCode())
                     continue;
                 var name = option.CamelCaseNamed ? keys.Current.ToString().ToCamelCase() : keys.Current.ToString();

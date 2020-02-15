@@ -117,7 +117,7 @@ namespace Rapidity.Json.Converters
                         break;
                     case JsonTokenType.PropertyName:
                         var member = GetMemberDefinition(reader.Text);
-                        var converter = option.ConverterFactory.Build(member?.MemberType ?? typeof(object));
+                        var converter = option.ConverterProvider.Build(member?.MemberType ?? typeof(object));
                         reader.Read();
                         var value = converter.FromReader(reader, option);
                         member?.SetValue(instance, value);
@@ -145,7 +145,7 @@ namespace Rapidity.Json.Converters
                     var member = GetMemberDefinition(property.Name);
                     if (member != null)
                     {
-                        var convert = option.ConverterFactory.Build(member.MemberType);
+                        var convert = option.ConverterProvider.Build(member.MemberType);
                         var value = convert.FromToken(property.Value, option);
                         member.SetValue(instance, value);
                     }
@@ -258,7 +258,7 @@ namespace Rapidity.Json.Converters
                 }
                 else   //实例字段
                 {
-                    var instanceTypeExp = Expression.TypeAs(instanceExp, MemberInfo.DeclaringType);
+                    var instanceTypeExp = Expression.Convert(instanceExp, MemberInfo.DeclaringType);
                     memberExp = Expression.PropertyOrField(instanceTypeExp, MemberInfo.Name);
                 }
                 body = Expression.Assign(memberExp, Expression.Convert(valueExp, MemberType));

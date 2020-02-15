@@ -1,5 +1,4 @@
-﻿using Rapidity.Json.Converters;
-using System;
+﻿using System;
 using System.IO;
 
 namespace Rapidity.Json
@@ -19,7 +18,7 @@ namespace Rapidity.Json
 
         public object Deserialize(JsonReader reader, Type type)
         {
-            var convert = Option.ConverterFactory.Build(type);
+            var convert = Option.ConverterProvider.Build(type);
             return convert.FromReader(reader, Option);
         }
 
@@ -31,7 +30,7 @@ namespace Rapidity.Json
 
         public object Deserialize(JsonToken token, Type type)
         {
-            var convert = Option.ConverterFactory.Build(type);
+            var convert = Option.ConverterProvider.Build(type);
             return convert.FromToken(token, Option);
         }
 
@@ -58,7 +57,7 @@ namespace Rapidity.Json
                 writer.WriteNull();
                 return;
             }
-            var convert = Option.ConverterFactory.Build(obj.GetType());
+            var convert = Option.ConverterProvider.Build(obj.GetType());
             convert.ToWriter(writer, obj, Option);
         }
     }

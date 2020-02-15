@@ -147,7 +147,7 @@ namespace Rapidity.Json.Converters
                     default: return token;
                 }
             }
-            var convert = option.ConverterFactory.Build(Type);
+            var convert = option.ConverterProvider.Build(Type);
             return convert.FromToken(token, option);
         }
 
