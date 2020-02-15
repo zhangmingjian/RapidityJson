@@ -3,12 +3,12 @@
 #### 基于表达式树实现的JSON解析器
 - 对象反序列化：
 
-`var json = "{\"id\":100,\"Name\":\"张三\",\"Sex\":1,\"Birthday\":\"2000-10-10\"}";
-var student = JsonParse.To<Student>(json);  `
+            var json = "{\"id\":100,\"Name\":\"张三\",\"Sex\":1,\"Birthday\":\"2000-10-10\"}";
+            var student = JsonParse.To<Student>(json);  
 
 - 序列化对象：
 
-`           var student = new Student
+        var student = new Student
             {
                 Id = 111,
                 Name = "testName",
@@ -24,14 +24,17 @@ var student = JsonParse.To<Student>(json);  `
                 DateTimeFormat = "yyyy-MM-dd" //指定datetime格式
             };
             var json2 = JsonParse.ToJson(student, option);
-            //{"Id":111,"Name":"testName","Sex":0,"Birthday":"2020-02-15","Address":"北京市海淀区"}`
+            //{"Id":111,"Name":"testName","Sex":0,"Birthday":"2020-02-15","Address":"北京市海淀区"}
+            
  - 列表反序列化：
-  `var json = "[{\"id\":100,\"Name\":\"张三\",\"Sex\":1,\"Birthday\":\"2000-10-10\"},{\"id\":101,\"Name\":\"李四\",\"Sex\":\"female\",\"Birthday\":null,\"Address\":\"\"}]";
-  var list = JsonParse.To<List<Student>>(json);
-  var list2 = JsonParse.To<IEnumerable<Student>>(json);
-  var arr = JsonParse.To<Student[]>(json); `
+ 
+            var json = "[{\"id\":100,\"Name\":\"张三\",\"Sex\":1,\"Birthday\":\"2000-10-10\"},{\"id\":101,\"Name\":\"李四\",\"Sex\":\"female\",\"Birthday\":null,\"Address\":\"\"}]";
+            var list = JsonParse.To<List<Student>>(json);
+            var list2 = JsonParse.To<IEnumerable<Student>>(json);
+            var arr = JsonParse.To<Student[]>(json);
  - List序列化:
- `          var list = new List<Student>
+ 
+            var list = new List<Student>
             {
                 new Student {Id=123,Name="username1",Sex=Sex.Male,Birthday = new DateTime(1980,1,1) },
                 new Student {Id=125,Name="username2",Sex=Sex.Female},
@@ -76,8 +79,9 @@ var student = JsonParse.To<Student>(json);  `
                         "Sex":"Female"
                     }
                 ]
-             */`
+             */
  - Json to Dictionary:
- `var json = "{\"确诊病例\":66580,\"疑似病例\":8969,\"治愈病例\":8286,\"死亡病例\":1524}";
- var dic = JsonParse.To<Dictionary<string, int>>(json);
- var dic2 = JsonParse.To<IDictionary<string, int>>(json);`
+ 
+            var json = "{\"确诊病例\":66580,\"疑似病例\":8969,\"治愈病例\":8286,\"死亡病例\":1524}";
+            var dic = JsonParse.To<Dictionary<string, int>>(json);
+            var dic2 = JsonParse.To<IDictionary<string, int>>(json);```
