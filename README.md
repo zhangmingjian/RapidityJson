@@ -84,4 +84,4 @@
  
             var json = "{\"确诊病例\":66580,\"疑似病例\":8969,\"治愈病例\":8286,\"死亡病例\":1524}";
             var dic = JsonParse.To<Dictionary<string, int>>(json);
-            var dic2 = JsonParse.To<IDictionary<string, int>>(json);```
+            var dic2 = JsonParse.To<IDictionary<string, int>>(json);
