@@ -6,7 +6,7 @@ var json = "{\"id\":100,\"Name\":\"张三\",\"Sex\":1,\"Birthday\":\"2000-10-10\
 var student = JsonParse.To<Student>(json);  
 
 - 序列化对象：
-var student = new Student
+·var student = new Student
             {
                 Id = 111,
                 Name = "testName",
@@ -22,7 +22,7 @@ var student = new Student
                 DateTimeFormat = "yyyy-MM-dd" //指定datetime格式
             };
             var json2 = JsonParse.ToJson(student, option);
-            //{"Id":111,"Name":"testName","Sex":0,"Birthday":"2020-02-15","Address":"北京市海淀区"}
+            //{"Id":111,"Name":"testName","Sex":0,"Birthday":"2020-02-15","Address":"北京市海淀区"}·
  - 列表反序列化：
   var json = "[{\"id\":100,\"Name\":\"张三\",\"Sex\":1,\"Birthday\":\"2000-10-10\"},{\"id\":101,\"Name\":\"李四\",\"Sex\":\"female\",\"Birthday\":null,\"Address\":\"\"}]";
   var list = JsonParse.To<List<Student>>(json);
