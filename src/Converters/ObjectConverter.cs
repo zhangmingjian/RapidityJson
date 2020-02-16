@@ -135,24 +135,26 @@ namespace Rapidity.Json.Converters
 
         public override object FromToken(JsonToken token, JsonOption option)
         {
-            if (token.ValueType == JsonValueType.Null) return null;
-            if (token.ValueType == JsonValueType.Object)
+            switch (token.ValueType)
             {
-                var instance = CreateInstance();
-                var objToken = (JsonObject)token;
-                foreach (var property in objToken.GetAllProperty())
-                {
-                    var member = GetMemberDefinition(property.Name);
-                    if (member != null)
+                case JsonValueType.Null: return null;
+                case JsonValueType.Object:
+                    var instance = CreateInstance();
+                    var objToken = (JsonObject)token;
+                    foreach (var property in objToken.GetAllProperty())
                     {
-                        var convert = option.ConverterProvider.Build(member.MemberType);
-                        var value = convert.FromToken(property.Value, option);
-                        member.SetValue(instance, value);
+                        var member = GetMemberDefinition(property.Name);
+                        if (member != null)
+                        {
+                            var convert = option.ConverterProvider.Build(member.MemberType);
+                            var value = convert.FromToken(property.Value, option);
+                            member.SetValue(instance, value);
+                        }
                     }
-                }
-                return instance;
+                    return instance;
+                default:
+                    throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
             }
-            throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
         }
 
         public override void ToWriter(JsonWriter writer, object obj, JsonOption option)

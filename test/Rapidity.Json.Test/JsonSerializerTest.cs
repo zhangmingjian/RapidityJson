@@ -180,10 +180,40 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
+        public void LoopReferenceTest()
+        {
+            var model = new ClassA
+            {
+                Name = "test"
+            };
+            model.ClassB = new ClassB
+            {
+                Number = 1000,
+                ClassA = model
+            };
+            var json = new JsonSerializer().Serialize(model);
+        }
+
+        class ClassA
+        {
+            public string Name { get; set; }
+
+            public ClassB ClassB { get; set; }
+        }
+
+        class ClassB
+        {
+            public int Number { get; set; }
+            public ClassA ClassA { get; set; }
+        }
+
+        [Fact]
         public void ValueTypeTest()
         {
 
         }
+
+
 
     }
 }

@@ -62,6 +62,7 @@ namespace Rapidity.Json.Converters
             {
                 switch (reader.TokenType)
                 {
+                    case JsonTokenType.None: break;
                     case JsonTokenType.EndArray: return instance;
                     case JsonTokenType.StartArray:
                         if (instance == null) instance = CreateInstance();
@@ -82,7 +83,6 @@ namespace Rapidity.Json.Converters
                         if (instance == null) return instance;
                         AddItem(instance, null);
                         break;
-                    case JsonTokenType.None: break;
                 }
             } while (reader.Read());
             if (instance == null) throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type},应为：{JsonTokenType.StartArray}[", reader.Line, reader.Position);
@@ -91,20 +91,22 @@ namespace Rapidity.Json.Converters
 
         public override object FromToken(JsonToken token, JsonOption option)
         {
-            if (token.ValueType == JsonValueType.Null) return null;
-            if (token.ValueType == JsonValueType.Array)
+            switch (token.ValueType)
             {
-                var list = CreateInstance();
-                var arrayToken = (JsonArray)token;
-                foreach (var item in arrayToken)
-                {
-                    var convert = option.ConverterProvider.Build(ItemType);
-                    var itemValue = convert.FromToken(item, option);
-                    AddItem(list, itemValue);
-                }
-                return list;
+                case JsonValueType.Null: return null;
+                case JsonValueType.Array:
+                    var list = CreateInstance();
+                    var arrayToken = (JsonArray)token;
+                    foreach (var item in arrayToken)
+                    {
+                        var convert = option.ConverterProvider.Build(ItemType);
+                        var itemValue = convert.FromToken(item, option);
+                        AddItem(list, itemValue);
+                    }
+                    return list;
+                default:
+                    throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
             }
-            throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
         }
 
         public override void ToWriter(JsonWriter writer, object obj, JsonOption option)

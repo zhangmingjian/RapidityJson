@@ -318,55 +318,55 @@ namespace Rapidity.Json
             }
         }
 
-        /// <summary>
-        /// write object (仅适合几种基本类型)
-        /// </summary>
-        /// <param name="value"></param>
-        public void WriteValue(object value)
-        {
-            if (value == null)
-            {
-                WriteNull();
-                return;
-            }
-            var type = value.GetType();
-            var typeCode = Type.GetTypeCode(type);
-            switch (typeCode)
-            {
-                case TypeCode.String: WriteString((string)value); break;
-                case TypeCode.Char: WriteChar((char)value); break;
-                case TypeCode.Boolean: WriteBoolean((bool)value); break;
-                case TypeCode.SByte:
-                case TypeCode.Byte:
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                case TypeCode.Int32: WriteInt((int)value); break;
-                case TypeCode.UInt32: WriteUInt((uint)value); break;
-                case TypeCode.Int64: WriteLong((long)value); break;
-                case TypeCode.UInt64: WriteULong((ulong)value); break;
-                case TypeCode.Single: WriteFloat((float)value); break;
-                case TypeCode.Double: WriteDouble((double)value); break;
-                case TypeCode.Decimal: WriteDecimal((decimal)value); break;
-                case TypeCode.DateTime: WriteDateTime((DateTime)value); break;
-                case TypeCode.Empty:
-                case TypeCode.DBNull: WriteNull(); break;
-                case TypeCode.Object:
-                    if (type == typeof(Guid))
-                        WriteGuid((Guid)value);
-                    else
-                    {
-                        var valueType = Nullable.GetUnderlyingType(type);
-                        if (valueType != null)
-                        {
-                            WriteValue(Convert.ChangeType(value, valueType));
-                            break;
-                        }
-                        //未知类型直接ToString()
-                        WriteString(value.ToString());
-                    }
-                    break;
-            }
-        }
+        ///// <summary>
+        ///// write object (仅适合几种基本类型)
+        ///// </summary>
+        ///// <param name="value"></param>
+        //public void WriteValue(object value)
+        //{
+        //    if (value == null)
+        //    {
+        //        WriteNull();
+        //        return;
+        //    }
+        //    var type = value.GetType();
+        //    var typeCode = Type.GetTypeCode(type);
+        //    switch (typeCode)
+        //    {
+        //        case TypeCode.String: WriteString((string)value); break;
+        //        case TypeCode.Char: WriteChar((char)value); break;
+        //        case TypeCode.Boolean: WriteBoolean((bool)value); break;
+        //        case TypeCode.SByte:
+        //        case TypeCode.Byte:
+        //        case TypeCode.Int16:
+        //        case TypeCode.UInt16:
+        //        case TypeCode.Int32: WriteInt((int)value); break;
+        //        case TypeCode.UInt32: WriteUInt((uint)value); break;
+        //        case TypeCode.Int64: WriteLong((long)value); break;
+        //        case TypeCode.UInt64: WriteULong((ulong)value); break;
+        //        case TypeCode.Single: WriteFloat((float)value); break;
+        //        case TypeCode.Double: WriteDouble((double)value); break;
+        //        case TypeCode.Decimal: WriteDecimal((decimal)value); break;
+        //        case TypeCode.DateTime: WriteDateTime((DateTime)value); break;
+        //        case TypeCode.Empty:
+        //        case TypeCode.DBNull: WriteNull(); break;
+        //        case TypeCode.Object:
+        //            if (type == typeof(Guid))
+        //                WriteGuid((Guid)value);
+        //            else
+        //            {
+        //                var valueType = Nullable.GetUnderlyingType(type);
+        //                if (valueType != null)
+        //                {
+        //                    WriteValue(Convert.ChangeType(value, valueType));
+        //                    break;
+        //                }
+        //                //未知类型直接ToString()
+        //                WriteString(value.ToString());
+        //            }
+        //            break;
+        //    }
+        //}
 
         /// <summary>
         /// 添加逗号

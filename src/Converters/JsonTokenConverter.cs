@@ -153,13 +153,12 @@ namespace Rapidity.Json.Converters
 
         public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
-            var token = obj as JsonToken;
-            if (token != null)
+            if (obj is JsonToken token)
             {
                 writer.WriteToken(token);
                 return;
             }
-            throw new JsonException($"不支持的类型{obj.GetType()}，{nameof(JsonTokenConverter)}序列化失败");
+            writer.WriteString(obj.ToString());
         }
     }
 }

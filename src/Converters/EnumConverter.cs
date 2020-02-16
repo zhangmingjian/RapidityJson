@@ -22,16 +22,18 @@ namespace Rapidity.Json.Converters
 
         public override object FromReader(JsonReader reader, JsonOption option)
         {
-            if (reader.TokenType == JsonTokenType.None)
-                reader.Read();
             switch (reader.TokenType)
             {
+                case JsonTokenType.None:
+                    reader.Read();
+                    return FromReader(reader,option);
                 case JsonTokenType.Number:
                 case JsonTokenType.String:
                     if (TryParse(reader.Text, out object value)) return value;
-                    throw new JsonException($"无效的{Type}值：{reader.Text}", reader.Line, reader.Position);
+                    throw new JsonException($"无效的Enum:{Type},值：{reader.Text}", reader.Line, reader.Position);
+                default:
+                    throw new JsonException($"无效的JSON Token:{reader.TokenType},序列化对象:{Type}", reader.Line, reader.Position);
             }
-            throw new JsonException($"无效的JSON Token:{reader.TokenType},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
         private bool TryParse(string value, out object obj)

@@ -38,10 +38,11 @@ namespace Rapidity.Json.Converters
 
         public override object FromReader(JsonReader reader, JsonOption option)
         {
-            if (reader.TokenType == JsonTokenType.None)
-                reader.Read();
             switch (reader.TokenType)
             {
+                case JsonTokenType.None:
+                    reader.Read();
+                    return FromReader(reader, option);
                 case JsonTokenType.True:
                 case JsonTokenType.False:
                 case JsonTokenType.String:
@@ -266,131 +267,156 @@ namespace Rapidity.Json.Converters
             {
                 return null;
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetChar(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.String
-                && char.TryParse(((JsonString)token).Value, out char value))
+            if (token is JsonString stringToken)
             {
-                return value;
+                if (char.TryParse(stringToken.Value, out char value))
+                    return value;
+                Throw(token.ValueType, stringToken.Value);
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetBoolean(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Boolean)
+            if (token is JsonBoolean jsonBoolean)
             {
-                return ((JsonBoolean)token).Value;
+                return jsonBoolean.Value;
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetByte(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetByte(out byte value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetByte(out byte value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetSByte(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetSByte(out sbyte value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetSByte(out sbyte value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetInt(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetInt(out int value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetInt(out int value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetShort(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetShort(out short value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetShort(out short value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetUShort(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetUShort(out ushort value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetUShort(out ushort value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
         private object GetUInt(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetUInt(out uint value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetUInt(out uint value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
         private object GetLong(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetLong(out long value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetLong(out long value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetULong(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetULong(out ulong value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetULong(out ulong value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetFloat(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetFloat(out float value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetFloat(out float value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
         private object GetDouble(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetDouble(out double value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetDouble(out double value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetDecimal(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.Number && ((JsonNumber)token).TryGetDecimal(out decimal value))
+            if (token is JsonNumber jsonNumber)
             {
-                return value;
+                if (jsonNumber.TryGetDecimal(out decimal value))
+                    return value;
+                Throw(token.ValueType, jsonNumber.ToString());
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetGuid(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.String && Guid.TryParse(((JsonString)token).Value, out Guid value))
+            if (token is JsonString jsonString)
             {
-                return value;
+                if (Guid.TryParse(jsonString.Value, out Guid value))
+                    return value;
+                Throw(token.ValueType, jsonString.Value);
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetDBNull(JsonToken token)
@@ -399,21 +425,23 @@ namespace Rapidity.Json.Converters
             {
                 return DBNull.Value;
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
         private object GetDateTime(JsonToken token)
         {
-            if (token.ValueType == JsonValueType.String && DateTime.TryParse(((JsonString)token).Value, out DateTime value))
+            if (token is JsonString jsonString)
             {
-                return value;
+                if (DateTime.TryParse(jsonString.Value, out DateTime value))
+                    return value;
+                Throw(token.ValueType, jsonString.Value);
             }
-            return Throw(token);
+            return Throw(token.ValueType);
         }
 
-        private object Throw(JsonToken token)
+        private object Throw(JsonValueType valueType, string value = null)
         {
-            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
+            throw new JsonException($"无法将{valueType}{(value != null ? $":{value}" : "")}转换为{Type},反序列化{Type}失败");
         }
 
         #endregion
@@ -442,9 +470,9 @@ namespace Rapidity.Json.Converters
                 case TypeCode.Empty:
                 case TypeCode.DBNull: writer.WriteNull(); break;
                 case TypeCode.Object:
-                    if (type == typeof(Guid))
+                    if (value is Guid guidVal)
                     {
-                        writer.WriteGuid((Guid)value);
+                        writer.WriteGuid(guidVal);
                         break;
                     }
                     var valueType = Nullable.GetUnderlyingType(type);

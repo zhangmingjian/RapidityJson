@@ -100,11 +100,39 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
+        public void ListObjectToJsonTest()
+        {
+            var list = new List<object>();
+            list.Add("1111");
+            list.Add(null);
+            var jObj = new JsonObject();
+            jObj["aaaa"] = 1111;
+            jObj["bbbb"] = "bbbb";
+            list.Add(jObj);
+
+            var json = JsonParse.ToJson(list);
+        }
+
+        [Fact]
         public void ParseDictionaryTest()
         {
             var json = "{\"确诊病例\":66580,\"疑似病例\":8969,\"治愈病例\":8286,\"死亡病例\":1524}";
             var dic = JsonParse.To<Dictionary<string, int>>(json);
+            Assert.Equal(4, dic.Count);
+            Assert.Equal(66580, dic["确诊病例"]);
+
             var dic2 = JsonParse.To<IDictionary<string, int>>(json);
+            Assert.Equal(4, dic2.Count);
+            Assert.Equal(66580, dic2["确诊病例"]);
         }
+
+        [Fact]
+        public void ObjectClassToJsonTest()
+        {
+            var obj = new object();
+            var json = JsonParse.ToJson(obj);
+            //Assert.Equal(obj.ToString(), json);
+        }
+
     }
 }

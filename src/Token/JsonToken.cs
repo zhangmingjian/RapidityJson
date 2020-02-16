@@ -17,9 +17,20 @@ namespace Rapidity.Json
         /// <returns></returns>
         public static JsonToken Parse(string json)
         {
+            return Parse(json, new JsonOption());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        public static JsonToken Parse(string json, JsonOption option)
+        {
             using (var reader = new JsonReader(json))
             {
-                return new JsonSerializer().Deserialize<JsonToken>(reader);
+                return new JsonSerializer(option).Deserialize<JsonToken>(reader);
             }
         }
 

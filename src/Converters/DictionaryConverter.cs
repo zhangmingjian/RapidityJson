@@ -127,6 +127,7 @@ namespace Rapidity.Json.Converters
             {
                 switch (reader.TokenType)
                 {
+                    case JsonTokenType.None: break;
                     case JsonTokenType.EndObject: return instance;
                     case JsonTokenType.StartObject:
                         if (instance == null) instance = CreateInstance();
@@ -147,7 +148,6 @@ namespace Rapidity.Json.Converters
                         if (instance == null) return instance;
                         SetKeyValue(instance, key, null);
                         break;
-                    case JsonTokenType.None: break;
                 }
             } while (reader.Read());
             if (instance == null) throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type},应为:{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
@@ -156,20 +156,22 @@ namespace Rapidity.Json.Converters
 
         public override object FromToken(JsonToken token, JsonOption option)
         {
-            if (token.ValueType == JsonValueType.Null) return null;
-            if (token.ValueType == JsonValueType.Object)
+            switch (token.ValueType)
             {
-                var dic = CreateInstance();
-                var objToken = (JsonObject)token;
-                foreach (var property in objToken.GetAllProperty())
-                {
-                    var convert = option.ConverterProvider.Build(ValueType);
-                    var value = convert.FromToken(property.Value, option);
-                    SetKeyValue(dic, property.Name, value);
-                }
-                return dic;
+                case JsonValueType.Null: return null;
+                case JsonValueType.Object:
+                    var dic = CreateInstance();
+                    var objToken = (JsonObject)token;
+                    foreach (var property in objToken.GetAllProperty())
+                    {
+                        var convert = option.ConverterProvider.Build(ValueType);
+                        var value = convert.FromToken(property.Value, option);
+                        SetKeyValue(dic, property.Name, value);
+                    }
+                    return dic;
+                default:
+                    throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
             }
-            throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
         }
 
         public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
