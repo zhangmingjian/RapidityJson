@@ -30,6 +30,22 @@ namespace Rapidity.Json
             set => _converterProvider = value;
         }
 
+        /// <summary>
+        /// 对象循环引用处理方式
+        /// </summary>
+        public LoopReferenceProcess LoopReferenceProcess { get; set; }
+
+        private LoopReferenceValidator _loopReferenceValidator;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public LoopReferenceValidator LoopReferenceValidator
+        {
+            get => _loopReferenceValidator = _loopReferenceValidator ?? new LoopReferenceValidator();
+            set => _loopReferenceValidator = value;
+        }
+
         #region  JsonWriter Options
         /// <summary>
         /// 是否缩进

@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using Xunit;
 
 namespace Rapidity.Json.Test
@@ -191,7 +192,11 @@ namespace Rapidity.Json.Test
                 Number = 1000,
                 ClassA = model
             };
-            var json = new JsonSerializer().Serialize(model);
+            var option = new JsonOption
+            {
+                LoopReferenceProcess = Converters.LoopReferenceProcess.Error
+            };
+            var json = new JsonSerializer(option).Serialize(model);
         }
 
         class ClassA
@@ -210,10 +215,15 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ValueTypeTest()
         {
-
+            var type = typeof(DBNull);
+            var f = type.IsValueType;
+            var table = new DataTable();
+            table.Columns.Add("Id", typeof(int));
+            table.Columns.Add("Name", typeof(string));
+            var row = table.NewRow();
+            row["Id"] = 100;
+            row["Name"] = "fwefwf";
+            table.Rows.Add(row);
         }
-
-
-
     }
 }

@@ -163,10 +163,10 @@ namespace Rapidity.Json.Converters
             foreach (var member in this.MemberDefinitions)
             {
                 var value = GetValue(obj, member.PropertyName);
-                if (value == null && option.IgnoreNullValue) continue;
-                //属性循环引用：属性类型与当前类相同，且同一实例时
-                if (value != null && member.MemberType == obj.GetType()
-                    && obj.GetHashCode() == value.GetHashCode()) continue;
+                if (value == null && option.IgnoreNullValue)
+                    continue;
+                if (HandleLoopReferenceValue(writer, member.PropertyName, value, option))
+                    continue;
                 var name = option.CamelCaseNamed ? member.PropertyName.ToCamelCase() : member.PropertyName;
                 writer.WritePropertyName(name);
                 base.ToWriter(writer, value, option);

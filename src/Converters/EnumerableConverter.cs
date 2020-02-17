@@ -115,13 +115,11 @@ namespace Rapidity.Json.Converters
             var enumer = GetEnumerator(obj);
             while (enumer.MoveNext())
             {
-                var current = enumer.Current;
-                //跳过循环引用
-                if (current != null && current.GetType() == obj.GetType() && current.GetHashCode() == obj.GetHashCode())
-                {
+                var value = enumer.Current;
+                //循环引用处理
+                if (HandleLoopReferenceValue(writer, value, option))
                     continue;
-                }
-                base.ToWriter(writer, current, option);
+                base.ToWriter(writer, value, option);
             }
             writer.WriteEndArray();
         }

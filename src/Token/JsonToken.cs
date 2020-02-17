@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Text;
 
 namespace Rapidity.Json
 {
@@ -51,10 +49,10 @@ namespace Rapidity.Json
 
         public virtual T To<T>()
         {
-            return new JsonSerializer().Deserialize<T>(this);
+            return To<T>(new JsonOption());
         }
 
-        public virtual T To<T>(Type type, JsonOption option)
+        public virtual T To<T>(JsonOption option)
         {
             return new JsonSerializer(option).Deserialize<T>(this);
         }
@@ -63,7 +61,6 @@ namespace Rapidity.Json
         {
             var option = new JsonOption
             {
-                Indented = true,
                 SkipValidated = true
             };
             return ToString(option);

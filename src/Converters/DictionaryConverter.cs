@@ -181,10 +181,12 @@ namespace Rapidity.Json.Converters
             while (keys.MoveNext())
             {
                 var value = GetValue(obj, keys.Current);
-                //跳过对象循环引用的数据
-                if (value != null && value.GetType() == obj.GetType() && obj.GetHashCode() == value.GetHashCode())
+                if (value == null && option.IgnoreNullValue)
                     continue;
                 var name = option.CamelCaseNamed ? keys.Current.ToString().ToCamelCase() : keys.Current.ToString();
+                //对象循环引用处理
+                if (HandleLoopReferenceValue(writer, name, value, option))
+                    continue;
                 writer.WritePropertyName(name);
                 base.ToWriter(writer, value, option);
             }

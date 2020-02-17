@@ -651,19 +651,4 @@ namespace Rapidity.Json
             }
         }
     }
-
-    //internal class Utf8StringWriter : StringWriter
-    //{
-    //    private Encoding _encoding;
-    //    public override Encoding Encoding => _encoding;
-
-    //    public Utf8StringWriter(Encoding encoding = null) : this(new StringBuilder(1024), CultureInfo.CurrentCulture, encoding)
-    //    {
-    //    }
-
-    //    public Utf8StringWriter(StringBuilder sb, IFormatProvider provider, Encoding encoding = null) : base(sb, provider)
-    //    {
-    //        _encoding = encoding ?? Encoding.UTF8;
-    //    }
-    //}
 }
