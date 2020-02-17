@@ -8,9 +8,17 @@ namespace Rapidity.Json.Converters
 {
     internal class ArrayConverter : EnumerableConverter, IConverterCreator
     {
-        public ArrayConverter(Type type, Type elementType) :
-            base(type, elementType)
+        private Type _arrayType;
+
+        public ArrayConverter(Type type, Type listType, Type itemType) :
+            base(listType, itemType)
         {
+            _arrayType = type;
+        }
+
+        protected override Func<object, IEnumerator> BuildGetEnumberatorMethod(Type type)
+        {
+            return base.BuildGetEnumberatorMethod(_arrayType);
         }
 
         private Func<object, object> _toArray;
@@ -42,7 +50,7 @@ namespace Rapidity.Json.Converters
         {
             var elementType = type.GetElementType();
             var listType = typeof(List<>).MakeGenericType(elementType);
-            return new ArrayConverter(listType, elementType);
+            return new ArrayConverter(type, listType, elementType);
         }
 
         public override object FromReader(JsonReader reader, JsonOption option)

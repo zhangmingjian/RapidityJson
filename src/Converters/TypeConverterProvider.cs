@@ -45,7 +45,7 @@ namespace Rapidity.Json.Converters
                 new EnumConverter(null),
                 new ObjectConverter(null),
                 new ListConverter(null,null),
-                new ArrayConverter(null,null),
+                new ArrayConverter(null,null,null),
                 new DictionaryConverter(null,null,null),
                 new StringKeyValueConverter(null),
                 new ArrayListConverter(null),

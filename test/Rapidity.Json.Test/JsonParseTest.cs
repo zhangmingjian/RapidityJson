@@ -132,6 +132,7 @@ namespace Rapidity.Json.Test
             var obj = new object();
             var json = JsonParse.ToJson(obj);
             //Assert.Equal(obj.ToString(), json);
+            
         }
 
     }

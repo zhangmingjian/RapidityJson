@@ -16,10 +16,10 @@ namespace Rapidity.Json.Test.Models
 
     public class Rootobject
     {
-        public string date;
-        public Story[] stories;
-        [Property("top_stories")]
-        public Top_Stories[] TopStories;
+        public string date { get; set; }
+        public Story[] stories { get; set; }
+        //[Property("top_stories")]
+        public Top_Stories[] top_stories { get; set; }
     }
 
     public class Story
