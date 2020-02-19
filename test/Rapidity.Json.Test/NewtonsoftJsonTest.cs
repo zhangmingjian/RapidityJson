@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using Xunit;
 
 namespace Rapidity.Json.Test
@@ -16,7 +18,7 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
-        public void WriteTest()
+        public void SerializeTest()
         {
             var list = new Collection<Person>();
             list.Add(new Person()
@@ -41,8 +43,22 @@ namespace Rapidity.Json.Test
                 ["nnnn"] = null
             };
             //CamelCasePropertyName
-            var json = JsonConvert.SerializeObject(dic, setting);
+            var json = JsonConvert.SerializeObject(list, setting);
             //JsonPropertyAttribute
+        }
+
+        [Fact]
+        public void WriterTest()
+        {
+            var sw = new StringWriter();
+            var writer = new JsonTextWriter(sw);
+            writer.WriteStartObject();
+
+            writer.WriteComment("//121232324434335 342334534 \n afewegwgwr");
+            writer.WriteEndObject();
+
+            var json = sw.ToString();
+            var token = JToken.Parse(json);
         }
     }
 }

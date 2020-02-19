@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Rapidity.Json.Converters
@@ -13,7 +14,7 @@ namespace Rapidity.Json.Converters
             if (obj != null)
             {
                 var type = obj.GetType();
-                if (type.IsValueType || type == typeof(string)) 
+                if (type.IsValueType || type == typeof(string))
                     return false;
                 var hashCode = obj.GetHashCode();
                 if (_typeDic.ContainsKey(type))

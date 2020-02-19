@@ -19,18 +19,38 @@ namespace Rapidity.Json.Converters
         public virtual Func<object> CreateInstance
             => _createInstance = _createInstance ?? BuildCreateInstanceMethod(this.Type);
 
+        protected virtual Func<object> BuildCreateInstanceMethod2(Type type)
+        {
+            Func<object> func = () =>
+            {
+                //优先获取无参构造函数
+                //查找参数最少的一个构造函数
+                var constructor = type.GetConstructors().OrderBy(t => t.GetParameters().Length).FirstOrDefault();
+                var parameters = constructor.GetParameters();
+                if (parameters.Length == 0)
+                    return Activator.CreateInstance(type);
+                List<object> parametValues = new List<object>();
+                foreach (var para in parameters)
+                {
+                    //有参构造函数使用默认值填充
+                    var defaultValue = GetDefaultValue(para.ParameterType);
+                    parametValues.Add(defaultValue);
+                }
+                return Activator.CreateInstance(type, parametValues.ToArray());
+            };
+            return func;
+        }
+
         protected virtual Func<object> BuildCreateInstanceMethod(Type type)
         {
             NewExpression newExp;
-            //优先获取无参构造函数
-            var constructor = type.GetConstructor(Array.Empty<Type>());
-            if (constructor != null)
+            //查找参数最少的一个构造函数
+            var constructor = type.GetConstructors().OrderBy(t => t.GetParameters().Length).FirstOrDefault();
+            var parameters = constructor.GetParameters();
+            if (parameters.Length == 0)
                 newExp = Expression.New(type);
             else
             {
-                //查找参数最少的一个构造函数
-                constructor = type.GetConstructors().OrderBy(t => t.GetParameters().Length).FirstOrDefault();
-                var parameters = constructor.GetParameters();
                 List<Expression> parametExps = new List<Expression>();
                 foreach (var para in parameters)
                 {
@@ -48,10 +68,11 @@ namespace Rapidity.Json.Converters
 
         protected virtual object GetDefaultValue(Type type)
         {
-            var defaultExp = Expression.Default(type);
-            var body = Expression.TypeAs(defaultExp, typeof(object));
-            var expression = Expression.Lambda<Func<object>>(body);
-            return expression.Compile()();
+            //var defaultExp = Expression.Default(type);
+            //var body = Expression.TypeAs(defaultExp, typeof(object));
+            //var expression = Expression.Lambda<Func<object>>(body);
+            //return expression.Compile()();
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
 
         public abstract object FromReader(JsonReader reader, JsonOption option);

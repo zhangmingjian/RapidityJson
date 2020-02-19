@@ -93,37 +93,4 @@ namespace Rapidity.Json
 
         #endregion
     }
-
-    /// <summary>
-    /// json标识类型
-    /// </summary>
-    public enum JsonTokenType : byte
-    {
-        None,
-        StartObject,
-        EndObject,
-        StartArray,
-        EndArray,
-        PropertyName,
-        String,
-        Number,
-        True,
-        False,
-        Null,
-        Comment
-    }
-
-    /// <summary>
-    /// json值类型
-    /// </summary>
-    public enum JsonValueType : byte
-    {
-        Object,
-        Array,
-        String,
-        Number,
-        Boolean,
-        Null,
-        Comment
-    }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Rapidity.Json.Converters
 {
@@ -10,25 +8,14 @@ namespace Rapidity.Json.Converters
         {
         }
 
-        protected override Func<object> BuildCreateInstanceMethod(Type type)
-        {
-            return () => GetDefaultValue(type);
-        }
-
         public bool CanConvert(Type type)
         {
             //The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, 
             //Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
-            if (type.IsPrimitive
-                || Nullable.GetUnderlyingType(type) != null
-                || type == typeof(DBNull)
-                || type == typeof(string)
-                || type == typeof(decimal)
-                || type == typeof(Guid)
-                || type == typeof(DateTime)
-                || type == typeof(DateTimeOffset))
-                return true;
-            return false;
+            return type.IsPrimitive
+                     || type == typeof(DBNull)
+                     || type == typeof(decimal)
+                     || type == typeof(Guid);
         }
 
         public ITypeConverter Create(Type type)
@@ -57,41 +44,96 @@ namespace Rapidity.Json.Converters
 
         private object GetValue(JsonReader reader, JsonOption option)
         {
-            switch (Type.GetTypeCode(Type))
-            {
-                case TypeCode.Boolean: return GetBoolean(reader);
-                case TypeCode.Int32: return GetInt(reader);
-                case TypeCode.Int16: return GetShort(reader);
-                case TypeCode.UInt16: return GetUShort(reader);
-                case TypeCode.UInt32: return GetUInt(reader);
-                case TypeCode.UInt64: return GetULong(reader);
-                case TypeCode.Int64: return GetLong(reader);
-                case TypeCode.Single: return GetFloat(reader);
-                case TypeCode.Double: return GetDouble(reader);
-                case TypeCode.Decimal: return GetDecimal(reader);
-                case TypeCode.String: return GetString(reader);
-                case TypeCode.DateTime: return GetDateTime(reader);
-                case TypeCode.Char: return GetChar(reader);
-                case TypeCode.Byte: return GetByte(reader);
-                case TypeCode.SByte: return GetSByte(reader);
-                default:
-                    if (Type == typeof(Guid)) return GetGuid(reader);
-                    if (Type == typeof(DBNull)) return GetDBNull(reader);
-                    var valueType = Nullable.GetUnderlyingType(Type);
-                    if (valueType != null)
-                    {
-                        if (reader.TokenType == JsonTokenType.Null) return null;
-                        var convert = option.ConverterProvider.Build(valueType);
-                        return convert.FromReader(reader, option);
-                    }
-                    throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
-            }
-        }
+            //switch (Type.GetTypeCode(Type))
+            //{
+            //    case TypeCode.Boolean: return GetBoolean(reader);
+            //    case TypeCode.Int32: return GetInt(reader);
+            //    case TypeCode.Int16: return GetShort(reader);
+            //    case TypeCode.UInt16: return GetUShort(reader);
+            //    case TypeCode.UInt32: return GetUInt(reader);
+            //    case TypeCode.UInt64: return GetULong(reader);
+            //    case TypeCode.Int64: return GetLong(reader);
+            //    case TypeCode.Single: return GetFloat(reader);
+            //    case TypeCode.Double: return GetDouble(reader);
+            //    case TypeCode.Decimal: return GetDecimal(reader);
+            //    case TypeCode.String: return GetString(reader);
+            //    case TypeCode.DateTime: return GetDateTime(reader);
+            //    case TypeCode.Char: return GetChar(reader);
+            //    case TypeCode.Byte: return GetByte(reader);
+            //    case TypeCode.SByte: return GetSByte(reader);
+            //    default:
+            //        if (Type == typeof(Guid)) return GetGuid(reader);
+            //        if (Type == typeof(DBNull)) return GetDBNull(reader);
+            //        var valueType = Nullable.GetUnderlyingType(Type);
+            //        if (valueType != null)
+            //        {
+            //            if (reader.TokenType == JsonTokenType.Null) return null;
+            //            var convert = option.ConverterProvider.Build(valueType);
+            //            return convert.FromReader(reader, option);
+            //        }
+            //        throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
+            //}
 
-        private string GetString(JsonReader reader)
-        {
-            if (reader.TokenType == JsonTokenType.String) return reader.Text;
-            if (reader.TokenType == JsonTokenType.Null) return null;
+            if (Type == typeof(byte))
+            {
+                return GetByte(reader);
+            }
+            else if (Type == typeof(sbyte))
+            {
+                return GetSByte(reader);
+            }
+            else if (Type == typeof(short))
+            {
+                return GetShort(reader);
+            }
+            else if (Type == typeof(ushort))
+            {
+                return GetUShort(reader);
+            }
+            else if (Type == typeof(int))
+            {
+                return GetInt(reader);
+            }
+            else if (Type == typeof(uint))
+            {
+                return GetUInt(reader);
+            }
+            else if (Type == typeof(long))
+            {
+                return GetLong(reader);
+            }
+            else if (Type == typeof(ulong))
+            {
+                return GetULong(reader);
+            }
+            else if (Type == typeof(float))
+            {
+                return GetFloat(reader);
+            }
+            else if (Type == typeof(double))
+            {
+                return GetDouble(reader);
+            }
+            else if (Type == typeof(decimal))
+            {
+                return GetDecimal(reader);
+            }
+            else if (Type == typeof(char))
+            {
+                return GetChar(reader);
+            }
+            else if (Type == typeof(bool))
+            {
+                return GetBoolean(reader);
+            }
+            else if (Type == typeof(Guid))
+            {
+                return GetGuid(reader);
+            }
+            else if (Type == typeof(DBNull))
+            {
+                return GetDBNull(reader);
+            }
             throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
@@ -169,13 +211,10 @@ namespace Rapidity.Json.Converters
                         return value;
                     break;
                 case JsonTokenType.String:
-                    if (float.TryParse(reader.Text, out float val) &&
-                        (float.IsNaN(val)) || float.IsNegativeInfinity(val) || float.IsPositiveInfinity(val))
-                    {
-                        return val;
-                    }
+                    if (reader.Text == float.NaN.ToString()) return float.NaN;
+                    if (reader.Text == float.NegativeInfinity.ToString()) return float.NegativeInfinity;
+                    if (reader.Text == float.PositiveInfinity.ToString()) return float.PositiveInfinity;
                     break;
-                default: break;
             }
             throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
@@ -184,8 +223,15 @@ namespace Rapidity.Json.Converters
         {
             if (reader.TokenType == JsonTokenType.Number && double.TryParse(reader.Text, out double value))
                 return value;
+            if (reader.TokenType == JsonTokenType.String)
+            {
+                if (reader.Text == double.NaN.ToString()) return double.NaN;
+                if (reader.Text == double.NegativeInfinity.ToString()) return double.NegativeInfinity;
+                if (reader.Text == double.PositiveInfinity.ToString()) return double.PositiveInfinity;
+            }
             throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
+
         private decimal GetDecimal(JsonReader reader)
         {
             if (reader.TokenType == JsonTokenType.Number && decimal.TryParse(reader.Text, out decimal value))
@@ -213,46 +259,101 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
-        private DateTime GetDateTime(JsonReader reader)
-        {
-            if (reader.TokenType == JsonTokenType.String && DateTime.TryParse(reader.Text, out DateTime value))
-                return value;
-            throw new JsonException($"无效的JSON Token:{reader.TokenType} {reader.Text},序列化对象:{Type}", reader.Line, reader.Position);
-        }
-
         #endregion
 
         public override object FromToken(JsonToken token, JsonOption option)
         {
-            switch (Type.GetTypeCode(Type))
+            //switch (Type.GetTypeCode(Type))
+            //{
+            //    case TypeCode.Byte: return GetByte(token);
+            //    case TypeCode.SByte: return GetSByte(token);
+            //    case TypeCode.Int16: return GetShort(token);
+            //    case TypeCode.UInt16: return GetUShort(token);
+            //    case TypeCode.Int32: return GetInt(token);
+            //    case TypeCode.UInt32: return GetUInt(token);
+            //    case TypeCode.Int64: return GetLong(token);
+            //    case TypeCode.UInt64: return GetULong(token);
+            //    case TypeCode.Single: return GetFloat(token);
+            //    case TypeCode.Double: return GetDouble(token);
+            //    case TypeCode.Decimal: return GetDecimal(token);
+            //    case TypeCode.String: return GetString(token);
+            //    case TypeCode.Char: return GetChar(token);
+            //    case TypeCode.Boolean: return GetBoolean(token);
+            //    case TypeCode.DateTime: return GetDateTime(token);
+            //    default:
+            //        if (Type == typeof(Guid)) return GetGuid(token);
+            //        if (Type == typeof(DBNull)) return GetDBNull(token);
+            //        var valueType = Nullable.GetUnderlyingType(Type);
+            //        if (valueType != null)
+            //        {
+            //            if (token.ValueType == JsonValueType.Null) return null;
+            //            var convert = option.ConverterProvider.Build(valueType);
+            //            return convert.FromToken(token, option);
+            //        }
+            //        throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
+            //}
+
+            if (Type == typeof(byte))
             {
-                case TypeCode.Byte: return GetByte(token);
-                case TypeCode.SByte: return GetSByte(token);
-                case TypeCode.Int16: return GetShort(token);
-                case TypeCode.UInt16: return GetUShort(token);
-                case TypeCode.Int32: return GetInt(token);
-                case TypeCode.UInt32: return GetUInt(token);
-                case TypeCode.Int64: return GetLong(token);
-                case TypeCode.UInt64: return GetULong(token);
-                case TypeCode.Single: return GetFloat(token);
-                case TypeCode.Double: return GetDouble(token);
-                case TypeCode.Decimal: return GetDecimal(token);
-                case TypeCode.String: return GetString(token);
-                case TypeCode.Char: return GetChar(token);
-                case TypeCode.Boolean: return GetBoolean(token);
-                case TypeCode.DateTime: return GetDateTime(token);
-                default:
-                    if (Type == typeof(Guid)) return GetGuid(token);
-                    if (Type == typeof(DBNull)) return GetDBNull(token);
-                    var valueType = Nullable.GetUnderlyingType(Type);
-                    if (valueType != null)
-                    {
-                        if (token.ValueType == JsonValueType.Null) return null;
-                        var convert = option.ConverterProvider.Build(valueType);
-                        return convert.FromToken(token, option);
-                    }
-                    throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
+                return GetByte(token);
             }
+            else if (Type == typeof(sbyte))
+            {
+                return GetSByte(token);
+            }
+            else if (Type == typeof(short))
+            {
+                return GetShort(token);
+            }
+            else if (Type == typeof(ushort))
+            {
+                return GetUShort(token);
+            }
+            else if (Type == typeof(int))
+            {
+                return GetInt(token);
+            }
+            else if (Type == typeof(uint))
+            {
+                return GetUInt(token);
+            }
+            else if (Type == typeof(long))
+            {
+                return GetLong(token);
+            }
+            else if (Type == typeof(ulong))
+            {
+                return GetULong(token);
+            }
+            else if (Type == typeof(float))
+            {
+                return GetFloat(token);
+            }
+            else if (Type == typeof(double))
+            {
+                return GetDouble(token);
+            }
+            else if (Type == typeof(decimal))
+            {
+                return GetDecimal(token);
+            }
+            else if (Type == typeof(char))
+            {
+                return GetChar(token);
+            }
+            else if (Type == typeof(bool))
+            {
+                return GetBoolean(token);
+            }
+            else if (Type == typeof(Guid))
+            {
+                return GetGuid(token);
+            }
+            else if (Type == typeof(DBNull))
+            {
+                return GetDBNull(token);
+            }
+            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
         }
 
         #region  get value from jsontoken
@@ -344,6 +445,7 @@ namespace Rapidity.Json.Converters
             }
             return Throw(token.ValueType);
         }
+
         private object GetUInt(JsonToken token)
         {
             if (token is JsonNumber jsonNumber)
@@ -354,6 +456,7 @@ namespace Rapidity.Json.Converters
             }
             return Throw(token.ValueType);
         }
+
         private object GetLong(JsonToken token)
         {
             if (token is JsonNumber jsonNumber)
@@ -386,6 +489,7 @@ namespace Rapidity.Json.Converters
             }
             return Throw(token.ValueType);
         }
+
         private object GetDouble(JsonToken token)
         {
             if (token is JsonNumber jsonNumber)
@@ -448,41 +552,37 @@ namespace Rapidity.Json.Converters
 
         public override void ToWriter(JsonWriter writer, object value, JsonOption option)
         {
-            var type = value.GetType();
-            var typeCode = Type.GetTypeCode(type);
-            switch (typeCode)
-            {
-                case TypeCode.String: writer.WriteString((string)value); break;
-                case TypeCode.Char: writer.WriteChar((char)value); break;
-                case TypeCode.Boolean: writer.WriteBoolean((bool)value); break;
-                case TypeCode.SByte:
-                case TypeCode.Byte:
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                case TypeCode.Int32: writer.WriteInt((int)value); break;
-                case TypeCode.UInt32: writer.WriteUInt((uint)value); break;
-                case TypeCode.Int64: writer.WriteLong((long)value); break;
-                case TypeCode.UInt64: writer.WriteULong((ulong)value); break;
-                case TypeCode.Single: writer.WriteFloat((float)value); break;
-                case TypeCode.Double: writer.WriteDouble((double)value); break;
-                case TypeCode.Decimal: writer.WriteDecimal((decimal)value); break;
-                case TypeCode.DateTime: writer.WriteDateTime((DateTime)value); break;
-                case TypeCode.Empty:
-                case TypeCode.DBNull: writer.WriteNull(); break;
-                case TypeCode.Object:
-                    if (value is Guid guidVal)
-                    {
-                        writer.WriteGuid(guidVal);
-                        break;
-                    }
-                    var valueType = Nullable.GetUnderlyingType(type);
-                    if (valueType != null)
-                    {
-                        ToWriter(writer, Convert.ChangeType(value, valueType), option);
-                        break;
-                    }
-                    throw new JsonException($"不支持的类型{value.GetType()}，{nameof(ValueConverter)}序列化失败");
-            }
+            if (value is int intVal)
+                writer.WriteInt(intVal);
+            else if (value is uint uintVal)
+                writer.WriteUInt(uintVal);
+            else if (value is byte byteVal)
+                writer.WriteInt(byteVal);
+            else if (value is sbyte sbyteVal)
+                writer.WriteInt(sbyteVal);
+            else if (value is short shortVal)
+                writer.WriteInt(shortVal);
+            else if (value is ushort ushortVal)
+                writer.WriteInt(ushortVal);
+            else if (value is long longVal)
+                writer.WriteLong(longVal);
+            else if (value is ulong ulongVal)
+                writer.WriteULong(ulongVal);
+            else if (value is char charVal)
+                writer.WriteChar(charVal);
+            else if (value is bool boolVal)
+                writer.WriteBoolean(boolVal);
+            else if (value is float floatVal)
+                writer.WriteFloat(floatVal);
+            else if (value is double doubleVal)
+                writer.WriteDouble(doubleVal);
+            else if (value is decimal decimalVal)
+                writer.WriteDecimal(decimalVal);
+            else if (value is Guid guidVal)
+                writer.WriteGuid(guidVal);
+            else if (value is DBNull)
+                writer.WriteNull();
+            else throw new JsonException($"使用{nameof(ValueConverter)}序列化{value.GetType()}失败，不支持的类型");
         }
     }
 }

@@ -3,6 +3,7 @@ using Rapidity.Json.Test;
 using Rapidity.Json.Test.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 using Xunit;
 
@@ -26,7 +27,7 @@ namespace Rapidity.Json.Test
                 Name = "testName",
                 Sex = Sex.Unkown,
                 Address = "北京市海淀区",
-                Birthday = DateTime.Now
+                //Birthday = DateTime.Now
             };
             var json = JsonParse.ToJson(student);
             //{"Id":111,"Name":"testName","Sex":"Unkown","Birthday":"2020-02-15 17:43:31","Address":"北京市海淀区"}
@@ -129,11 +130,32 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ObjectClassToJsonTest()
         {
-            var obj = new object();
-            var json = JsonParse.ToJson(obj);
-            //Assert.Equal(obj.ToString(), json);
-            
+            var obj = new MultipleTypesModel();
+            obj.Single = new ValueModel
+            {
+                StringValue = "因为每个人的观赏口味和喜爱风格不尽相同，我会简短介绍每部电影的大致剧情，尽可能把每部电影的特色亮点告诉大家，方便您能选择适合自己的电影观看I strongly suspect that GetType() will take significantly less time than any actual logging. Of course, there's the possibility that your call to Logger.Log won't do any actual IO... I still suspect the difference will be irrelevant though.",
+                CharValue = char.MaxValue,
+                IntValue = 555555,
+                NullIntValue = -121212,
+                ByteValue = 255,
+                ShortValue = 123,
+                LongValue = 6666666666,
+                FloatValue = -0.122343355f,
+                DoubleValue = double.PositiveInfinity,
+                BoolValue = true,
+                NullBoolValue = false,
+                DateTimeValue = DateTime.Now,
+                NullDateTimeOffsetValue = DateTimeOffset.UtcNow,
+                NullGuidValue = Guid.NewGuid(),
+                NullDBNullValue = DBNull.Value
+            };
+            obj.List = new Collection<ValueModel>() { new ValueModel() };
+            obj.Array = new ValueModel[2];
+            var option = new JsonOption
+            {
+                LoopReferenceProcess = Converters.LoopReferenceProcess.Ignore
+            };
+            var json = JsonParse.ToJson(obj, option);
         }
-
     }
 }

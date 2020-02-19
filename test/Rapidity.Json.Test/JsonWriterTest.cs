@@ -17,20 +17,6 @@ namespace Rapidity.Json.Test
             _output = output;
         }
 
-        [Fact]
-        public void StreamWriteTest()
-        {
-            var path = AppDomain.CurrentDomain.BaseDirectory + "write.json";
-            var file = new FileInfo(path);
-            var stream = file.OpenWrite();
-            var textWriter = new StreamWriter(stream);
-            var writer = new JsonWriter(textWriter, new JsonOption() { SkipValidated = true });
-            writer.WriteString("afeawefewf");
-            writer.WriteString("afeawefewf");
-            var json = writer.ToString();
-            writer.Dispose();
-        }
-
         /// <summary>
         /// InvalidStartToken
         /// </summary>
@@ -347,6 +333,26 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
+        public void WriteEscapeTest()
+        {
+            var option = new JsonOption
+            {
+                IndenteLength = 2,
+            };
+            using (var sw = new StringWriter())
+            using (var write = new JsonWriter(sw, option))
+            {
+                write.WriteStartObject();
+                write.WritePropertyName("name\r\nname");
+                write.WriteString(" 特色\a\b\r\n\f\t\v\u5650 \u231a为了开发了房间/卡拉\\文件");
+                write.WritePropertyName("url");
+                write.WriteString("http:\\/\\/wwww.baidu.com");
+                write.WriteEndObject();
+                _output.WriteLine(sw.ToString());
+            }
+        }
+
+        [Fact]
         public void NewtonsoftJsonWriteTest()
         {
             var stringWriter = new StringWriter();
@@ -356,8 +362,8 @@ namespace Rapidity.Json.Test
                 write.Indentation = 1;
                 write.Formatting = Newtonsoft.Json.Formatting.Indented;
                 write.WriteStartObject();
-                write.WritePropertyName("userName");
-                write.WriteValue("{\"_object\" : { \"property\" : \" 特色\a\b\r\n\f\t\v\u5650\u231a为了开发了房间/卡拉\\\\文件 \"}}");
+                write.WritePropertyName("name\r\nname");
+                write.WriteValue(" 特色\a\b\r\n\f\t\v\u5650 \u231a为了开发了房间/卡拉\\文件");
                 write.WritePropertyName("url");
                 write.WriteValue("http:\\/\\/wwww.baidu.com");
                 write.WriteEndObject();

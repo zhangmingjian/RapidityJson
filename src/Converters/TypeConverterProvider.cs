@@ -41,8 +41,11 @@ namespace Rapidity.Json.Converters
         {
             _converters = new List<IConverterCreator>()
             {
-                new ValueConverter(null),
+                new StringConverter(null),
                 new EnumConverter(null),
+                new DateTimeConverter(null),
+                new NullableConverter(null),
+                new ValueConverter(null),
                 new ObjectConverter(null),
                 new ListConverter(null,null),
                 new ArrayConverter(null,null,null),
