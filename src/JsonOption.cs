@@ -35,15 +35,15 @@ namespace Rapidity.Json
         /// </summary>
         public LoopReferenceProcess LoopReferenceProcess { get; set; }
 
-        private LoopReferenceValidator _loopReferenceValidator;
+        private LoopReferenceChecker _loopReferenceChecker;
 
         /// <summary>
         /// 
         /// </summary>
-        public LoopReferenceValidator LoopReferenceValidator
+        public LoopReferenceChecker LoopReferenceChecker
         {
-            get => _loopReferenceValidator = _loopReferenceValidator ?? new LoopReferenceValidator();
-            set => _loopReferenceValidator = value;
+            get => _loopReferenceChecker = _loopReferenceChecker ?? new LoopReferenceChecker();
+            set => _loopReferenceChecker = value;
         }
 
         #region  JsonWriter Options

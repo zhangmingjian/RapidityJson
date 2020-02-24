@@ -79,9 +79,6 @@ namespace Rapidity.Json
             return new JsonString(value);
         }
 
-        public static implicit operator JsonToken(DateTime value) => new JsonString(value);
-        public static implicit operator JsonToken(DateTimeOffset value) => new JsonString(value);
-        public static implicit operator JsonToken(Guid value) => new JsonString(value);
         public static implicit operator JsonToken(bool value) => new JsonBoolean(value);
         public static implicit operator JsonToken(byte value) => new JsonNumber(value);
         public static implicit operator JsonToken(short value) => new JsonNumber(value);

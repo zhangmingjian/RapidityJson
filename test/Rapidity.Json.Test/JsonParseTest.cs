@@ -6,11 +6,19 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Rapidity.Json.Test
 {
     public class JsonParseTest
     {
+        private ITestOutputHelper _output;
+
+        public JsonParseTest(ITestOutputHelper helper)
+        {
+            _output = helper;
+        }
+
         [Fact]
         public void ParseObjectTest()
         {
@@ -149,13 +157,68 @@ namespace Rapidity.Json.Test
                 NullGuidValue = Guid.NewGuid(),
                 NullDBNullValue = DBNull.Value
             };
-            obj.List = new Collection<ValueModel>() { new ValueModel() };
+            obj.List = new Collection<ValueModel>() { obj.Single };
             obj.Array = new ValueModel[2];
+            obj.StructModel = new StructModel
+            {
+                StringValue = "值类型struct Value",
+                ClassModel = obj.Single
+            };
+            obj.Dictionary = new Dictionary<int, ValueModel>()
+            {
+                [1] = obj.Single,
+                [2] = null
+            };
+            obj.KeyValuePairs = new List<KeyValuePair<int, ValueModel>>() {
+             new KeyValuePair<int, ValueModel>(1,new ValueModel())
+            };
             var option = new JsonOption
             {
-                LoopReferenceProcess = Converters.LoopReferenceProcess.Ignore
+                LoopReferenceProcess = Converters.LoopReferenceProcess.Error,
+                Indented = true
             };
             var json = JsonParse.ToJson(obj, option);
+            _output.WriteLine(json);
+            var deModel = JsonParse.To<MultipleTypesModel>(json);
+        }
+
+        [Fact]
+        public void StructToJsonTest()
+        {
+            var model = new StructModel
+            {
+                StringValue = Guid.NewGuid().ToString(),
+                ClassModel = new ValueModel()
+            };
+            model.ClassModel.StructModel = new StructModel
+            {
+                StringValue = Guid.NewGuid().ToString(),
+                ClassModel = new ValueModel() { StringValue = DateTime.Now.ToString() }
+            };
+            var json = JsonParse.ToJson(model, new JsonOption
+            {
+                IgnoreNullValue = true,
+                LoopReferenceProcess = Converters.LoopReferenceProcess.Error
+            });
+        }
+
+        [Fact]
+        public void KeyValuePairsToJsonTest()
+        {
+            var pairs = new List<KeyValuePair<int, ValueModel>>()
+            {
+              new KeyValuePair<int, ValueModel>(1, new ValueModel(){ CharValue = char.MaxValue}),
+              new KeyValuePair<int, ValueModel>(3, new ValueModel()),
+            };
+            var option = new JsonOption
+            {
+                LoopReferenceProcess = Converters.LoopReferenceProcess.Error,
+                Indented = true
+            };
+            var json = JsonParse.ToJson(pairs, option);
+            _output.WriteLine(json);
+
+            //var model = JsonParse.To<List<KeyValuePair<int, ValueModel>>>(json);
         }
     }
 }

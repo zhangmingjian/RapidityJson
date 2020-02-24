@@ -1,6 +1,8 @@
 ﻿using Rapidity.Json;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -36,7 +38,7 @@ namespace Rapidity.Json.Tests
         //            var data = stack.Peek();
         //            stack.Pop();
         //        }
-   
+
         //        watch.Stop();
         //        _output.WriteLine($"用时：{watch.ElapsedMilliseconds}ms");
         //    }
@@ -87,5 +89,17 @@ namespace Rapidity.Json.Tests
         //    stack.Pop();
         //    array = stack.ToArray();
         //}
+
+        [Fact]
+        public void ContaintsTest()
+        {
+            var stack = new Stack<object>();
+            var item = new List<string>();
+            stack.Push(item);
+            stack.Push(1);
+            stack.Push(2);
+            stack.Push(1);
+            var bo = stack.Contains(1);
+        }
     }
 }

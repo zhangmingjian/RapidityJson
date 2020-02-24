@@ -217,7 +217,7 @@ namespace Rapidity.Json
         {
             _tokenValidator.ValidateNext(JsonTokenType.String);
             WriteComma();
-            _writer.Write(_quoteSymbol + value + _quoteSymbol);
+            _writer.Write(_quoteSymbol + value.ToString() + _quoteSymbol);
             _tokenType = _tokenValidator.TokenType;
         }
 

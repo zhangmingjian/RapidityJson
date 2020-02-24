@@ -25,10 +25,10 @@ namespace Rapidity.Json.Converters
             {
                 //优先获取无参构造函数
                 //查找参数最少的一个构造函数
-                var constructor = type.GetConstructors().OrderBy(t => t.GetParameters().Length).FirstOrDefault();
-                var parameters = constructor.GetParameters();
-                if (parameters.Length == 0)
+                var constructors = type.GetConstructors().OrderBy(t => t.GetParameters().Length);
+                if (constructors.Count() == 0)
                     return Activator.CreateInstance(type);
+                var parameters = constructors.First().GetParameters();
                 List<object> parametValues = new List<object>();
                 foreach (var para in parameters)
                 {
@@ -45,12 +45,13 @@ namespace Rapidity.Json.Converters
         {
             NewExpression newExp;
             //查找参数最少的一个构造函数
-            var constructor = type.GetConstructors().OrderBy(t => t.GetParameters().Length).FirstOrDefault();
-            var parameters = constructor.GetParameters();
-            if (parameters.Length == 0)
+            var constructors = type.GetConstructors().OrderBy(t => t.GetParameters().Length);
+            if (constructors.Count() == 0)
                 newExp = Expression.New(type);
             else
             {
+                var constructor = constructors.First();
+                var parameters = constructor.GetParameters();
                 List<Expression> parametExps = new List<Expression>();
                 foreach (var para in parameters)
                 {
@@ -62,17 +63,19 @@ namespace Rapidity.Json.Converters
                 }
                 newExp = Expression.New(constructor, parametExps);
             }
-            Expression<Func<object>> expression = Expression.Lambda<Func<object>>(newExp);
+
+            var body = Expression.TypeAs(newExp, typeof(object));
+            Expression<Func<object>> expression = Expression.Lambda<Func<object>>(body);
             return expression.Compile();
         }
 
         protected virtual object GetDefaultValue(Type type)
         {
-            //var defaultExp = Expression.Default(type);
-            //var body = Expression.TypeAs(defaultExp, typeof(object));
-            //var expression = Expression.Lambda<Func<object>>(body);
-            //return expression.Compile()();
-            return type.IsValueType ? Activator.CreateInstance(type) : null;
+            var defaultExp = Expression.Default(type);
+            var body = Expression.TypeAs(defaultExp, typeof(object));
+            var expression = Expression.Lambda<Func<object>>(body);
+            return expression.Compile()();
+            //return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
 
         public abstract object FromReader(JsonReader reader, JsonOption option);
@@ -89,18 +92,19 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        protected virtual bool HandleLoopReferenceValue(JsonWriter writer, object value, JsonOption option)
+        public virtual bool HandleLoopReferenceValue(JsonWriter writer, object value, JsonOption option)
         {
-            if (option.LoopReferenceValidator.ExsitLoopReference(value))
+            if (option.LoopReferenceChecker.Exsits(value))
             {
                 switch (option.LoopReferenceProcess)
                 {
-                    case LoopReferenceProcess.Ignore: return true;
+                    case LoopReferenceProcess.Ignore:
+                        return true;
                     case LoopReferenceProcess.Null:
                         writer.WriteNull();
                         return true;
                     case LoopReferenceProcess.Error:
-                        throw new JsonException($"对象：{value.GetType().FullName}存在循环引用，无法执行序列化");
+                        throw new JsonException($"对象：{value.GetType().Name}存在循环引用，序列化失败");
                 }
             }
             return false;
@@ -114,19 +118,20 @@ namespace Rapidity.Json.Converters
         /// <param name="value"></param>
         /// <param name="option"></param>
         /// <returns></returns>
-        protected virtual bool HandleLoopReferenceValue(JsonWriter writer, string propertyName, object value, JsonOption option)
+        public virtual bool HandleLoopReferenceValue(JsonWriter writer, string propertyName, object value, JsonOption option)
         {
-            if (option.LoopReferenceValidator.ExsitLoopReference(value))
+            if (option.LoopReferenceChecker.Exsits(value))
             {
                 switch (option.LoopReferenceProcess)
                 {
-                    case LoopReferenceProcess.Ignore: return true;
+                    case LoopReferenceProcess.Ignore:
+                        return true;
                     case LoopReferenceProcess.Null:
                         writer.WritePropertyName(propertyName);
                         writer.WriteNull();
                         return true;
                     case LoopReferenceProcess.Error:
-                        throw new JsonException($"属性{propertyName}：{value.GetType().FullName}存在循环引用，无法执行序列化");
+                        throw new JsonException($"属性{propertyName}：{value.GetType().FullName}存在循环引用，序列化失败");
                 }
             }
             return false;

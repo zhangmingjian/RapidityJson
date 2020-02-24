@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using Xunit;
@@ -196,7 +197,7 @@ namespace Rapidity.Json.Test
             };
             var option = new JsonOption
             {
-                LoopReferenceProcess = Converters.LoopReferenceProcess.Null
+                LoopReferenceProcess = Converters.LoopReferenceProcess.Ignore
             };
             var json = new JsonSerializer(option).Serialize(model);
         }
@@ -217,13 +218,9 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ValueTypeTest()
         {
-            int val = 100;
-            byte b = 10;
-            object c = b;
-            if(c is int i)
-            {
-
-            }
+            var write = new StringWriter();
+            write.Write(char.MaxValue.ToString());
+            write.Write("\"");
         }
     }
 }

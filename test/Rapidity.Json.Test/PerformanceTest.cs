@@ -13,7 +13,7 @@ namespace Rapidity.Json.Test
     public class PerformanceTest
     {
         private ITestOutputHelper _output;
-        private int total = 1000;
+        private int total = 10000;
 
         public PerformanceTest(ITestOutputHelper output)
         {
@@ -273,7 +273,7 @@ namespace Rapidity.Json.Test
                 var watch = Stopwatch.StartNew();
                 for (int i = 0; i < total; i++)
                 {
-                    var model = JsonParse.To<Rootobject>(json);
+                    var model = new JsonSerializer().Deserialize(new JsonReader(json), typeof(Rootobject));
                 }
                 watch.Stop();
                 WriteLine(writer, $"Rapidity.Json反序列化{total}次，用时：{watch.ElapsedMilliseconds}ms");
@@ -289,30 +289,10 @@ namespace Rapidity.Json.Test
                 var watch = Stopwatch.StartNew();
                 for (int i = 0; i < total; i++)
                 {
-                    var model = Newtonsoft.Json.JsonConvert.DeserializeObject<Rootobject>(json);
+                    var model = Newtonsoft.Json.JsonConvert.DeserializeObject(json, typeof(Rootobject));
                 }
                 watch.Stop();
                 WriteLine(writer, $"Newtonsoft.Json反序列化{total}次，用时：{watch.ElapsedMilliseconds}ms");
-            }
-
-            {
-                var watch = Stopwatch.StartNew();
-                for (int i = 0; i < total; i++)
-                {
-                    var model = Newtonsoft.Json.JsonConvert.DeserializeObject<Rootobject>(json);
-                }
-                watch.Stop();
-                _output.WriteLine($"Newtonsoft.Json反序列化{total}次，用时：{watch.ElapsedMilliseconds}ms");
-            }
-
-            {
-                var watch = Stopwatch.StartNew();
-                for (int i = 0; i < total; i++)
-                {
-                    var model = System.Text.Json.JsonSerializer.Deserialize<Rootobject>(json);
-                }
-                watch.Stop();
-                _output.WriteLine($"System.Text.Json反序列化{total}次，用时：{watch.ElapsedMilliseconds}ms");
             }
         }
 
@@ -325,7 +305,7 @@ namespace Rapidity.Json.Test
                 var watch = Stopwatch.StartNew();
                 for (int i = 0; i < total; i++)
                 {
-                    var model = System.Text.Json.JsonSerializer.Deserialize<Rootobject>(json);
+                    var model = System.Text.Json.JsonSerializer.Deserialize(json, typeof(Rootobject));
                 }
                 watch.Stop();
                 WriteLine(writer, $"System.Text.Json反序列化{total}次，用时：{watch.ElapsedMilliseconds}ms");
@@ -346,25 +326,6 @@ namespace Rapidity.Json.Test
                 }
                 watch.Stop();
                 WriteLine(writer, $"Rapidity.Json序列化{total}次，用时：{watch.ElapsedMilliseconds}ms");
-            }
-
-            {
-                var watch = Stopwatch.StartNew();
-                for (int i = 0; i < total; i++)
-                {
-                    var resultJson = Newtonsoft.Json.JsonConvert.SerializeObject(model);
-                }
-                watch.Stop();
-                _output.WriteLine($"Newtonsoft.Json序列化{total}次，用时：{watch.ElapsedMilliseconds}ms");
-            }
-            {
-                var watch = Stopwatch.StartNew();
-                for (int i = 0; i < total; i++)
-                {
-                    var resultJson = System.Text.Json.JsonSerializer.Serialize(model);
-                }
-                watch.Stop();
-                _output.WriteLine($"System.Text.Json序列化{total}次，用时：{watch.ElapsedMilliseconds}ms");
             }
         }
 

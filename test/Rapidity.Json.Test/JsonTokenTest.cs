@@ -8,14 +8,14 @@ namespace Rapidity.Json.Test
     public class JsonTokenTest
     {
         [Fact]
-        public void ToObjectTest()
+        public void ToStringTest()
         {
             var obj = new JsonObject();
             obj.AddProperty("id", 100);
             obj.AddProperty("name", "zhangsan");
             obj["Birthday"] = "2000-10";
-
-            var person = obj.To<Person>();
+            obj.AddProperty("loopObject", new JsonNumber(1000));
+            var person = obj.ToString(new JsonOption { LoopReferenceProcess = Converters.LoopReferenceProcess.Error });
         }
     }
 }

@@ -58,6 +58,7 @@ namespace Rapidity.Json
                 return;
             }
             var convert = Option.ConverterProvider.Build(obj.GetType());
+            Option.LoopReferenceChecker.PushRootObject(obj);
             convert.ToWriter(writer, obj, Option);
         }
     }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Rapidity.Json
 {
@@ -15,11 +13,10 @@ namespace Rapidity.Json
 
         public JsonBoolean(bool value) => _value = value;
 
-        public JsonBoolean(string value) => _value = bool.Parse(value);
+        public bool Equals(JsonBoolean other) => Value.Equals(other.Value);
 
-        public bool Equals(JsonBoolean other)
-        {
-            return Value.Equals(other.Value);
-        }
+        public override bool Equals(object obj) => obj is JsonBoolean jsonBoolean && Equals(jsonBoolean);
+
+        public override int GetHashCode() => _value.GetHashCode();
     }
 }

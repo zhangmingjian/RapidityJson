@@ -9,13 +9,15 @@ namespace Rapidity.Json.Test.Models
 
         public ValueModel Single { get; set; }
 
+        public StructModel StructModel { get; set; }
+
         public IEnumerable<ValueModel> List { get; set; }
 
         public ValueModel[] Array { get; set; }
 
         public IDictionary<int, ValueModel> Dictionary { get; set; }
 
-        [Property(Ignore = true)]
+        //[Property(Ignore = true)]
         public IEnumerable<KeyValuePair<int, ValueModel>> KeyValuePairs { get; set; }
 
     }
@@ -55,5 +57,14 @@ namespace Rapidity.Json.Test.Models
         public DateTimeOffset? NullDateTimeOffsetValue { get; set; }
         public DBNull DBNullValue { get; set; }
         public DBNull? NullDBNullValue { get; set; }
+
+        public StructModel StructModel { get; set; }
+    }
+
+    public struct StructModel
+    {
+        public string StringValue { get; set; }
+
+        public ValueModel ClassModel { get; set; }
     }
 }

@@ -13,33 +13,40 @@ namespace Rapidity.Json.Converters
         {
         }
 
-        private IEnumerable<MemberDefinition> _memberDefinitions;
+        private Dictionary<string, MemberDefinition> _memberDefinitions;
+        private Dictionary<string, MemberDefinition> MemberDefinitions => _memberDefinitions = _memberDefinitions ?? GetMemberDefinitions(Type);
 
-        public IEnumerable<MemberDefinition> MemberDefinitions
-            => _memberDefinitions = _memberDefinitions ?? GetMemberDefinitions(Type);
+        public IEnumerable<MemberDefinition> MemberList => MemberDefinitions.Values.OrderBy(x => x.Sort);
 
 
         public MemberDefinition GetMemberDefinition(string name)
-            => MemberDefinitions.FirstOrDefault(x => x.PropertyName.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+        {
+            if (MemberDefinitions.TryGetValue(name, out MemberDefinition member)) return member;
+            return null;
+        }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        private IEnumerable<MemberDefinition> GetMemberDefinitions(Type type)
+        private Dictionary<string, MemberDefinition> GetMemberDefinitions(Type type)
         {
-            var list = new List<MemberDefinition>();
-            if (type == null) return list;
+            var dic = new Dictionary<string, MemberDefinition>(StringComparer.CurrentCultureIgnoreCase);
+            if (type == null) return dic;
             foreach (var property in type.GetProperties())
             {
                 //无读权限，静态属性跳过
-                if (!property.CanRead || property.GetGetMethod().IsStatic) continue;
+                if (!property.CanRead || property.GetGetMethod().IsStatic
+                    || typeof(Delegate).IsAssignableFrom(property.PropertyType))
+                    continue;
                 //跳过委托
                 if (typeof(Delegate).IsAssignableFrom(property.PropertyType)) continue;
                 var attr = property.GetCustomAttribute<PropertyAttribute>();
                 if (attr != null && attr.Ignore) continue;
-                list.Add(new MemberDefinition(property, attr));
+                var member = new MemberDefinition(property, attr);
+                dic[member.PropertyName] = member;
+                //list.Add(new ReflectionMemberDefinition(property, attr));
             }
             foreach (var field in type.GetFields())
             {
@@ -47,9 +54,11 @@ namespace Rapidity.Json.Converters
                 if (field.IsStatic || typeof(Delegate).IsAssignableFrom(field.FieldType)) continue;
                 var attr = field.GetCustomAttribute<PropertyAttribute>();
                 if (attr != null && attr.Ignore) continue;
-                list.Add(new MemberDefinition(field, attr));
+                var member = new MemberDefinition(field, attr);
+                dic[member.PropertyName] = member;
+                //list.Add(new ReflectionMemberDefinition(field, attr));
             }
-            return list.OrderBy(o => o.Sort);
+            return dic;
         }
 
         /// <summary>
@@ -97,9 +106,11 @@ namespace Rapidity.Json.Converters
 
         private bool IsCustomStruct(Type type)
         {
+            //除datetime/decimal/guid以外的struct
             return type.IsValueType && !type.IsPrimitive //struct
-                 && type != typeof(DateTime)
                  && type != typeof(decimal)
+                 && type != typeof(DateTime)
+                 && type != typeof(DateTimeOffset)
                  && type != typeof(Guid);
         }
 
@@ -160,7 +171,7 @@ namespace Rapidity.Json.Converters
         public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
             writer.WriteStartObject();
-            foreach (var member in this.MemberDefinitions)
+            foreach (var member in this.MemberList)
             {
                 var value = GetValue(obj, member.PropertyName);
                 if (value == null && option.IgnoreNullValue)
@@ -172,6 +183,7 @@ namespace Rapidity.Json.Converters
                 base.ToWriter(writer, value, option);
             }
             writer.WriteEndObject();
+            option.LoopReferenceChecker.PopObject();
         }
     }
 
@@ -267,6 +279,56 @@ namespace Rapidity.Json.Converters
             }
             Expression<Action<object, object>> exp = Expression.Lambda<Action<object, object>>(body, instanceExp, valueExp);
             return exp.Compile();
+        }
+    }
+
+    internal class ReflectionMemberDefinition : MemberDefinition
+    {
+        public ReflectionMemberDefinition(MemberInfo memberInfo, PropertyAttribute attribute) : base(memberInfo, attribute)
+        {
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        protected override Func<object, object> BuildGetValueMethod()
+        {
+            Func<object, object> func = null;
+            if (MemberInfo is PropertyInfo property)
+            {
+                func = instance => property.GetValue(property.GetGetMethod().IsStatic ? null : instance);
+            }
+            else
+            {
+                var field = (FieldInfo)MemberInfo;
+                func = instance => field.GetValue(field.IsStatic ? null : instance);
+            }
+            return func;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        protected override Action<object, object> BuildSetValueMethod()
+        {
+            Action<object, object> action = null;
+            if (MemberInfo is PropertyInfo property)
+            {
+                if (!property.CanWrite) action = (instance, value) => { };
+                else
+                {
+                    var isStatic = property.GetSetMethod().IsStatic;
+                    action = (instance, value) => property.SetValue(isStatic ? null : instance, value);
+                }
+            }
+            else
+            {
+                var field = (FieldInfo)MemberInfo;
+                action = (instance, value) => field.SetValue(field.IsStatic ? null : instance, value);
+            }
+            return action;
         }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Rapidity.Json
 {
@@ -10,11 +8,8 @@ namespace Rapidity.Json
 
         public bool Equals(JsonNull other) => other != null;
 
-        public override int GetHashCode() => -1;
+        public override bool Equals(object obj) => obj is JsonNull;
 
-        public override object To(Type type)
-        {
-            return default;
-        }
+        public override int GetHashCode() => -1;
     }
 }

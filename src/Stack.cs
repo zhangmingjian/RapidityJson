@@ -74,6 +74,11 @@ namespace Rapidity.Json
             _index = -1;
         }
 
+        public bool Contains(T item)
+        {
+            return Count != 0 && Array.LastIndexOf(_array, item, _index) != -1;
+        }
+
         /// <summary>
         /// 
         /// </summary>

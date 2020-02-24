@@ -191,6 +191,7 @@ namespace Rapidity.Json.Converters
                 base.ToWriter(writer, value, option);
             }
             writer.WriteEndObject();
+            option.LoopReferenceChecker.PopObject();
         }
     }
 
