@@ -46,6 +46,7 @@ namespace Rapidity.Json
             using (var writer = new JsonWriter(sw, Option))
             {
                 Serialize(writer, obj);
+                sw.Flush();
                 return sw.ToString();
             }
         }

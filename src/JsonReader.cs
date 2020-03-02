@@ -262,7 +262,7 @@ namespace Rapidity.Json
                 case JsonConstants.Quote:
                 case JsonConstants.SingleQuote:
                     _quoteSymbol = value;
-                    _text = ReadStringToBuffer();
+                    ReadStringToBuffer();
                     //属性后面只能是冒号：
                     var next = MoveNext(true);
                     if (next == JsonConstants.Colon)
@@ -319,7 +319,7 @@ namespace Rapidity.Json
         {
             TryPopProperty();
             _quoteSymbol = quote;
-            _text = ReadStringToBuffer();
+            ReadStringToBuffer();
             _state = TokenState.Value;
             _tokenType = JsonTokenType.String;
             return true;
@@ -329,7 +329,7 @@ namespace Rapidity.Json
         /// 读取/验证string
         /// </summary>
         /// <returns></returns>
-        private string ReadStringToBuffer()
+        private void ReadStringToBuffer()
         {
             bool canRead = true;
             do
@@ -373,9 +373,8 @@ namespace Rapidity.Json
                     default: _buffer.Append(_currentChar); break;
                 }
             } while (canRead);
-            var value = _buffer.ToString();
+            _text = _buffer.ToString();
             _buffer.Length = 0;
-            return value;
         }
 
         /// <summary>

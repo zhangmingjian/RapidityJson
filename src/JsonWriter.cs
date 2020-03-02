@@ -167,21 +167,27 @@ namespace Rapidity.Json
         {
             foreach (var @char in value)
             {
-                switch (@char)
-                {
-                    case '\a': _writer.Write(JsonConstants.BELChars); break;    //响铃(BEL)
-                    case '\b': _writer.Write("\\b"); break;  //退格(BS) ，将当前位置移到前一列
-                    case '\r': _writer.Write("\\r"); break;  //回车(CR) ，将当前位置移到本行开头
-                    case '\f': _writer.Write("\\f"); break;  //换页(FF)，将当前位置移到下页开头
-                    case '\n': _writer.Write("\\n"); break;  //换行(LF) ，将当前位置移到下一行开头
-                    case '\t': _writer.Write("\\t"); break;  //水平制表(HT) （跳到下一个TAB位置）
-                    case '\v': _writer.Write(JsonConstants.VTChars); break;     //垂直制表(VT)
-                    case '\\': _writer.Write("\\\\"); break;                    //反斜杠
-                    default:
-                        if (@char == _quoteSymbol) _writer.Write('\\');
-                        _writer.Write(@char);
-                        break;
-                }
+                WriteEscapeString(@char);
+            }
+        }
+
+        private void WriteEscapeString(char value)
+        {
+            switch (value)
+            {
+                case '\a': _writer.Write(JsonConstants.BELChars); break;    //响铃(BEL)
+                case '\b': _writer.Write("\\b"); break;  //退格(BS) ，将当前位置移到前一列
+                case '\r': _writer.Write("\\r"); break;  //回车(CR) ，将当前位置移到本行开头
+                case '\f': _writer.Write("\\f"); break;  //换页(FF)，将当前位置移到下页开头
+                case '\n': _writer.Write("\\n"); break;  //换行(LF) ，将当前位置移到下一行开头
+                case '\t': _writer.Write("\\t"); break;  //水平制表(HT) （跳到下一个TAB位置）
+                case '\v': _writer.Write(JsonConstants.VTChars); break;     //垂直制表(VT)
+                case '\0': _writer.Write("\\0"); break;     
+                case '\\': _writer.Write("\\\\"); break;                    //反斜杠
+                default:
+                    if (value == _quoteSymbol) _writer.Write('\\');
+                    _writer.Write(value);
+                    break;
             }
         }
 
@@ -217,7 +223,9 @@ namespace Rapidity.Json
         {
             _tokenValidator.ValidateNext(JsonTokenType.String);
             WriteComma();
-            _writer.Write(_quoteSymbol + value.ToString() + _quoteSymbol);
+            _writer.Write(_quoteSymbol);
+            WriteEscapeString(value);
+            _writer.Write(_quoteSymbol);
             _tokenType = _tokenValidator.TokenType;
         }
 

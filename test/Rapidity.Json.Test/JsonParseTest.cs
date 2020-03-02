@@ -179,7 +179,7 @@ namespace Rapidity.Json.Test
             };
             var json = JsonParse.ToJson(obj, option);
             _output.WriteLine(json);
-            var deModel = JsonParse.To<MultipleTypesModel>(json);
+            //var deModel = JsonParse.To<MultipleTypesModel>(json);
         }
 
         [Fact]
@@ -208,14 +208,16 @@ namespace Rapidity.Json.Test
             var pairs = new List<KeyValuePair<int, ValueModel>>()
             {
               new KeyValuePair<int, ValueModel>(1, new ValueModel(){ CharValue = char.MaxValue}),
-              new KeyValuePair<int, ValueModel>(3, new ValueModel()),
+              //new KeyValuePair<int, ValueModel>(3, new ValueModel()),
             };
             var option = new JsonOption
             {
                 LoopReferenceProcess = Converters.LoopReferenceProcess.Error,
                 Indented = true
             };
-            var json = JsonParse.ToJson(pairs, option);
+            //var json = JsonParse.ToJson(pairs, option);
+
+            var json = JsonParse.ToJson(char.MinValue);
             _output.WriteLine(json);
 
             //var model = JsonParse.To<List<KeyValuePair<int, ValueModel>>>(json);

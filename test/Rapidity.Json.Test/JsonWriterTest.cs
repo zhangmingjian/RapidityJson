@@ -344,11 +344,14 @@ namespace Rapidity.Json.Test
             {
                 write.WriteStartObject();
                 write.WritePropertyName("name\r\nname");
-                write.WriteString(" 特色\a\b\r\n\f\t\v\u5650 \u231a为了开发了房间/卡拉\\文件");
+                write.WriteString(" 特色\a\b\r\n\f\t\v\u5650\u231a为了开发了房间/卡拉\\文件");
                 write.WritePropertyName("url");
                 write.WriteString("http:\\/\\/wwww.baidu.com");
                 write.WriteEndObject();
-                _output.WriteLine(sw.ToString());
+                var json = sw.ToString();
+                _output.WriteLine(json);
+                var token = JsonToken.Parse(json);
+                var token2 = JsonToken.Parse(token.ToString());
             }
         }
 
@@ -363,7 +366,7 @@ namespace Rapidity.Json.Test
                 write.Formatting = Newtonsoft.Json.Formatting.Indented;
                 write.WriteStartObject();
                 write.WritePropertyName("name\r\nname");
-                write.WriteValue(" 特色\a\b\r\n\f\t\v\u5650 \u231a为了开发了房间/卡拉\\文件");
+                write.WriteValue(" 特色\a\b\r\n\f\t\v\u5650\u231a为了开发了房间/卡拉\\文件");
                 write.WritePropertyName("url");
                 write.WriteValue("http:\\/\\/wwww.baidu.com");
                 write.WriteEndObject();
