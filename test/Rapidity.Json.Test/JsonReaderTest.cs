@@ -81,7 +81,7 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ReadInvalidTokenTest()
         {
-            var json = "[]{}";
+            var json = "[122, ,true]";
             var read = new JsonReader(json);
             Assert.Throws<JsonException>(() =>
             {
@@ -95,7 +95,7 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ReadStructureTest()
         {
-            int total = 20000;
+            int total = 1_000_000;
             //jsonreader
             {
                 _output.WriteLine("==Rapidity.Json================");

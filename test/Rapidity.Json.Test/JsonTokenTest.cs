@@ -15,7 +15,9 @@ namespace Rapidity.Json.Test
             obj.AddProperty("name", "zhangsan");
             obj["Birthday"] = "2000-10";
             obj.AddProperty("loopObject", new JsonNumber(1000));
-            var person = obj.ToString(new JsonOption { LoopReferenceProcess = Converters.LoopReferenceProcess.Error });
+            var json = obj.ToString(new JsonOption { LoopReferenceProcess = Converters.LoopReferenceProcess.Error });
+
+            var person = obj.To<Person>();
         }
     }
 }

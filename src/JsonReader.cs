@@ -364,18 +364,19 @@ namespace Rapidity.Json
                         }
                         break;
                     case JsonConstants.Quote:
-                    case JsonConstants.SingleQuote: //遇到引号结束
+                    case JsonConstants.SingleQuote: //遇到引号-结束
                         canRead = _currentChar != _quoteSymbol;
                         if (canRead) _buffer.Append(_currentChar);
                         break;
                     case JsonConstants.End:
-                        throw new JsonException($"没有结束标识{_quoteSymbol}", _line, _position);
+                        throw new JsonException($"没有结束标识:{_quoteSymbol}", _line, _position);
                     default: _buffer.Append(_currentChar); break;
                 }
             } while (canRead);
             _text = _buffer.ToString();
             _buffer.Length = 0;
         }
+
 
         /// <summary>
         /// 读取number
