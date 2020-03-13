@@ -88,6 +88,11 @@ namespace Rapidity.Json
             return _dictionary.TryGetValue(property, out token);
         }
 
+        public bool ContainsProperty(string property)
+        {
+            return _dictionary.ContainsKey(property);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -105,7 +110,7 @@ namespace Rapidity.Json
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Dictionary<string, JsonToken>.Enumerator();
+            return _dictionary.GetEnumerator();
         }
     }
 
