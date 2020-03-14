@@ -150,8 +150,7 @@ namespace Rapidity.Json.Converters
                         break;
                 }
             } while (reader.Read());
-            if (instance == null) throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type},应为:{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
-            return instance;
+            throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type},应为:{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
         }
 
         public override object FromToken(JsonToken token, JsonOption option)

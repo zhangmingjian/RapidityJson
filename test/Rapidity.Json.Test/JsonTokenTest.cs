@@ -19,5 +19,14 @@ namespace Rapidity.Json.Test
 
             var person = obj.To<Person>();
         }
+
+        [Fact]
+        public void JsonNumberTest()
+        {
+            var obj = new JsonObject();
+            obj.AddProperty("id", new JsonNumber("12.23324"));
+            var number = new JsonNumber("12.23324");
+            var json = obj.ToString();
+        }
     }
 }

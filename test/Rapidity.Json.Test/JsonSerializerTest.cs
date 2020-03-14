@@ -41,6 +41,33 @@ namespace Rapidity.Json.Test
             var collection = serializer.Deserialize<IReadOnlyCollection<Person>>(reader);
         }
 
+
+        [Fact]
+        public void ConvertArrayTest()
+        {
+            var json = "[{},{},{}]";
+            var reader = new JsonReader(json);
+            var serializer = new JsonSerializer(new JsonOption { Indented = true });
+            {
+                var array = serializer.Deserialize<object[]>(reader);
+                Assert.Equal(3, array.Length);
+            }
+
+            {
+                var arrayToken = new JsonArray();
+                arrayToken.Add(10);
+                arrayToken.Add(11);
+                arrayToken.Add(123);
+                arrayToken.Add(109);
+                arrayToken.Add(298);
+                var arr = serializer.Deserialize<int[]>(arrayToken);
+                Assert.Equal(5, arr.Length);
+
+                var objarr = new string[][] { new string[] { "aaaa", "bbbbb\r\naefawe" } };
+                var str = serializer.Serialize(objarr);
+            }
+        }
+
         [Fact]
         public void ConvertDictionaryTest()
         {
@@ -48,6 +75,16 @@ namespace Rapidity.Json.Test
             var reader = new JsonReader(json);
             var serializer = new JsonSerializer();
             var collection = serializer.Deserialize<IDictionary<string, object>>(reader);
+        }
+
+
+        [Fact]
+        public void KeyPairsValueTest()
+        {
+            var serializer = new JsonSerializer();
+            var pairs = new KeyValuePair<int, ValueModel>(1, new ValueModel());
+            var json = serializer.Serialize(pairs);
+            var value = serializer.Deserialize<KeyValuePair<int, ValueModel>>(new JsonReader(json));
         }
 
         [Fact]

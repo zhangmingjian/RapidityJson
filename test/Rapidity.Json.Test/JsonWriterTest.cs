@@ -140,7 +140,6 @@ namespace Rapidity.Json.Test
             {
                 //SkipValidated = true,
                 IndenteLength = 4,
-                //UseSingleQuote = true
             };
             using (var sw = new StringWriter())
             using (var write = new JsonWriter(sw, option))
@@ -377,6 +376,7 @@ namespace Rapidity.Json.Test
             }
         }
 
+
         [Fact]
         public void EncodingTest()
         {
@@ -399,6 +399,8 @@ namespace Rapidity.Json.Test
             Assert.Equal(base2, base64);
             var time = DateTime.Now.ToString(CultureInfo.CurrentCulture);
             var time2 = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+
+            var va = char.MinValue == 0;
         }
     }
 }

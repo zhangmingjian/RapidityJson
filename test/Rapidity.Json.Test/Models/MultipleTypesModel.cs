@@ -15,7 +15,7 @@ namespace Rapidity.Json.Test.Models
 
         public ValueModel[] Array { get; set; }
 
-        public IDictionary<int, ValueModel> Dictionary { get; set; }
+        public IDictionary<string, ValueModel> Dictionary { get; set; }
 
         //[Property(Ignore = true)]
         public IEnumerable<KeyValuePair<int, ValueModel>> KeyValuePairs { get; set; }

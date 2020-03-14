@@ -84,7 +84,7 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"类型{Type}不包含成员{memberName}");
         }
 
-        public bool CanConvert(Type type)
+        public virtual bool CanConvert(Type type)
         {
             if (type.IsClass
                 && !type.IsAbstract
@@ -99,7 +99,7 @@ namespace Rapidity.Json.Converters
             return false;
         }
 
-        public ITypeConverter Create(Type type)
+        public virtual ITypeConverter Create(Type type)
         {
             return new ObjectConverter(type);
         }

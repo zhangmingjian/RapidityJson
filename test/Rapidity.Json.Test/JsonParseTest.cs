@@ -149,7 +149,9 @@ namespace Rapidity.Json.Test
                 ShortValue = 123,
                 LongValue = 6666666666,
                 FloatValue = -0.122343355f,
-                DoubleValue = double.PositiveInfinity,
+                DoubleValue = 212.4545456768955667788,
+                NullDoubleValue = double.PositiveInfinity,
+                DecimalValue = 21212126232.12456899m,
                 BoolValue = true,
                 NullBoolValue = false,
                 DateTimeValue = DateTime.Now,
@@ -164,10 +166,10 @@ namespace Rapidity.Json.Test
                 StringValue = "值类型struct Value",
                 ClassModel = obj.Single
             };
-            obj.Dictionary = new Dictionary<int, ValueModel>()
+            obj.Dictionary = new Dictionary<string, ValueModel>()
             {
-                [1] = obj.Single,
-                [2] = null
+                ["key1"] = obj.Single,
+                ["key2"] = null
             };
             obj.KeyValuePairs = new List<KeyValuePair<int, ValueModel>>() {
              new KeyValuePair<int, ValueModel>(1,new ValueModel())
@@ -178,8 +180,9 @@ namespace Rapidity.Json.Test
                 Indented = true
             };
             var json = JsonParse.ToJson(obj, option);
-            _output.WriteLine(json);
-            //var deModel = JsonParse.To<MultipleTypesModel>(json);
+            var token = JsonToken.Parse(json);
+            _output.WriteLine(token.ToString());
+            var deModel = token.To<MultipleTypesModel>();
         }
 
         [Fact]

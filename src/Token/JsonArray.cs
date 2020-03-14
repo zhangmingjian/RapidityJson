@@ -26,11 +26,16 @@ namespace Rapidity.Json
             set => _list[index] = value ?? new JsonNull();
         }
 
-        public static JsonArray Create(string json)
+        public new static JsonArray Parse(string json)
         {
-            using (var read = new JsonReader(json))
+            return Parse(json, new JsonOption());
+        }
+
+        public new static JsonArray Parse(string json, JsonOption option)
+        {
+            using (var reader = new JsonReader(json))
             {
-                return new JsonSerializer().Deserialize<JsonArray>(read);
+                return new JsonSerializer(option).Deserialize<JsonArray>(reader);
             }
         }
 

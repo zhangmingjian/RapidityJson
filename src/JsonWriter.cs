@@ -14,6 +14,7 @@ namespace Rapidity.Json
         private JsonOption _option;
         private TokenValidator _tokenValidator;
         private string _indeteChars; //缩进字符
+        private bool _indented;
         private char _quoteSymbol = JsonConstants.Quote;   //引号字符
         private int _depth;
         private JsonTokenType _tokenType;
@@ -38,6 +39,7 @@ namespace Rapidity.Json
                         _indeteChars = string.Concat(_indeteChars, JsonConstants.Space);
                 }
             }
+            _indented = (_indeteChars?.Length ?? 0) > 0;
         }
 
         #region write for jsontoken
@@ -182,8 +184,9 @@ namespace Rapidity.Json
                 case '\n': _writer.Write("\\n"); break;  //换行(LF) ，将当前位置移到下一行开头
                 case '\t': _writer.Write("\\t"); break;  //水平制表(HT) （跳到下一个TAB位置）
                 case '\v': _writer.Write(JsonConstants.VTChars); break;     //垂直制表(VT)
-                case '\0': _writer.Write("\\0"); break;     
                 case '\\': _writer.Write("\\\\"); break;                    //反斜杠
+                case '\0': _writer.Write('0'); break;
+                case '\uffff': _writer.Write("\\uffff"); break;
                 default:
                     if (value == _quoteSymbol) _writer.Write('\\');
                     _writer.Write(value);
@@ -361,7 +364,7 @@ namespace Rapidity.Json
         /// </summary>
         private void WriteIndented()
         {
-            if ((_indeteChars ?? string.Empty).Length > 0)
+            if (_indented)
             {
                 _writer.WriteLine();
                 for (var i = 0; i < _depth; i++)

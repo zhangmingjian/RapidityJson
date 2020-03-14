@@ -54,4 +54,24 @@ namespace Rapidity.Json.Converters
             return null;
         }
     }
+
+    /// <summary>
+    /// ArrayList类型Converter
+    /// </summary>
+    internal class ArrayListConverter : EnumerableConverter, IConverterCreator
+    {
+        public ArrayListConverter(Type type) : base(type, typeof(object))
+        {
+        }
+
+        public override bool CanConvert(Type type)
+        {
+            return type == typeof(ArrayList);
+        }
+
+        public override ITypeConverter Create(Type type)
+        {
+            return new ArrayListConverter(type);
+        }
+    }
 }

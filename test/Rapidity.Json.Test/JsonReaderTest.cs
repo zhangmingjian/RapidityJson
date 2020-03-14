@@ -92,7 +92,7 @@ namespace Rapidity.Json.Test
             });
         }
 
-        [Fact]
+        [Fact(DisplayName = "JsonReader构造性能测试")]
         public void ReadStructureTest()
         {
             int total = 1_000_000;
