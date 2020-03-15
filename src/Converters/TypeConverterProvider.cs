@@ -18,7 +18,7 @@ namespace Rapidity.Json.Converters
                 if (creator.CanConvert(type))
                 {
                     convert = creator.Create(type);
-                    break;
+                    break; 
                 }
             }
             if (convert == null) throw new JsonException($"创建{type}的{nameof(ITypeConverter)}失败，不支持的类型");
@@ -32,7 +32,7 @@ namespace Rapidity.Json.Converters
     internal class DefaultTypeConverterProvider : TypeConverterProvider
     {
         private static Dictionary<Type, ITypeConverter> _dictionary = new Dictionary<Type, ITypeConverter>();
-
+        
         private List<IConverterCreator> _converters;
 
         public override IReadOnlyCollection<IConverterCreator> AllConverterFactories() => _converters;

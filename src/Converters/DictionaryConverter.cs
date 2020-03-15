@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq.Expressions;
@@ -98,12 +99,19 @@ namespace Rapidity.Json.Converters
                 var arguments = type.GetGenericArguments();
                 if (arguments.Length == 2)
                 {
-                    var dicType = typeof(Dictionary<,>).MakeGenericType(arguments[0], arguments[1]);
-                    if (dicType == type || type.IsAssignableFrom(dicType))
-                        return true;
-                    var sortDicType = typeof(SortedDictionary<,>).MakeGenericType(arguments[0], arguments[1]);
-                    if (sortDicType == type || type.IsAssignableFrom(sortDicType))
-                        return true;
+                    var convertTypes = new Type[]
+                    {
+                        typeof(Dictionary<,>),
+                        typeof(SortedDictionary<,>),
+                        typeof(SortedList<,>),
+                        typeof(ConcurrentDictionary<,>)
+                    };
+                    for (int i = 0; i < convertTypes.Length; i++)
+                    {
+                        var dicType = convertTypes[i].MakeGenericType(arguments[0], arguments[1]);
+                        if (dicType == type || type.IsAssignableFrom(dicType))
+                            return true;
+                    }
                 }
             }
             return false;

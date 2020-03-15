@@ -1,6 +1,7 @@
 ﻿using Rapidity.Json.Test.Models;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -72,19 +73,25 @@ namespace Rapidity.Json.Test
         public void ConvertDictionaryTest()
         {
             var json = "{\"name\":\"jluoiuio\",\"id\":\"545465\",\"reamark\":[null] }";
-            var reader = new JsonReader(json);
             var serializer = new JsonSerializer();
-            var collection = serializer.Deserialize<IDictionary<string, object>>(reader);
+            var dic1 = serializer.Deserialize<IDictionary<string, object>>(new JsonReader(json));
+            var dic2 = serializer.Deserialize<Dictionary<string, object>>(new JsonReader(json));
+            var dic3 = serializer.Deserialize<SortedDictionary<string, object>>(new JsonReader(json));
+            var dic4 = serializer.Deserialize<SortedList<string, object>>(new JsonReader(json));
+            var dic5 = serializer.Deserialize<ConcurrentDictionary<string, object>>(new JsonReader(json));
         }
 
 
         [Fact]
         public void KeyPairsValueTest()
         {
-            var serializer = new JsonSerializer();
-            var pairs = new KeyValuePair<int, ValueModel>(1, new ValueModel());
+            var serializer = new JsonSerializer(new JsonOption { Indented = true });
+            var pairs = new KeyValuePair<int, ValueModel>(13454, new ValueModel() { StringValue = "\uffff" });
             var json = serializer.Serialize(pairs);
             var value = serializer.Deserialize<KeyValuePair<int, ValueModel>>(new JsonReader(json));
+
+            var token = JsonObject.Parse(json);
+            var value2 = token.To<KeyValuePair<int, ValueModel>>();
         }
 
         [Fact]
@@ -255,9 +262,7 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ValueTypeTest()
         {
-            var write = new StringWriter();
-            write.Write(char.MaxValue.ToString());
-            write.Write("\"");
+            var type = typeof(IList<int>).IsAssignableFrom(typeof(List<int>));
         }
     }
 }
