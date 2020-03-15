@@ -139,7 +139,8 @@ namespace Rapidity.Json.Test
             var option = new JsonOption
             {
                 //SkipValidated = true,
-                IndenteLength = 4,
+                Indented = true,
+                //IndenteLength = 4,
             };
             using (var sw = new StringWriter())
             using (var write = new JsonWriter(sw, option))
@@ -376,6 +377,66 @@ namespace Rapidity.Json.Test
             }
         }
 
+        [Fact]
+        public void JsonWriterPerformanceTest()
+        {
+            int count = 100;
+            {
+                Stopwatch watch = Stopwatch.StartNew();
+                for (int i = 0; i < count; i++)
+                {
+                    var stringWriter = new StringWriter();
+                    using (var write = new JsonWriter(stringWriter))
+                    {
+                        write.WriteStartObject();
+                        write.WritePropertyName("name\r\nname");
+                        write.WriteString(" 特色\a\b\r\n\f\t\v\u5650\u231a为了开发了房间/卡拉\\文件");
+                        write.WritePropertyName("reamrk");
+                        write.WriteString("古特雷斯说，全球各国必须共同行动，守望相助，减缓病毒的传播。人们应谨慎行事，避免恐慌。我们应相信科学，拒绝污名化。我们应采信事实，而不屈服于恐惧。他说，虽然已经宣布病毒传播为“大流行”，但依然可防可控。古特雷斯表示，联合国，包括世界卫生组织，已经全面动员起来。作为人类大家庭的一员，联合国与各国政府全天候合作，提供国际指导，帮助各国应对病毒这一威胁。");
+                        write.WritePropertyName("url");
+                        write.WriteString("http:\\/\\/wwww.baidu.com");
+                        write.WritePropertyName("number");
+                        write.WriteDouble(11212234565.0129834);
+                        write.WritePropertyName("floatval");
+                        write.WriteFloat(float.NegativeInfinity);
+                        write.WriteEndObject();
+                        var json = stringWriter.ToString();
+                        //_output.WriteLine(json); 
+                    }
+                }
+                watch.Stop();
+                _output.WriteLine($"Rapidity.Writer写{count}次耗时：{watch.ElapsedMilliseconds}ms");
+            }
+            {
+                Stopwatch watch = Stopwatch.StartNew();
+                for (int i = 0; i < count; i++)
+                {
+                    var stringWriter = new StringWriter();
+                    using (var write = new Newtonsoft.Json.JsonTextWriter(stringWriter))
+                    {
+                        //write.IndentChar = '\t';
+                        //write.Indentation = 1;
+                        //write.Formatting = Newtonsoft.Json.Formatting.Indented;
+                        write.WriteStartObject();
+                        write.WritePropertyName("name\r\nname");
+                        write.WriteValue(" 特色\a\b\r\n\f\t\v\u5650\u231a为了开发了房间/卡拉\\文件");
+                        write.WritePropertyName("reamrk");
+                        write.WriteValue("古特雷斯说，全球各国必须共同行动，守望相助，减缓病毒的传播。人们应谨慎行事，避免恐慌。我们应相信科学，拒绝污名化。我们应采信事实，而不屈服于恐惧。他说，虽然已经宣布病毒传播为“大流行”，但依然可防可控。古特雷斯表示，联合国，包括世界卫生组织，已经全面动员起来。作为人类大家庭的一员，联合国与各国政府全天候合作，提供国际指导，帮助各国应对病毒这一威胁。");
+                        write.WritePropertyName("url");
+                        write.WriteValue("http:\\/\\/wwww.baidu.com");
+                        write.WritePropertyName("number");
+                        write.WriteValue(11212234565.0129834);
+                        write.WritePropertyName("floatval");
+                        write.WriteValue(float.PositiveInfinity);
+                        write.WriteEndObject();
+                        var json = stringWriter.ToString();
+                        //_output.WriteLine(json);
+                    }
+                }
+                watch.Stop();
+                _output.WriteLine($"Newtonsoft.Writer写{count}次耗时：{watch.ElapsedMilliseconds}ms");
+            }
+        }
 
         [Fact]
         public void EncodingTest()
@@ -400,7 +461,10 @@ namespace Rapidity.Json.Test
             var time = DateTime.Now.ToString(CultureInfo.CurrentCulture);
             var time2 = DateTime.Now.ToString(CultureInfo.InvariantCulture);
 
-            var va = char.MinValue == 0;
+            var va = float.NaN.ToString() == double.NaN.ToString();
+            var va1 = float.NegativeInfinity.ToString() == double.NegativeInfinity.ToString();
+            var va2 = float.PositiveInfinity.ToString() == double.PositiveInfinity.ToString();
+
         }
     }
 }

@@ -148,7 +148,7 @@ namespace Rapidity.Json.Test
                 ByteValue = 255,
                 ShortValue = 123,
                 LongValue = 6666666666,
-                FloatValue = -0.122343355f,
+                FloatValue = float.NaN,
                 DoubleValue = 212.4545456768955667788,
                 NullDoubleValue = double.PositiveInfinity,
                 DecimalValue = 21212126232.12456899m,

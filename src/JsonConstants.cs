@@ -38,6 +38,11 @@ namespace Rapidity.Json
         public const string TrueString = "true";
         public const string FalseString = "false";
         public const string NullString = "null";
+
+        public const string NaN = "NaN";
+        public const string PositiveInfinity = "Infinity";
+        public const string NegativeInfinity = "-Infinity";
+
         /// <summary>
         /// /a 响铃(BEL) \u0007
         /// </summary>
