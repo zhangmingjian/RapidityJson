@@ -1,13 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class DateTimeConverter : TypeConverterBase, IConverterCreator
+    internal class DateTimeConverter : ITypeConverter, IConverterCreator
     {
+        public Type Type { get; }
 
-        public DateTimeConverter(Type type) : base(type) { }
+        public DateTimeConverter(Type type)  
+        {
+            Type = type;
+        }
 
         public bool CanConvert(Type type)
         {
@@ -19,7 +21,7 @@ namespace Rapidity.Json.Converters
             return new DateTimeConverter(type);
         }
 
-        public override object FromReader(JsonReader reader, JsonOption option)
+        public object FromReader(JsonReader reader, JsonOption option)
         {
             switch (reader.TokenType)
             {
@@ -37,7 +39,7 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        public override object FromToken(JsonToken token, JsonOption option)
+        public object FromToken(JsonToken token, JsonOption option)
         {
             switch (token.ValueType)
             {
@@ -52,7 +54,7 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
+        public void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
             if (obj is DateTime dateTime)
                 writer.WriteDateTime(dateTime);

@@ -2,9 +2,14 @@
 
 namespace Rapidity.Json.Converters
 {
-    internal class NullableConverter : TypeConverterBase, IConverterCreator
+    internal class NullableConverter : ITypeConverter, IConverterCreator
     {
-        public NullableConverter(Type type) : base(type) { }
+        public Type Type { get; }
+
+        public NullableConverter(Type type)
+        {
+            Type = type;
+        }
 
         public bool CanConvert(Type type)
         {
@@ -16,7 +21,7 @@ namespace Rapidity.Json.Converters
             return new NullableConverter(Nullable.GetUnderlyingType(type));
         }
 
-        public override object FromReader(JsonReader reader, JsonOption option)
+        public object FromReader(JsonReader reader, JsonOption option)
         {
             switch (reader.TokenType)
             {
@@ -30,19 +35,17 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        public override object FromToken(JsonToken token, JsonOption option)
+        public object FromToken(JsonToken token, JsonOption option)
         {
             if (token.ValueType == JsonValueType.Null) return null;
             var convert = option.ConverterProvider.Build(Type);
             return convert.FromToken(token, option);
         }
 
-        public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
+        public void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
-            var value = Convert.ChangeType(obj, Type);
-
             var convert = option.ConverterProvider.Build(Type);
-            convert.ToWriter(writer, value, option);
+            convert.ToWriter(writer, obj, option);
         }
     }
 }

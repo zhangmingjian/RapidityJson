@@ -2,11 +2,13 @@
 
 namespace Rapidity.Json.Converters
 {
-    internal class ValueConverter : TypeConverterBase, IConverterCreator
+    internal class ValueConverter : ITypeConverter, IConverterCreator
     {
         private TypeCode _typeCode;
-        public ValueConverter(Type type) : base(type)
+        public Type Type { get; }
+        public ValueConverter(Type type)
         {
+            Type = type;
             _typeCode = Type.GetTypeCode(type);
         }
 
@@ -15,9 +17,9 @@ namespace Rapidity.Json.Converters
             //The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, 
             //Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
             return type.IsPrimitive
-                     || type == typeof(DBNull)
                      || type == typeof(decimal)
-                     || type == typeof(Guid);
+                     || type == typeof(Guid)
+                     || type == typeof(DBNull);
         }
 
         public ITypeConverter Create(Type type)
@@ -25,7 +27,7 @@ namespace Rapidity.Json.Converters
             return new ValueConverter(type);
         }
 
-        public override object FromReader(JsonReader reader, JsonOption option)
+        public object FromReader(JsonReader reader, JsonOption option)
         {
             switch (reader.TokenType)
             {
@@ -104,7 +106,7 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无效的JSON Token:{reader.TokenType},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
-        public override object FromToken(JsonToken token, JsonOption option)
+        public object FromToken(JsonToken token, JsonOption option)
         {
             switch (token.ValueType)
             {
@@ -179,30 +181,8 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
         }
 
-        public override void ToWriter(JsonWriter writer, object value, JsonOption option)
+        public void ToWriter(JsonWriter writer, object value, JsonOption option)
         {
-            //switch (_typeCode)
-            //{
-            //    case TypeCode.Int32: writer.WriteInt((int)value); break;
-            //    case TypeCode.Int64: writer.WriteLong((long)value); break;
-            //    case TypeCode.Boolean: writer.WriteBoolean((bool)value); break;
-            //    case TypeCode.Single: writer.WriteFloat((float)value); break;
-            //    case TypeCode.Double: writer.WriteDouble((double)value); break;
-            //    case TypeCode.Decimal: writer.WriteDecimal((decimal)value); break;
-            //    case TypeCode.Char: writer.WriteChar((char)value); break;
-            //    case TypeCode.Int16: writer.WriteInt((short)value); break;
-            //    case TypeCode.UInt16: writer.WriteInt((ushort)value); break;
-            //    case TypeCode.UInt32: writer.WriteUInt((uint)value); break;
-            //    case TypeCode.UInt64: writer.WriteULong((ulong)value); break;
-            //    case TypeCode.Byte: writer.WriteInt((byte)value); break;
-            //    case TypeCode.SByte: writer.WriteInt((sbyte)value); break;
-            //    case TypeCode.DBNull: writer.WriteNull(); break;
-            //    default:
-            //        if (value is Guid guidVal) writer.WriteGuid(guidVal);
-            //        else throw new JsonException($"使用{nameof(ValueConverter)}序列化{value.GetType()}失败，不支持的类型");
-            //        break;
-            //}
-
             if (value is int intVal)
                 writer.WriteInt(intVal);
             else if (value is long longVal)

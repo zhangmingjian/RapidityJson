@@ -21,8 +21,7 @@ namespace Rapidity.Json.Converters
 
         public MemberDefinition GetMemberDefinition(string name)
         {
-            if (MemberDefinitions.TryGetValue(name, out MemberDefinition member)) return member;
-            return null;
+            return MemberDefinitions.TryGetValue(name, out MemberDefinition member) ? member : null;
         }
 
         /// <summary>
@@ -46,7 +45,6 @@ namespace Rapidity.Json.Converters
                 if (attr != null && attr.Ignore) continue;
                 var member = new MemberDefinition(property, attr);
                 dic[member.PropertyName] = member;
-                //list.Add(new ReflectionMemberDefinition(property, attr));
             }
             foreach (var field in type.GetFields())
             {
@@ -56,7 +54,6 @@ namespace Rapidity.Json.Converters
                 if (attr != null && attr.Ignore) continue;
                 var member = new MemberDefinition(field, attr);
                 dic[member.PropertyName] = member;
-                //list.Add(new ReflectionMemberDefinition(field, attr));
             }
             return dic;
         }
@@ -140,8 +137,7 @@ namespace Rapidity.Json.Converters
                 }
             }
             while (reader.Read());
-            if (instance == null) throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type}, 应为{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
-            return instance;
+            throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type}, 应为{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
         }
 
         public override object FromToken(JsonToken token, JsonOption option)
@@ -256,7 +252,7 @@ namespace Rapidity.Json.Converters
             var isProperty = MemberInfo is PropertyInfo;
             Expression body;
             if (isProperty && !((PropertyInfo)MemberInfo).CanWrite)
-                body = Expression.Label(Expression.Label());
+                body = Expression.Label(Expression.Label()); //跳过只读属性赋值
             else
             {
                 MemberExpression memberExp;

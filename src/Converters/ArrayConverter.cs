@@ -99,9 +99,9 @@ namespace Rapidity.Json.Converters
                 {
                     case JsonTokenType.None: break;
                     case JsonTokenType.EndArray:
-                        return ArrayCopy(array, index);
+                        return ArrayCopy(array, index + 1);
                     case JsonTokenType.StartArray:
-                        array = Array.CreateInstance(_elementType, InitialLength);
+                        array = Array.CreateInstance(_elementType, 0);
                         break;
                     case JsonTokenType.Null:
                         if (array == null) return array;
@@ -127,9 +127,8 @@ namespace Rapidity.Json.Converters
             array.SetValue(item, ++index);
         }
 
-        private Array ArrayCopy(Array array, int index)
+        private Array ArrayCopy(Array array, int length)
         {
-            var length = index + 1;
             if (length == array.Length) return array;
             var newArray = Array.CreateInstance(_elementType, length);
             Array.Copy(array, newArray, length);
@@ -144,7 +143,7 @@ namespace Rapidity.Json.Converters
                 case JsonValueType.Null: return null;
                 case JsonValueType.Array:
                     var arrayToken = (JsonArray)token;
-                    Array array = Array.CreateInstance(_elementType, InitialLength);
+                    Array array = Array.CreateInstance(_elementType, 0);
                     var index = -1;
                     var convert = option.ConverterProvider.Build(_elementType);
                     foreach (var item in arrayToken)
@@ -152,7 +151,7 @@ namespace Rapidity.Json.Converters
                         var itemValue = convert.FromToken(item, option);
                         SetValue(itemValue, ref array, ref index);
                     }
-                    return ArrayCopy(array, index);
+                    return ArrayCopy(array, index+1);
                 default:
                     throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
             }

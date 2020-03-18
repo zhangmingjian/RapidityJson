@@ -374,7 +374,7 @@ namespace Rapidity.Json
                 }
             } while (canRead);
             _text = _buffer.ToString();
-            _buffer.Length = 0;
+            _buffer.Clear();
         }
 
 
@@ -426,7 +426,7 @@ namespace Rapidity.Json
             var text = _buffer.ToString();
             if (double.TryParse(text, out double number))
             {
-                _buffer.Length = 0;
+                _buffer.Clear();
                 _state = TokenState.Value;
                 _tokenType = JsonTokenType.Number;
                 _text = text;

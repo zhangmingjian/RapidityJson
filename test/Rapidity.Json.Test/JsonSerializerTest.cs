@@ -209,7 +209,7 @@ namespace Rapidity.Json.Test
                 Id = 100,
                 Name = "aefawef",
                 Child = new Person() { Birthday = DateTime.Now },
-                dateTimeKinds = new List<DateTimeKind?>()
+                dateTimeKinds = new List<DateTimeKind?>() { DateTimeKind.Utc }
             };
             var option = new JsonOption
             {

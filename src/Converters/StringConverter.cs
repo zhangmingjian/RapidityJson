@@ -4,9 +4,14 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class StringConverter : TypeConverterBase, IConverterCreator
+    internal class StringConverter : ITypeConverter, IConverterCreator
     {
-        public StringConverter(Type type) : base(type) { }
+        public Type Type { get; }
+
+        public StringConverter(Type type)
+        {
+            this.Type = type;
+        }
 
         public bool CanConvert(Type type)
         {
@@ -18,7 +23,7 @@ namespace Rapidity.Json.Converters
             return new StringConverter(type);
         }
 
-        public override object FromReader(JsonReader reader, JsonOption option)
+        public object FromReader(JsonReader reader, JsonOption option)
         {
             switch (reader.TokenType)
             {
@@ -29,7 +34,7 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        public override object FromToken(JsonToken token, JsonOption option)
+        public object FromToken(JsonToken token, JsonOption option)
         {
             if (token.ValueType == JsonValueType.String)
             {
@@ -42,7 +47,7 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无法将{token.ValueType}转换为{Type},反序列化{Type}失败");
         }
 
-        public override void ToWriter(JsonWriter writer, object value, JsonOption option)
+        public void ToWriter(JsonWriter writer, object value, JsonOption option)
         {
             writer.WriteString((string)value);
         }
