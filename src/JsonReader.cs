@@ -20,7 +20,7 @@ namespace Rapidity.Json
         private JsonContainerType _containerType;   //当前容器类型
         private Stack<JsonTokenType> _tokens;
         private char _quoteSymbol;  //引号字符
-        private char _currentChar;  //当前字符
+        private int _current;       //当前读取的字符
         private int _depth;         //当前深度
         private JsonTokenType _tokenType; //当前jsontoken
         private string _text;       //当前读取的文本值
@@ -38,7 +38,7 @@ namespace Rapidity.Json
         /// <summary>
         /// 当前字符
         /// </summary>
-        public char CurrentChar => _currentChar;
+        public char CurrentChar => (char)_current;
         /// <summary>
         /// 当前深度
         /// </summary>
@@ -97,27 +97,18 @@ namespace Rapidity.Json
                 case TokenState.EndArray:
                 case TokenState.Value: return ReadNextToken();
                 case TokenState.End: return EndToken();
-                default: throw new JsonException($"非法字符{_currentChar}", _line, _position);
+                default: throw new JsonException($"无效的JSON格式，非法字符{CurrentChar}", _line, _position);
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="skipEmpty"></param>
-        /// <returns></returns>
-        private char MoveNext(bool skipEmpty = false)
+        private int MoveNext(bool skipEmpty = false)
         {
             bool canRead;
             do
             {
-                _currentChar = (char)_reader.Read();
-                switch (_currentChar)
+                _current = _reader.Read();
+                switch (_current)
                 {
-                    case JsonConstants.End:
-                        _state = TokenState.End;
-                        canRead = false;
-                        break;
                     case JsonConstants.Space:
                     case JsonConstants.Tab:
                     case JsonConstants.CarriageReturn:
@@ -129,28 +120,23 @@ namespace Rapidity.Json
                         _position = 0;
                         canRead = skipEmpty;
                         break;
+                    case JsonConstants.End:
+                        _state = TokenState.End;
+                        canRead = false;
+                        break;
                     default:
                         _position++;
                         canRead = false;
                         break;
                 }
             } while (canRead);
-            return _currentChar;
-        }
-
-        /// <summary>
-        /// 查看下一个字符
-        /// </summary>
-        /// <returns></returns>
-        private char Peek()
-        {
-            return (char)_reader.Peek();
+            return _current;
         }
 
         private bool ReadToken(bool allowClosed)
         {
-            var value = MoveNext(true);
-            switch (value)
+            MoveNext(true);
+            switch (_current)
             {
                 case JsonConstants.OpenBrace: return StartObject();
                 case JsonConstants.OpenBracket: return StartArray();
@@ -158,7 +144,7 @@ namespace Rapidity.Json
                     if (allowClosed) return EndArray();
                     break;
                 case JsonConstants.SingleQuote:
-                case JsonConstants.Quote: return ReadString(value);
+                case JsonConstants.Quote: return ReadString(CurrentChar);
                 case JsonConstants.T: return ReadExpectValue(JsonConstants.TrueString, JsonTokenType.True);
                 case JsonConstants.F: return ReadExpectValue(JsonConstants.FalseString, JsonTokenType.False);
                 case JsonConstants.N: return ReadExpectValue(JsonConstants.NullString, JsonTokenType.Null);
@@ -174,29 +160,29 @@ namespace Rapidity.Json
                 case '9':
                 case '-': return ReadNumber();
             }
-            throw new JsonException($"非法字符{_currentChar}", _line, _position);
+            throw new JsonException($"无效的JSON格式,非法字符{CurrentChar}", _line, _position);
         }
 
         private bool ReadNextToken()
         {
-            var value = MoveNext(true);
-            switch (value)
+            MoveNext(true);
+            switch (_current)
             {
                 case JsonConstants.Comma: //逗号之后，依据ContainerType值判断分支
                     if (_containerType == JsonContainerType.Object) return ReadProperty(false);
                     if (_containerType == JsonContainerType.Array) return ReadToken(false);
-                    throw new JsonException($"非法字符{_currentChar}", _line, _position);
+                    throw new JsonException($"无效的JSON格式,非法字符{CurrentChar}", _line, _position);
                 case JsonConstants.CloseBrace: return EndObject();
                 case JsonConstants.CloseBracket: return EndArray();
                 case JsonConstants.End: return EndToken();
-                default: throw new JsonException($"非法字符{_currentChar}", _line, _position);
+                default: throw new JsonException($"无效的JSON格式,非法字符{CurrentChar}", _line, _position);
             }
         }
 
         private bool EndToken()
         {
             if (_tokens.Count == 0) return false;
-            throw new JsonException($"JSON未正常结束", _line, _position);
+            throw new JsonException("$无效的JSON格式，非正常结束", _line, _position);
         }
 
         private bool StartObject()
@@ -256,28 +242,29 @@ namespace Rapidity.Json
         /// <returns></returns>
         private bool ReadProperty(bool allowClosed)
         {
-            var value = MoveNext(true);
-            switch (value)
+            MoveNext(true);
+            switch (_current)
             {
                 case JsonConstants.Quote:
                 case JsonConstants.SingleQuote:
-                    _quoteSymbol = value;
+                    _quoteSymbol = CurrentChar;
                     ReadStringToBuffer();
-                    //属性后面只能是冒号：
-                    var next = MoveNext(true);
-                    if (next == JsonConstants.Colon)
+                    //属性后面只能是冒号： 
+                    MoveNext(true);
+                    if (CurrentChar == JsonConstants.Colon)
                     {
                         _state = TokenState.PropertyName;
                         _tokenType = JsonTokenType.PropertyName;
                         _tokens.Push(_tokenType);
                         return true;
                     }
-                    throw new JsonException($"PropertyName:{_text}后只能是：，非法字符{next}", _line, _position);
+                    throw new JsonException($"无效的JSON格式, PropertyName:{_text}后只能是：非法字符{CurrentChar}", _line, _position);
                 case JsonConstants.CloseBrace:
                     if (allowClosed) return EndObject();
                     break;
+                case JsonConstants.End: throw new JsonException("$无效的JSON格式，非正常结束", _line, _position);
             }
-            throw new JsonException($"非法字符{_currentChar}，无效的{JsonTokenType.PropertyName}", _line, _position);
+            throw new JsonException($"非法字符{CurrentChar}，无效的{JsonTokenType.PropertyName}", _line, _position);
         }
 
         private void PopToken(JsonTokenType previousToken)
@@ -292,7 +279,7 @@ namespace Rapidity.Json
                 else _containerType = JsonContainerType.None;
                 return;
             }
-            throw new JsonException($"无效字符{_currentChar}，缺失token：{previousToken}", _line, _position);
+            throw new JsonException($"无效的JSON格式，缺失token：{previousToken}", _line, _position);
         }
 
         /// <summary>
@@ -307,11 +294,13 @@ namespace Rapidity.Json
             TryPopProperty();
             for (int i = 1; i < target.Length; i++)
             {
-                if (MoveNext() != target[i])
-                    throw new JsonException($"无效的{nameof(JsonTokenType)}:{target}，非法字符{_currentChar}", _line, _position);
+                MoveNext();
+                if (CurrentChar != target[i])
+                    throw new JsonException($"无效的JSON格式，非法字符{CurrentChar}", _line, _position);
             }
             _state = TokenState.Value;
             _tokenType = token;
+            _text = target;
             return true;
         }
 
@@ -334,10 +323,12 @@ namespace Rapidity.Json
             bool canRead = true;
             do
             {
-                switch (MoveNext())
+                MoveNext();
+                switch (_current)
                 {
                     case JsonConstants.BackSlash:
-                        switch (MoveNext())
+                        MoveNext();
+                        switch (_current)
                         {
                             case 'a': _buffer.Append('\a'); break;
                             case 'v': _buffer.Append('\v'); break;
@@ -349,7 +340,7 @@ namespace Rapidity.Json
                             case '/':
                             case '\\':
                             case '"':
-                            case '\'': _buffer.Append(_currentChar); break;
+                            case '\'': _buffer.Append(CurrentChar); break;
                             case 'u': //验证是否十六进制数字并转义
                                 var chars = new char[4];
                                 _reader.Read(chars, 0, 4);
@@ -360,18 +351,18 @@ namespace Rapidity.Json
                                     break;
                                 }
                                 else throw new JsonException($"无效的十六进制字符{new string(chars)}", _line, _position);
-                            default: throw new JsonException($"无效的转义字符\\{_currentChar}", _line, _position);
+                            default: throw new JsonException($"无效的转义字符\\{CurrentChar}", _line, _position);
                         }
                         break;
                     case JsonConstants.Quote:
                     case JsonConstants.SingleQuote: //遇到引号-结束
-                        canRead = _currentChar != _quoteSymbol;
-                        if (canRead) _buffer.Append(_currentChar);
+                        canRead = CurrentChar != _quoteSymbol;
+                        if (canRead) _buffer.Append(CurrentChar);
                         break;
-                    case JsonConstants.End:
-                        throw new JsonException($"没有结束标识:{_quoteSymbol}", _line, _position);
-                    default: _buffer.Append(_currentChar); break;
+                    case JsonConstants.End: throw new JsonException($"无效的JSON格式, 没有结束标识:{_quoteSymbol}", _line, _position);
+                    default: _buffer.Append(CurrentChar); break;
                 }
+
             } while (canRead);
             _text = _buffer.ToString();
             _buffer.Clear();
@@ -386,29 +377,29 @@ namespace Rapidity.Json
         private bool ReadNumber()
         {
             TryPopProperty();
-            _buffer.Append(_currentChar);
+            _buffer.Append(CurrentChar);
             var canRead = true;
             do
             {
-                var next = Peek();
+                var next = _reader.Peek();
                 switch (next)
                 {
-                    case '0':
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
-                    case '.':
-                    case 'E':
-                    case 'e':
-                    case '+':
-                    case '-':
-                        _buffer.Append(MoveNext());
+                    case (int)'0':
+                    case (int)'1':
+                    case (int)'2':
+                    case (int)'3':
+                    case (int)'4':
+                    case (int)'5':
+                    case (int)'6':
+                    case (int)'7':
+                    case (int)'8':
+                    case (int)'9':
+                    case (int)'.':
+                    case (int)'E':
+                    case (int)'e':
+                    case (int)'+':
+                    case (int)'-':
+                        _buffer.Append((char)MoveNext());
                         break;
                     case JsonConstants.Comma:
                     case JsonConstants.CloseBrace:
@@ -420,7 +411,7 @@ namespace Rapidity.Json
                     case JsonConstants.End:
                         canRead = false;
                         break;
-                    default: throw new JsonException($"无效的JSON Number {_buffer.Append(next)}", _line, _position);
+                    default: throw new JsonException($"无效的JSON格式,非法数字：{_buffer.Append((char)next)}", _line, _position);
                 }
             } while (canRead);
             var text = _buffer.ToString();
@@ -433,7 +424,7 @@ namespace Rapidity.Json
                 _number = number;
                 return true;
             }
-            throw new JsonException($"无效的JSON Number {text}", _line, _position);
+            throw new JsonException($"无效的JSON格式,非法数字：{text}", _line, _position);
         }
 
         /// <summary>
@@ -447,8 +438,8 @@ namespace Rapidity.Json
 
         public void Dispose()
         {
-            _reader?.Close();
-            _reader?.Dispose();
+            _reader.Close();
+            _reader.Dispose();
         }
 
         /// <summary>

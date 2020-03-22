@@ -12,7 +12,6 @@ namespace Rapidity.Json
     {
         private TextWriter _writer;
         private JsonOption _option;
-        //private TokenValidator _tokenValidator;
         private string _indeteChars; //缩进字符
         private char _quoteSymbol = JsonConstants.Quote;   //引号字符
         private int _depth;
@@ -31,7 +30,6 @@ namespace Rapidity.Json
             _writer = writer;
             _option = option ?? throw new ArgumentNullException(nameof(option));
             _tokens = new Stack<JsonTokenType>();
-            //_tokenValidator = _option.SkipValidated ? TokenValidator.None : TokenValidator.Default;
             if (_option.Indented)
             {
                 if (_option.IndenteLength <= 0) _indeteChars = JsonConstants.Tab.ToString();
@@ -168,26 +166,27 @@ namespace Rapidity.Json
 
         private void WriteEscapeString(string value)
         {
-            foreach (var @char in value)
-            {
-                WriteEscapeString(@char);
-            }
+            for (int i = 0; i < value.Length; i++)
+                WriteEscapeString(value[i]);
         }
 
         private void WriteEscapeString(char value)
         {
             switch (value)
             {
-                case '\a': _writer.Write(JsonConstants.BELChars); break;    //响铃(BEL)
-                case '\b': _writer.Write("\\b"); break;  //退格(BS) ，将当前位置移到前一列
-                case '\r': _writer.Write("\\r"); break;  //回车(CR) ，将当前位置移到本行开头
-                case '\f': _writer.Write("\\f"); break;  //换页(FF)，将当前位置移到下页开头
-                case '\n': _writer.Write("\\n"); break;  //换行(LF) ，将当前位置移到下一行开头
-                case '\t': _writer.Write("\\t"); break;  //水平制表(HT) （跳到下一个TAB位置）
-                case '\v': _writer.Write(JsonConstants.VTChars); break;     //垂直制表(VT)
-                case '\\': _writer.Write("\\\\"); break;                    //反斜杠
-                case '\0': _writer.Write('0'); break;
-                case '\uffff': _writer.Write("\\uffff"); break;
+                case '\\': _writer.Write(@"\\"); break;         //反斜杠
+                case '\r': _writer.Write(@"\r"); break;         //回车(CR) ，将当前位置移到本行开头
+                case '\n': _writer.Write(@"\n"); break;         //换行(LF) ，将当前位置移到下一行开头
+                case '\t': _writer.Write(@"\t"); break;         //水平制表(HT) （跳到下一个TAB位置）
+                case '\b': _writer.Write(@"\b"); break;         //退格(BS) ，将当前位置移到前一列
+                case '\f': _writer.Write(@"\f"); break;         //换页(FF)，将当前位置移到下页开头
+                case '\a': _writer.Write(@"\u0007"); break;     //响铃(BEL)
+                case '\v': _writer.Write(@"\u000b"); break;     //垂直制表(VT)
+                case '\u0085': _writer.Write(@"\u0085"); break;   //下一行
+                case '\u2028': _writer.Write(@"\u2028"); break;   //行分隔符
+                case '\u2029': _writer.Write(@"\u2029"); break;   //段落分隔符
+                case '\0': _writer.Write(@"\u0000"); break;
+                case '\uffff': _writer.Write(@"\uffff"); break;
                 default:
                     if (value == _quoteSymbol) _writer.Write('\\');
                     _writer.Write(value);
@@ -410,7 +409,6 @@ namespace Rapidity.Json
                                 _tokens.Push(next);
                                 return;
                             }
-                            //ThrowException(next);
                             break;
                         case JsonTokenType.StartObject:
                         case JsonTokenType.StartArray:
@@ -419,7 +417,6 @@ namespace Rapidity.Json
                                 _tokens.Push(next);
                                 return;
                             }
-                            //ThrowException(next);
                             break;
                         case JsonTokenType.EndObject:
                             if (_containerType == JsonContainerType.Object)
@@ -427,7 +424,6 @@ namespace Rapidity.Json
                                 PopToken(next, JsonTokenType.StartObject);
                                 return;
                             }
-                            //ThrowException(next);
                             break;
                         case JsonTokenType.EndArray:
                             if (_containerType == JsonContainerType.Array)
@@ -435,7 +431,6 @@ namespace Rapidity.Json
                                 PopToken(next, JsonTokenType.StartArray);
                                 return;
                             }
-                            //ThrowException(next);
                             break;
                         case JsonTokenType.String:
                         case JsonTokenType.Number:
@@ -443,7 +438,6 @@ namespace Rapidity.Json
                         case JsonTokenType.False:
                         case JsonTokenType.Null:
                             if (_containerType == JsonContainerType.Array) return;
-                            //ThrowException(next);
                             break;
                         default: break;
                     }
@@ -571,223 +565,4 @@ namespace Rapidity.Json
             _writer?.Dispose();
         }
     }
-
-    /// <summary>
-    /// 验证写入token的合法性
-    /// </summary>
-    //internal class TokenValidator
-    //{
-    //    /// <summary>
-    //    /// 不验证token合法性
-    //    /// </summary>
-    //    public static TokenValidator None => new TokenValidator();
-    //    /// <summary>
-    //    /// 默认验证器
-    //    /// </summary>
-    //    public static TokenValidator Default => new DefaultTokenValidator();
-
-    //    //public JsonTokenType TokenType = JsonTokenType.None;
-
-    //    public virtual void ValidateNext(JsonTokenType current, JsonTokenType next)
-    //    {
-    //        //TokenType = next;
-    //    }
-
-    //    /// <summary>
-    //    /// 验证状态 默认实现
-    //    /// </summary>
-    //    private class DefaultTokenValidator : TokenValidator
-    //    {
-    //        private Stack<JsonTokenType> _tokens;
-    //        private JsonContainerType _containerType;
-
-    //        public DefaultTokenValidator()
-    //        {
-    //            _tokens = new Stack<JsonTokenType>();
-    //            _containerType = JsonContainerType.None;
-    //        }
-
-    //        /// <summary>
-    //        /// 
-    //        /// </summary>
-    //        /// <param name="next"></param>
-    //        public override void ValidateNext(JsonTokenType current, JsonTokenType next)
-    //        {
-    //            switch (current)
-    //            {
-    //                case JsonTokenType.None: ValidateStart(next); break;
-    //                case JsonTokenType.StartObject: ValidateStartObject(next); break;
-    //                case JsonTokenType.PropertyName: ValidatePropery(next); break;
-    //                case JsonTokenType.StartArray: ValidateStartArray(next); break;
-    //                case JsonTokenType.EndObject:
-    //                case JsonTokenType.EndArray:
-    //                case JsonTokenType.String:
-    //                case JsonTokenType.Number:
-    //                case JsonTokenType.True:
-    //                case JsonTokenType.False:
-    //                case JsonTokenType.Null:
-    //                    switch (next)
-    //                    {
-    //                        case JsonTokenType.PropertyName:
-    //                            if (_containerType == JsonContainerType.Object)
-    //                            {
-    //                                _tokens.Push(next);
-    //                                return;
-    //                            }
-    //                            //ThrowException(next);
-    //                            break;
-    //                        case JsonTokenType.StartObject:
-    //                        case JsonTokenType.StartArray:
-    //                            if (_containerType == JsonContainerType.Array)
-    //                            {
-    //                                _tokens.Push(next);
-    //                                return;
-    //                            }
-    //                            //ThrowException(next);
-    //                            break;
-    //                        case JsonTokenType.EndObject:
-    //                            if (_containerType == JsonContainerType.Object)
-    //                            {
-    //                                PopToken(current, next, JsonTokenType.StartObject);
-    //                                return;
-    //                            }
-    //                            //ThrowException(next);
-    //                            break;
-    //                        case JsonTokenType.EndArray:
-    //                            if (_containerType == JsonContainerType.Array)
-    //                            {
-    //                                PopToken(current, next, JsonTokenType.StartArray);
-    //                                return;
-    //                            }
-    //                            //ThrowException(next);
-    //                            break;
-    //                        case JsonTokenType.String:
-    //                        case JsonTokenType.Number:
-    //                        case JsonTokenType.True:
-    //                        case JsonTokenType.False:
-    //                        case JsonTokenType.Null:
-    //                            if (_containerType == JsonContainerType.Array) return;
-    //                            //ThrowException(next);
-    //                            break;
-    //                        default: break;
-    //                    }
-    //                    ThrowException(current, next);
-    //                    break;
-    //                case JsonTokenType.Comment: break;
-    //            }
-    //        }
-
-    //        private void ValidateStart(JsonTokenType next)
-    //        {
-    //            switch (next)
-    //            {
-    //                case JsonTokenType.StartObject:
-    //                    _containerType = JsonContainerType.Object;
-    //                    _tokens.Push(next);
-    //                    break;
-    //                case JsonTokenType.StartArray:
-    //                    _containerType = JsonContainerType.Array;
-    //                    _tokens.Push(next);
-    //                    break;
-    //                case JsonTokenType.PropertyName:
-    //                case JsonTokenType.EndObject:
-    //                case JsonTokenType.EndArray:
-    //                    ThrowException(JsonTokenType.None, next);
-    //                    break;
-    //                default: break;
-    //            }
-    //        }
-
-    //        private void ValidateStartObject(JsonTokenType next)
-    //        {
-    //            switch (next)
-    //            {
-    //                case JsonTokenType.PropertyName:
-    //                    _tokens.Push(next);
-    //                    break;
-    //                case JsonTokenType.EndObject:
-    //                    PopToken(JsonTokenType.StartObject, next, JsonTokenType.StartObject);
-    //                    break;
-    //                default:
-    //                    ThrowException(JsonTokenType.StartObject, next);
-    //                    break;
-    //            }
-    //        }
-
-    //        private void ValidatePropery(JsonTokenType next)
-    //        {
-    //            switch (next)
-    //            {
-    //                case JsonTokenType.StartObject:
-    //                    _tokens.Push(next);
-    //                    _containerType = JsonContainerType.Object;
-    //                    break;
-    //                case JsonTokenType.StartArray:
-    //                    _tokens.Push(next);
-    //                    _containerType = JsonContainerType.Array;
-    //                    break;
-    //                case JsonTokenType.String:
-    //                case JsonTokenType.Null:
-    //                case JsonTokenType.True:
-    //                case JsonTokenType.False:
-    //                case JsonTokenType.Number:
-    //                    PopToken(JsonTokenType.PropertyName, next, JsonTokenType.PropertyName);
-    //                    break;
-    //                default:
-    //                    ThrowException(JsonTokenType.PropertyName, next);
-    //                    break;
-    //            }
-    //        }
-
-    //        private void ValidateStartArray(JsonTokenType next)
-    //        {
-    //            switch (next)
-    //            {
-    //                case JsonTokenType.StartObject:
-    //                    _tokens.Push(next);
-    //                    _containerType = JsonContainerType.Object;
-    //                    break;
-    //                case JsonTokenType.StartArray:
-    //                    _tokens.Push(next);
-    //                    _containerType = JsonContainerType.Array;
-    //                    break;
-    //                case JsonTokenType.EndArray:
-    //                    PopToken(JsonTokenType.StartArray, next, JsonTokenType.StartArray);
-    //                    break;
-    //                case JsonTokenType.String:
-    //                case JsonTokenType.Null:
-    //                case JsonTokenType.True:
-    //                case JsonTokenType.False:
-    //                case JsonTokenType.Number:
-    //                    break;
-    //                default:
-    //                    ThrowException(JsonTokenType.StartArray, next);
-    //                    break;
-    //            }
-    //        }
-
-    //        private void PopToken(JsonTokenType current, JsonTokenType next, JsonTokenType topToken)
-    //        {
-    //            if (_tokens.Count > 0)
-    //            {
-    //                var top = _tokens.Pop(); //栈顶值必须与toptoken一致
-    //                if (top == topToken)
-    //                {
-    //                    if (_tokens.Count > 0 && _tokens.Peek() == JsonTokenType.PropertyName) //上一个是propertyName时继续出栈
-    //                        _tokens.Pop();
-    //                    if (_tokens.Count > 0) _containerType = _tokens.Peek() == JsonTokenType.StartArray ? JsonContainerType.Array : JsonContainerType.Object;
-    //                    else _containerType = JsonContainerType.None;
-    //                    return;
-    //                }
-    //                ThrowException(current, next, top);
-    //            }
-    //            ThrowException(current, next);
-    //        }
-
-    //        private void ThrowException(JsonTokenType token, JsonTokenType next, JsonTokenType? current = null)
-    //        {
-    //            throw new JsonException($"无效的JSON Token，{next}不能出现在{current ?? token}之后");
-    //        }
-    //    }
-    //}
 }

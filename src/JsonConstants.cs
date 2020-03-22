@@ -14,8 +14,7 @@ namespace Rapidity.Json
         public const char Quote = '"';
         public const char SingleQuote = '\'';
         public const char BackSlash = '\\';
-        public const char Slash = '/';
-        public const char Point = '.';
+
         /// <summary>
         /// 回车符
         /// </summary>
@@ -31,9 +30,9 @@ namespace Rapidity.Json
         public const char Plus = '+';
         public const char Hyphen = '-';
         /// <summary>
-        /// //读取结束标志 char.MaxValue
+        /// //读取结束标志
         /// </summary>
-        public const char End = char.MaxValue;
+        public const int End = -1;
 
         public const string TrueString = "true";
         public const string FalseString = "false";
@@ -42,14 +41,5 @@ namespace Rapidity.Json
         public const string NaN = "NaN";
         public const string PositiveInfinity = "Infinity";
         public const string NegativeInfinity = "-Infinity";
-
-        /// <summary>
-        /// /a 响铃(BEL) \u0007
-        /// </summary>
-        public static char[] BELChars = new char[] { BackSlash, 'u', '0', '0', '0', '7' };
-        /// <summary>
-        /// /v 垂直制表(VT) \u000b
-        /// </summary>
-        public static char[] VTChars = new char[] { BackSlash, 'u', '0', '0', '0', 'b' };
     }
 }

@@ -19,7 +19,12 @@ namespace Rapidity.Json.Converters
         public virtual Func<object> CreateInstance
             => _createInstance = _createInstance ?? BuildCreateInstanceMethod(this.Type);
 
-        protected virtual Func<object> BuildCreateInstanceMethod2(Type type)
+        /// <summary>
+        /// 使用反射构造
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected virtual Func<object> BuildCreateInstanceMethod(Type type)
         {
             Func<object> func = () =>
             {
@@ -41,7 +46,7 @@ namespace Rapidity.Json.Converters
             return func;
         }
 
-        protected virtual Func<object> BuildCreateInstanceMethod(Type type)
+        protected virtual Func<object> BuildCreateInstanceMethod2(Type type)
         {
             NewExpression newExp;
             //查找参数最少的一个构造函数
@@ -71,11 +76,11 @@ namespace Rapidity.Json.Converters
 
         protected virtual object GetDefaultValue(Type type)
         {
-            var defaultExp = Expression.Default(type);
-            var body = Expression.TypeAs(defaultExp, typeof(object));
-            var expression = Expression.Lambda<Func<object>>(body);
-            return expression.Compile()();
-            //return type.IsValueType ? Activator.CreateInstance(type) : null;
+            //var defaultExp = Expression.Default(type);
+            //var body = Expression.TypeAs(defaultExp, typeof(object));
+            //var expression = Expression.Lambda<Func<object>>(body);
+            //return expression.Compile()();
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
 
         public abstract object FromReader(JsonReader reader, JsonOption option);
@@ -104,7 +109,7 @@ namespace Rapidity.Json.Converters
                         writer.WriteNull();
                         return true;
                     case LoopReferenceProcess.Error:
-                        throw new JsonException($"对象：{value.GetType().Name}存在循环引用，序列化失败");
+                        throw new JsonException($"对象：{value.GetType().Name}存在循环引用，序列化{value.GetType()}失败");
                 }
             }
             return false;
@@ -131,7 +136,7 @@ namespace Rapidity.Json.Converters
                         writer.WriteNull();
                         return true;
                     case LoopReferenceProcess.Error:
-                        throw new JsonException($"属性{propertyName}：{value.GetType().FullName}存在循环引用，序列化失败");
+                        throw new JsonException($"属性{propertyName}：{value.GetType().FullName}存在循环引用，序列化{value.GetType()}失败");
                 }
             }
             return false;

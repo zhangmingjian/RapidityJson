@@ -6,8 +6,6 @@ namespace Rapidity.Json.Converters
 {
     internal class KeyValuePairConverter : ObjectConverter, IConverterCreator
     {
-        //public Type Type { get; }
-
         public Type KeyType { get; }
 
         public Type ValueType { get; }

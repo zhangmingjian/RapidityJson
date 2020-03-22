@@ -13,7 +13,7 @@ namespace Rapidity.Json.Test
     public class PerformanceTest
     {
         private ITestOutputHelper _output;
-        private int total = 1000;
+        private int total = 10000;
 
         public PerformanceTest(ITestOutputHelper output)
         {

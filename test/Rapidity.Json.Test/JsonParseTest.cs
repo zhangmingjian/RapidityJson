@@ -211,19 +211,18 @@ namespace Rapidity.Json.Test
             var pairs = new List<KeyValuePair<int, ValueModel>>()
             {
               new KeyValuePair<int, ValueModel>(1, new ValueModel(){ CharValue = char.MaxValue}),
-              //new KeyValuePair<int, ValueModel>(3, new ValueModel()),
+              new KeyValuePair<int, ValueModel>(3, new ValueModel()),
             };
             var option = new JsonOption
             {
                 LoopReferenceProcess = Converters.LoopReferenceProcess.Error,
-                Indented = true
+                Indented = true,
+                CamelCaseNamed =true
             };
-            //var json = JsonParse.ToJson(pairs, option);
-
-            var json = JsonParse.ToJson(char.MinValue);
+            var json = JsonParse.ToJson(pairs, option);
             _output.WriteLine(json);
 
-            //var model = JsonParse.To<List<KeyValuePair<int, ValueModel>>>(json);
+            var model = JsonParse.To<List<KeyValuePair<int, ValueModel>>>(json);
         }
     }
 }
