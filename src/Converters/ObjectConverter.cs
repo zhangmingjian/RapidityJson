@@ -16,13 +16,11 @@ namespace Rapidity.Json.Converters
         private Dictionary<string, MemberDefinition> _memberDefinitions;
         private Dictionary<string, MemberDefinition> MemberDefinitions => _memberDefinitions = _memberDefinitions ?? GetMemberDefinitions(Type);
 
-        public IEnumerable<MemberDefinition> MemberList => MemberDefinitions.Values.OrderBy(x => x.Sort);
+        private IEnumerable<MemberDefinition> _memberList;
 
+        public IEnumerable<MemberDefinition> MemberList => _memberList = _memberList ?? MemberDefinitions.Values.OrderBy(x => x.Sort);
 
-        public MemberDefinition GetMemberDefinition(string name)
-        {
-            return MemberDefinitions.TryGetValue(name, out MemberDefinition member) ? member : null;
-        }
+        public MemberDefinition GetMemberDefinition(string name) => MemberDefinitions.TryGetValue(name, out MemberDefinition member) ? member : null;
 
         /// <summary>
         /// 
@@ -41,18 +39,20 @@ namespace Rapidity.Json.Converters
                     continue;
                 //跳过委托
                 if (typeof(Delegate).IsAssignableFrom(property.PropertyType)) continue;
-                var attr = property.GetCustomAttribute<PropertyAttribute>();
+                var attr = property.GetCustomAttribute<JsonPropertyAttribute>();
                 if (attr != null && attr.Ignore) continue;
                 var member = new MemberDefinition(property, attr);
+                //var member = new ReflectionMemberDefinition(property, attr);
                 dic[member.PropertyName] = member;
             }
             foreach (var field in type.GetFields())
             {
                 //跳过委托，静态字段
                 if (field.IsStatic || typeof(Delegate).IsAssignableFrom(field.FieldType)) continue;
-                var attr = field.GetCustomAttribute<PropertyAttribute>();
+                var attr = field.GetCustomAttribute<JsonPropertyAttribute>();
                 if (attr != null && attr.Ignore) continue;
                 var member = new MemberDefinition(field, attr);
+                //var member = new ReflectionMemberDefinition(field, attr);
                 dic[member.PropertyName] = member;
             }
             return dic;
@@ -185,7 +185,7 @@ namespace Rapidity.Json.Converters
 
     internal class MemberDefinition
     {
-        public MemberDefinition(MemberInfo memberInfo, PropertyAttribute attribute)
+        public MemberDefinition(MemberInfo memberInfo, JsonPropertyAttribute attribute)
         {
             this.MemberInfo = memberInfo;
             if (MemberInfo.MemberType == MemberTypes.Property) MemberType = ((PropertyInfo)MemberInfo).PropertyType;
@@ -199,7 +199,7 @@ namespace Rapidity.Json.Converters
         /// <summary>
         /// jsonProperty settings
         /// </summary>
-        public PropertyAttribute JsonProperty { get; }
+        public JsonPropertyAttribute JsonProperty { get; }
 
         public string PropertyName { get; }
 
@@ -280,7 +280,7 @@ namespace Rapidity.Json.Converters
 
     internal class ReflectionMemberDefinition : MemberDefinition
     {
-        public ReflectionMemberDefinition(MemberInfo memberInfo, PropertyAttribute attribute) : base(memberInfo, attribute)
+        public ReflectionMemberDefinition(MemberInfo memberInfo, JsonPropertyAttribute attribute) : base(memberInfo, attribute)
         {
         }
 

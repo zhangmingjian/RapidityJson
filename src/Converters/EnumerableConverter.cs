@@ -66,18 +66,14 @@ namespace Rapidity.Json.Converters
                     case JsonTokenType.EndArray: return instance;
                     case JsonTokenType.StartArray:
                         if (instance == null) instance = CreateInstance();
-                        else
-                        {
-                            AddItem(instance, convert.FromReader(reader, option));
-                        }
+                        else AddItem(instance, convert.FromReader(reader, option));
                         break;
                     case JsonTokenType.StartObject:
                     case JsonTokenType.String:
                     case JsonTokenType.Number:
                     case JsonTokenType.True:
                     case JsonTokenType.False:
-                        var valueItem = convert.FromReader(reader, option);
-                        AddItem(instance, valueItem);
+                        AddItem(instance, convert.FromReader(reader, option));
                         break;
                     case JsonTokenType.Null:
                         if (instance == null) return instance;
@@ -97,11 +93,10 @@ namespace Rapidity.Json.Converters
                 case JsonValueType.Array:
                     var list = CreateInstance();
                     var arrayToken = (JsonArray)token;
+                    var convert = option.ConverterProvider.Build(ItemType);
                     foreach (var item in arrayToken)
                     {
-                        var convert = option.ConverterProvider.Build(ItemType);
-                        var itemValue = convert.FromToken(item, option);
-                        AddItem(list, itemValue);
+                        AddItem(list, convert.FromToken(item, option));
                     }
                     return list;
                 default:

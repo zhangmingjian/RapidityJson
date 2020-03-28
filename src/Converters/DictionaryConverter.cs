@@ -139,8 +139,7 @@ namespace Rapidity.Json.Converters
                     case JsonTokenType.EndObject: return instance;
                     case JsonTokenType.StartObject:
                         if (instance == null) instance = CreateInstance();
-                        else
-                            SetKeyValue(instance, key, convert.FromReader(reader, option));
+                        else SetKeyValue(instance, key, convert.FromReader(reader, option));
                         break;
                     case JsonTokenType.PropertyName:
                         key = reader.Text;
@@ -169,11 +168,10 @@ namespace Rapidity.Json.Converters
                 case JsonValueType.Object:
                     var dic = CreateInstance();
                     var objToken = (JsonObject)token;
+                    var convert = option.ConverterProvider.Build(ValueType);
                     foreach (var property in objToken.GetAllProperty())
                     {
-                        var convert = option.ConverterProvider.Build(ValueType);
-                        var value = convert.FromToken(property.Value, option);
-                        SetKeyValue(dic, property.Name, value);
+                        SetKeyValue(dic, property.Name, convert.FromToken(property.Value, option));
                     }
                     return dic;
                 default:

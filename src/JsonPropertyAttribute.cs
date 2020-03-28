@@ -8,16 +8,16 @@ namespace Rapidity.Json
     /// JsonProperty Settings
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-    public class PropertyAttribute : Attribute
+    public class JsonPropertyAttribute : Attribute
     {
-        public PropertyAttribute() { }
+        public JsonPropertyAttribute() { }
 
-        public PropertyAttribute(string name)
+        public JsonPropertyAttribute(string name)
         {
             this.Name = name;
         }
 
-        public PropertyAttribute(bool ignore)
+        public JsonPropertyAttribute(bool ignore)
         {
             this.Ignore = ignore;
         }

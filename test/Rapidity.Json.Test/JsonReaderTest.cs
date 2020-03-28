@@ -44,13 +44,12 @@ namespace Rapidity.Json.Test
         [Fact]
         public void JsonReadTest()
         {
-            var json = "{\"url\":\"http:\\/\\/wwww.baidu.com\",\"easpstring\":\"\u0007\b\r\n\f\t\u000b噐⌚\u0000\uffff\u0085\u2028\u2029如果\",\"number\":11212234565.012983,\"floatval\":\"-Infinity\"}";
-            //var json = "\"\u0007\b\r\n\f\t\u000b噐⌚\u0000\uffff\u0085\u2028\u2029\"";
+            var json = "{\"url\":\"http:\\/\\/wwww.baidu.com\",\"easpstring\":\"\u0007\b\r\n\f\t\u000b噐⌚\u0000\uffff\u0085\u2028\u2029如果\",\"number\":22344556.67876767,\"floatval\":\"-Infinity\"}";
             using (var read = new JsonReader(json))
             {
                 while (read.Read())
                 {
-                    _output.WriteLine($"{read.TokenType}:{read.Text}");
+                    _output.WriteLine($"{read.TokenType}:{read.Text} \r\n {read.Number}");
                 }
             }
 
@@ -70,7 +69,13 @@ namespace Rapidity.Json.Test
         public void ReadQuoteTest()
         {
             var json = "{'name':'张三\','age':10,'\"remark\"':'flaw金额flak文件'}";
-            var data = JsonToken.Parse(json);
+            using (var read = new JsonReader(json))
+            {
+                while (read.Read())
+                {
+
+                }
+            }
         }
 
 

@@ -18,8 +18,9 @@ namespace Rapidity.Json.Test.Models
     {
         public string date { get; set; }
         public Story[] stories { get; set; }
-        //[Property("top_stories")]
-        public Top_Stories[] top_stories { get; set; }
+        [JsonProperty("top_stories")]
+        [Newtonsoft.Json.JsonProperty("top_stories")]
+        public IEnumerable<Top_Stories> topstories { get; set; }
     }
 
     public class Story
@@ -39,11 +40,11 @@ namespace Rapidity.Json.Test.Models
         public string image_hue { get; set; }
         public string hint { get; set; }
         public string url { get; set; }
-        public string image { get; set; }
-        public string title { get; set; }
-        public string ga_prefix { get; set; }
-        public int type { get; set; }
-        public int id { get; set; }
+        public string image;
+        public string title;
+        public string ga_prefix;
+        public int type;
+        public int id;
     }
 
 }

@@ -384,21 +384,21 @@ namespace Rapidity.Json
                 var next = _reader.Peek();
                 switch (next)
                 {
-                    case (int)'0':
-                    case (int)'1':
-                    case (int)'2':
-                    case (int)'3':
-                    case (int)'4':
-                    case (int)'5':
-                    case (int)'6':
-                    case (int)'7':
-                    case (int)'8':
-                    case (int)'9':
-                    case (int)'.':
-                    case (int)'E':
-                    case (int)'e':
-                    case (int)'+':
-                    case (int)'-':
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                    case '.':
+                    case 'E':
+                    case 'e':
+                    case '+':
+                    case '-':
                         _buffer.Append((char)MoveNext());
                         break;
                     case JsonConstants.Comma:

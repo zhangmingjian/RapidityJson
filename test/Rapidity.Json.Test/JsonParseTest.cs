@@ -54,6 +54,7 @@ namespace Rapidity.Json.Test
             var json = "[{\"id\":100,\"Name\":\"张三\",\"Sex\":1,\"Birthday\":\"2000 - 10 - 10\"},{\"id\":101,\"Name\":\"李四\",\"Sex\":\"female\",\"Birthday\":null,\"Address\":\"\"}]";
             var list = JsonParse.To<List<Student>>(json);
             var list2 = JsonParse.To<IEnumerable<Student>>(json);
+            var list3 = JsonParse.To<IList<Student>>(json);
             var arr = JsonParse.To<Student[]>(json);
         }
 
