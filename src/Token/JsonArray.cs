@@ -73,5 +73,62 @@ namespace Rapidity.Json
         {
             return _list.GetEnumerator();
         }
+
+        public JsonObject GetObject(int index)
+        {
+            if (index < 0 || index > this.Count - 1) return null;
+            var token = this[index];
+            switch (token.ValueType)
+            {
+                case JsonValueType.Object: return (JsonObject)token;
+                case JsonValueType.Null: return null;
+                default: throw new Exception($"类型:{token.ValueType}不支持转换为JsonObject");
+            }
+        }
+
+        public JsonArray GetArray(int index)
+        {
+            if (index < 0 || index > this.Count - 1) return null;
+            var token = this[index];
+            switch (token.ValueType)
+            {
+                case JsonValueType.Array: return (JsonArray)token;
+                case JsonValueType.Null: return null;
+                default: throw new Exception($"类型:{token.ValueType}不支持转换为JsonArray");
+            }
+        }
+
+        public string GetString(int index)
+        {
+            if (index < 0 || index > this.Count - 1) return null;
+            var token = this[index];
+            switch (token.ValueType)
+            {
+                case JsonValueType.String: return ((JsonString)token).Value;
+                case JsonValueType.Null: return null;
+                case JsonValueType.Number: return token.ToString();
+                default: throw new Exception($"类型:{token.ValueType}不支持转换为String");
+            }
+        }
+
+        public int? GetInt(int index)
+        {
+            if (index < 0 || index > this.Count - 1) return null;
+            var token = this[index];
+            switch (token.ValueType)
+            {
+                case JsonValueType.String:
+                    var value = ((JsonString)token).Value;
+                    if (int.TryParse(value, out int v)) return v;
+                    else new Exception($"JsonString:{value}不是正确的int类型");
+                    return null;
+                case JsonValueType.Null: return null;
+                case JsonValueType.Number:
+                    var jsonNum = (JsonNumber)token;
+                    if (jsonNum.TryGetInt(out int intV)) return intV;
+                    return null;
+                default: throw new Exception($"类型:{token.ValueType}不支持转换为String");
+            }
+        }
     }
 }

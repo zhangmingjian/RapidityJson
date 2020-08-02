@@ -117,6 +117,145 @@ namespace Rapidity.Json
         {
             return _dictionary.GetEnumerator();
         }
+
+        public JsonObject GetObject(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.Object: return (JsonObject)token;
+                case JsonValueType.Null: return null;
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转换为JsonObject");
+            }
+        }
+
+        public JsonArray GetArray(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.Array: return (JsonArray)token;
+                case JsonValueType.Null: return null;
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转换为JsonArray");
+            }
+        }
+
+        public string GetString(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.String:
+                case JsonValueType.Null:
+                case JsonValueType.Number: return token.ToString();
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转换为String");
+            }
+        }
+
+        public bool? GetBoolean(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.Boolean: return ((JsonBoolean)token).Value;
+                case JsonValueType.Null: return null;
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转换为Boolean");
+            }
+        }
+
+        public int? GetInt(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.String: return int.TryParse(((JsonString)token).Value, out int val) ? val : default(int?);
+                case JsonValueType.Null: return null;
+                case JsonValueType.Number: return ((JsonNumber)token).TryGetInt(out int val1) ? val1 : default(int?);
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转换为int");
+            }
+        }
+
+        public long? GetLong(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.String: return long.TryParse(((JsonString)token).Value, out long val) ? val : default(long?);
+                case JsonValueType.Null: return null;
+                case JsonValueType.Number: return ((JsonNumber)token).TryGetLong(out long val1) ? val1 : default(long?);
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转换为long");
+            }
+        }
+
+        public float? GetFloat(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.String: return float.TryParse(((JsonString)token).Value, out float val) ? val : default(float?);
+                case JsonValueType.Null: return null;
+                case JsonValueType.Number: return ((JsonNumber)token).TryGetFloat(out float val1) ? val1 : default(float?);
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转化为float");
+            }
+        }
+
+        public double? GetDouble(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.String: return double.TryParse(((JsonString)token).Value, out double val) ? val : default(double?);
+                case JsonValueType.Null: return null;
+                case JsonValueType.Number: return ((JsonNumber)token).TryGetDouble(out double val1) ? val1 : default(double?);
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转化为double");
+            }
+        }
+
+        public decimal? GetDecimal(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.String: return decimal.TryParse(((JsonString)token).Value, out decimal val) ? val : default(decimal?);
+                case JsonValueType.Null: return null;
+                case JsonValueType.Number: return ((JsonNumber)token).TryGetDecimal(out decimal val1) ? val1 : default(decimal?);
+                default: throw new Exception($"属性{property}:{token.ValueType}不转化为decimal");
+            }
+        }
+
+        public DateTime? GetDateTime(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.String: return DateTime.TryParse(((JsonString)token).Value, out DateTime val) ? val : default(DateTime?);
+                case JsonValueType.Null: return null;
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转化为DateTime");
+            }
+        }
+
+        public Guid? GetGuid(string property)
+        {
+            var token = this[property];
+            if (token == null) return null;
+            switch (token.ValueType)
+            {
+                case JsonValueType.String: return Guid.TryParse(((JsonString)token).Value, out Guid val) ? val : default(Guid?);
+                case JsonValueType.Null: return null;
+                default: throw new Exception($"属性{property}:{token.ValueType}不支持转化为Guid");
+            }
+        }
+
     }
 
     /// <summary>
