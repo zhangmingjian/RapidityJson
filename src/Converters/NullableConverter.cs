@@ -35,11 +35,11 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        public object FromToken(JsonToken token, JsonOption option)
+        public object FromElement(JsonElement element, JsonOption option)
         {
-            if (token.ValueType == JsonValueType.Null) return null;
+            if (element.ElementType == JsonElementType.Null) return null;
             var convert = option.ConverterProvider.Build(Type);
-            return convert.FromToken(token, option);
+            return convert.FromElement(element, option);
         }
 
         public void ToWriter(JsonWriter writer, object obj, JsonOption option)

@@ -134,6 +134,15 @@ namespace Rapidity.Json.Test
             var dic2 = JsonParse.To<IDictionary<string, int>>(json);
             Assert.Equal(4, dic2.Count);
             Assert.Equal(66580, dic2["确诊病例"]);
+
+            Dictionary<int, string> numbers = new Dictionary<int, string>
+            {
+                { 0, "zero" },
+                { 1, "one" },
+                { 2, "two" },
+                { 3, "three" }
+            };
+            var intDic = JsonParse.ToJson(numbers);
         }
 
         [Fact]
@@ -181,7 +190,7 @@ namespace Rapidity.Json.Test
                 Indented = true
             };
             var json = JsonParse.ToJson(obj, option);
-            var token = JsonToken.Parse(json);
+            var token = JsonElement.Parse(json);
             _output.WriteLine(token.ToString());
             var deModel = token.To<MultipleTypesModel>();
         }
@@ -218,7 +227,7 @@ namespace Rapidity.Json.Test
             {
                 LoopReferenceProcess = Converters.LoopReferenceProcess.Error,
                 Indented = true,
-                CamelCaseNamed =true
+                CamelCaseNamed = true
             };
             var json = JsonParse.ToJson(pairs, option);
             _output.WriteLine(json);

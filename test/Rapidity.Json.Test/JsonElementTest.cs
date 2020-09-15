@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Rapidity.Json.Test
 {
-    public class JsonTokenTest
+    public class JsonElementTest
     {
         [Fact]
         public void ToStringTest()

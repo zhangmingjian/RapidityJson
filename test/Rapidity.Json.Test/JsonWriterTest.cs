@@ -281,8 +281,8 @@ namespace Rapidity.Json.Test
                 var json = sw.ToString();
                 _output.WriteLine(json);
 
-                var token = (JsonObject)JsonToken.Parse(json);
-                var token2 = (JsonObject)JsonToken.Parse(token.ToString());
+                var token = (JsonObject)JsonElement.Parse(json);
+                var token2 = (JsonObject)JsonElement.Parse(token.ToString());
             }
         }
 
@@ -300,7 +300,7 @@ namespace Rapidity.Json.Test
         {
             var json = GetJson();
 
-            var token = JsonToken.Parse(json);
+            var token = JsonElement.Parse(json);
             _output.WriteLine(token.ToString());
         }
 
@@ -312,7 +312,7 @@ namespace Rapidity.Json.Test
         {
             var json = GetJson();
 
-            var token = JsonToken.Parse(json);
+            var token = JsonElement.Parse(json);
 
             var file = new FileInfo(AppDomain.CurrentDomain.BaseDirectory + "write.json");
             var stream = file.OpenWrite();
@@ -326,7 +326,7 @@ namespace Rapidity.Json.Test
             };
             using (var write = new JsonWriter(textWriter, option))
             {
-                write.WriteToken(token);
+                write.WriteElement(token);
                 watch.Stop();
                 _output.WriteLine($"用时：{watch.ElapsedMilliseconds}ms");
             }
@@ -350,8 +350,8 @@ namespace Rapidity.Json.Test
                 write.WriteEndObject();
                 var json = sw.ToString();
                 _output.WriteLine(json);
-                var token = JsonToken.Parse(json);
-                var token2 = JsonToken.Parse(token.ToString());
+                var token = JsonElement.Parse(json);
+                var token2 = JsonElement.Parse(token.ToString());
             }
         }
 

@@ -7,20 +7,20 @@ namespace Rapidity.Json
     /// <summary>
     /// 
     /// </summary>
-    public class JsonArray : JsonToken, IEnumerable<JsonToken>
+    public class JsonArray : JsonElement, IEnumerable<JsonElement>
     {
-        private readonly List<JsonToken> _list;
+        private readonly List<JsonElement> _list;
 
-        public override JsonValueType ValueType => JsonValueType.Array;
+        public override JsonElementType ElementType => JsonElementType.Array;
 
         public JsonArray()
         {
-            _list = new List<JsonToken>();
+            _list = new List<JsonElement>();
         }
 
         public int Count => _list.Count;
 
-        public JsonToken this[int index]
+        public JsonElement this[int index]
         {
             get => _list[index];
             set => _list[index] = value ?? new JsonNull();
@@ -39,7 +39,7 @@ namespace Rapidity.Json
             }
         }
 
-        public void Add(JsonToken token)
+        public void Add(JsonElement token)
         {
             _list.Add(token ?? new JsonNull());
         }
@@ -49,12 +49,12 @@ namespace Rapidity.Json
             _list.RemoveAt(index);
         }
 
-        public bool Remove(JsonToken token)
+        public bool Remove(JsonElement token)
         {
             return _list.Remove(token);
         }
 
-        public int Remove(Predicate<JsonToken> match)
+        public int Remove(Predicate<JsonElement> match)
         {
             return _list.RemoveAll(match);
         }
@@ -64,7 +64,7 @@ namespace Rapidity.Json
             _list.Clear();
         }
 
-        public IEnumerator<JsonToken> GetEnumerator()
+        public IEnumerator<JsonElement> GetEnumerator()
         {
             return _list.GetEnumerator();
         }
@@ -78,11 +78,11 @@ namespace Rapidity.Json
         {
             if (index < 0 || index > this.Count - 1) return null;
             var token = this[index];
-            switch (token.ValueType)
+            switch (token.ElementType)
             {
-                case JsonValueType.Object: return (JsonObject)token;
-                case JsonValueType.Null: return null;
-                default: throw new Exception($"类型:{token.ValueType}不支持转换为JsonObject");
+                case JsonElementType.Object: return (JsonObject)token;
+                case JsonElementType.Null: return null;
+                default: throw new Exception($"类型:{token.ElementType}不支持转换为JsonObject");
             }
         }
 
@@ -90,11 +90,11 @@ namespace Rapidity.Json
         {
             if (index < 0 || index > this.Count - 1) return null;
             var token = this[index];
-            switch (token.ValueType)
+            switch (token.ElementType)
             {
-                case JsonValueType.Array: return (JsonArray)token;
-                case JsonValueType.Null: return null;
-                default: throw new Exception($"类型:{token.ValueType}不支持转换为JsonArray");
+                case JsonElementType.Array: return (JsonArray)token;
+                case JsonElementType.Null: return null;
+                default: throw new Exception($"类型:{token.ElementType}不支持转换为JsonArray");
             }
         }
 
@@ -102,32 +102,32 @@ namespace Rapidity.Json
         {
             if (index < 0 || index > this.Count - 1) return null;
             var token = this[index];
-            switch (token.ValueType)
+            switch (token.ElementType)
             {
-                case JsonValueType.String: return ((JsonString)token).Value;
-                case JsonValueType.Null: return null;
-                case JsonValueType.Number: return token.ToString();
-                default: throw new Exception($"类型:{token.ValueType}不支持转换为String");
+                case JsonElementType.String: return ((JsonString)token).Value;
+                case JsonElementType.Null: return null;
+                case JsonElementType.Number: return token.ToString();
+                default: throw new Exception($"类型:{token.ElementType}不支持转换为String");
             }
         }
 
         public int? GetInt(int index)
         {
             if (index < 0 || index > this.Count - 1) return null;
-            var token = this[index];
-            switch (token.ValueType)
+            var element = this[index];
+            switch (element.ElementType)
             {
-                case JsonValueType.String:
-                    var value = ((JsonString)token).Value;
+                case JsonElementType.String:
+                    var value = ((JsonString)element).Value;
                     if (int.TryParse(value, out int v)) return v;
                     else new Exception($"JsonString:{value}不是正确的int类型");
                     return null;
-                case JsonValueType.Null: return null;
-                case JsonValueType.Number:
-                    var jsonNum = (JsonNumber)token;
+                case JsonElementType.Null: return null;
+                case JsonElementType.Number:
+                    var jsonNum = (JsonNumber)element;
                     if (jsonNum.TryGetInt(out int intV)) return intV;
                     return null;
-                default: throw new Exception($"类型:{token.ValueType}不支持转换为String");
+                default: throw new Exception($"类型:{element.ElementType}不支持转换为String");
             }
         }
     }

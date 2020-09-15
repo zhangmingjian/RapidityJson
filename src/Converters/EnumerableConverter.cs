@@ -85,22 +85,22 @@ namespace Rapidity.Json.Converters
             return instance;
         }
 
-        public override object FromToken(JsonToken token, JsonOption option)
+        public override object FromElement(JsonElement element, JsonOption option)
         {
-            switch (token.ValueType)
+            switch (element.ElementType)
             {
-                case JsonValueType.Null: return null;
-                case JsonValueType.Array:
+                case JsonElementType.Null: return null;
+                case JsonElementType.Array:
                     var list = CreateInstance();
-                    var arrayToken = (JsonArray)token;
+                    var arrayToken = (JsonArray)element;
                     var convert = option.ConverterProvider.Build(ItemType);
                     foreach (var item in arrayToken)
                     {
-                        AddItem(list, convert.FromToken(item, option));
+                        AddItem(list, convert.FromElement(item, option));
                     }
                     return list;
                 default:
-                    throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
+                    throw new JsonException($"无法从{element.ElementType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
             }
         }
 

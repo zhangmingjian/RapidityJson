@@ -2,9 +2,9 @@
 
 namespace Rapidity.Json
 {
-    public class JsonNull : JsonToken, IEquatable<JsonNull>
+    public class JsonNull : JsonElement, IEquatable<JsonNull>
     {
-        public override JsonValueType ValueType => JsonValueType.Null;
+        public override JsonElementType ElementType => JsonElementType.Null;
 
         public bool Equals(JsonNull other) => other != null;
 

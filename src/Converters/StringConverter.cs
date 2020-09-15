@@ -34,17 +34,17 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        public object FromToken(JsonToken token, JsonOption option)
+        public object FromElement(JsonElement element, JsonOption option)
         {
-            if (token.ValueType == JsonValueType.String)
+            if (element.ElementType == JsonElementType.String)
             {
-                return ((JsonString)token).Value;
+                return ((JsonString)element).Value;
             }
-            if (token.ValueType == JsonValueType.Null)
+            if (element.ElementType == JsonElementType.Null)
             {
                 return null;
             }
-            throw new JsonException($"无法将{token.ValueType}转换为{Type},反序列化{Type}失败");
+            throw new JsonException($"无法将{element.ElementType}转换为{Type},反序列化{Type}失败");
         }
 
         public void ToWriter(JsonWriter writer, object value, JsonOption option)

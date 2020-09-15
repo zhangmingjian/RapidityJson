@@ -2,12 +2,12 @@
 
 namespace Rapidity.Json
 {
-    public class JsonBoolean : JsonToken, IEquatable<JsonBoolean>
+    public class JsonBoolean : JsonElement, IEquatable<JsonBoolean>
     {
         private bool _value;
         public bool Value => _value;
 
-        public override JsonValueType ValueType => JsonValueType.Boolean;
+        public override JsonElementType ElementType => JsonElementType.Boolean;
 
         public JsonBoolean() { }
 

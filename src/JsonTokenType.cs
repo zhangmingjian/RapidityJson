@@ -26,7 +26,7 @@ namespace Rapidity.Json
     /// <summary>
     /// json值类型
     /// </summary>
-    public enum JsonValueType : byte
+    public enum JsonElementType : byte
     {
         Object,
         Array,

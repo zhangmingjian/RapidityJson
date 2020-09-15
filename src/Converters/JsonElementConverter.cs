@@ -4,20 +4,20 @@ using System.Text;
 
 namespace Rapidity.Json.Converters
 {
-    internal class JsonTokenConverter : TypeConverterBase, IConverterCreator
+    internal class JsonElementConverter : TypeConverterBase, IConverterCreator
     {
-        public JsonTokenConverter(Type type) : base(type)
+        public JsonElementConverter(Type type) : base(type)
         {
         }
 
         public bool CanConvert(Type type)
         {
-            return typeof(JsonToken).IsAssignableFrom(type) || type == typeof(object);
+            return typeof(JsonElement).IsAssignableFrom(type) || type == typeof(object);
         }
 
         public ITypeConverter Create(Type type)
         {
-            return new JsonTokenConverter(type);
+            return new JsonElementConverter(type);
         }
 
         public override object FromReader(JsonReader reader, JsonOption option)
@@ -125,53 +125,53 @@ namespace Rapidity.Json.Converters
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public override object FromToken(JsonToken token, JsonOption option)
+        public override object FromElement(JsonElement element, JsonOption option)
         {
-            if (typeof(JsonToken).IsAssignableFrom(Type))
-                return token;
+            if (typeof(JsonElement).IsAssignableFrom(Type))
+                return element;
             if (Type == typeof(object))
             {
-                switch (token.ValueType)
+                switch (element.ElementType)
                 {
-                    case JsonValueType.String: return ((JsonString)token).Value;
-                    case JsonValueType.Boolean: return ((JsonBoolean)token).Value;
-                    case JsonValueType.Null: return null;
-                    case JsonValueType.Number:
-                        var number = (JsonNumber)token;
+                    case JsonElementType.String: return ((JsonString)element).Value;
+                    case JsonElementType.Boolean: return ((JsonBoolean)element).Value;
+                    case JsonElementType.Null: return null;
+                    case JsonElementType.Number:
+                        var number = (JsonNumber)element;
                         if (number.TryGetInt(out int intVal)) return intVal;
                         if (number.TryGetLong(out long longVal)) return longVal;
                         if (number.TryGetFloat(out float floatVal)) return floatVal;
                         if (number.TryGetDouble(out double doubleVal)) return doubleVal;
                         if (number.TryGetDecimal(out decimal decimalVal)) return decimalVal;
                         break;
-                    default: return token;
+                    default: return element;
                 }
             }
             var convert = option.ConverterProvider.Build(Type);
-            return convert.FromToken(token, option);
+            return convert.FromElement(element, option);
         }
 
         public override void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {
-            if (obj is JsonToken token)
+            if (obj is JsonElement element)
             {
-                WriteToken(writer, token, option);
+                WriteToken(writer, element, option);
                 return;
             }
             writer.WriteString(obj.ToString());
         }
 
-        public void WriteToken(JsonWriter writer, JsonToken token, JsonOption option)
+        public void WriteToken(JsonWriter writer, JsonElement element, JsonOption option)
         {
-            switch (token.ValueType)
+            switch (element.ElementType)
             {
-                case JsonValueType.Object: WriteObject(writer, (JsonObject)token, option); break;
-                case JsonValueType.Array: WriteArray(writer, (JsonArray)token, option); break;
-                case JsonValueType.String:
-                    writer.WriteString((JsonString)token); break;
-                case JsonValueType.Number: writer.WriteNumber((JsonNumber)token); break;
-                case JsonValueType.Boolean: writer.WriteBoolean((JsonBoolean)token); break;
-                case JsonValueType.Null: writer.WriteNull(); break;
+                case JsonElementType.Object: WriteObject(writer, (JsonObject)element, option); break;
+                case JsonElementType.Array: WriteArray(writer, (JsonArray)element, option); break;
+                case JsonElementType.String:
+                    writer.WriteString((JsonString)element); break;
+                case JsonElementType.Number: writer.WriteNumber((JsonNumber)element); break;
+                case JsonElementType.Boolean: writer.WriteBoolean((JsonBoolean)element); break;
+                case JsonElementType.Null: writer.WriteNull(); break;
                 default: break;
             }
         }

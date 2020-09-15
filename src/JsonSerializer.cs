@@ -28,16 +28,16 @@ namespace Rapidity.Json
             return (T)Deserialize(reader, typeof(T));
         }
 
-        public object Deserialize(JsonToken token, Type type)
+        public object Deserialize(JsonElement element, Type type)
         {
             var convert = Option.ConverterProvider.Build(type);
-            return convert.FromToken(token, Option);
+            return convert.FromElement(element, Option);
         }
 
 
-        public T Deserialize<T>(JsonToken token)
+        public T Deserialize<T>(JsonElement element)
         {
-            return (T)Deserialize(token, typeof(T));
+            return (T)Deserialize(element, typeof(T));
         }
 
         public string Serialize(object obj)

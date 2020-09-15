@@ -2,11 +2,11 @@
 
 namespace Rapidity.Json
 {
-    public class JsonString : JsonToken, IEquatable<JsonString>
+    public class JsonString : JsonElement, IEquatable<JsonString>
     {
         private string _value;
         public string Value => _value;
-        public override JsonValueType ValueType => JsonValueType.String;
+        public override JsonElementType ElementType => JsonElementType.String;
 
         public JsonString(string value) => _value = value;     
 

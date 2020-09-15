@@ -5,15 +5,15 @@ namespace Rapidity.Json
     /// <summary>
     /// jsontoken
     /// </summary>
-    public abstract class JsonToken
+    public abstract class JsonElement
     {
-        public abstract JsonValueType ValueType { get; }
+        public abstract JsonElementType ElementType { get; }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static JsonToken Parse(string json)
+        public static JsonElement Parse(string json)
         {
             return Parse(json, new JsonOption());
         }
@@ -24,11 +24,11 @@ namespace Rapidity.Json
         /// <param name="json"></param>
         /// <param name="option"></param>
         /// <returns></returns>
-        public static JsonToken Parse(string json, JsonOption option)
+        public static JsonElement Parse(string json, JsonOption option)
         {
             using (var reader = new JsonReader(json))
             {
-                return new JsonSerializer(option).Deserialize<JsonToken>(reader);
+                return new JsonSerializer(option).Deserialize<JsonElement>(reader);
             }
         }
 
@@ -73,20 +73,20 @@ namespace Rapidity.Json
 
         #region 基本类型转换
 
-        public static implicit operator JsonToken(string value)
+        public static implicit operator JsonElement(string value)
         {
             if (value == null) return new JsonNull();
             return new JsonString(value);
         }
 
-        public static implicit operator JsonToken(bool value) => new JsonBoolean(value);
-        public static implicit operator JsonToken(byte value) => new JsonNumber(value);
-        public static implicit operator JsonToken(short value) => new JsonNumber(value);
-        public static implicit operator JsonToken(int value) => new JsonNumber(value);
-        public static implicit operator JsonToken(long value) => new JsonNumber(value);
-        public static implicit operator JsonToken(float value) => new JsonNumber(value);
-        public static implicit operator JsonToken(double value) => new JsonNumber(value);
-        public static implicit operator JsonToken(decimal value) => new JsonNumber(value);
+        public static implicit operator JsonElement(bool value) => new JsonBoolean(value);
+        public static implicit operator JsonElement(byte value) => new JsonNumber(value);
+        public static implicit operator JsonElement(short value) => new JsonNumber(value);
+        public static implicit operator JsonElement(int value) => new JsonNumber(value);
+        public static implicit operator JsonElement(long value) => new JsonNumber(value);
+        public static implicit operator JsonElement(float value) => new JsonNumber(value);
+        public static implicit operator JsonElement(double value) => new JsonNumber(value);
+        public static implicit operator JsonElement(decimal value) => new JsonNumber(value);
 
         #endregion
     }

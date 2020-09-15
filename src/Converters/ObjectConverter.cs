@@ -140,27 +140,27 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无效的JSON Token: {reader.TokenType},序列化对象:{Type}, 应为{JsonTokenType.StartObject} {{", reader.Line, reader.Position);
         }
 
-        public override object FromToken(JsonToken token, JsonOption option)
+        public override object FromElement(JsonElement element, JsonOption option)
         {
-            switch (token.ValueType)
+            switch (element.ElementType)
             {
-                case JsonValueType.Null: return null;
-                case JsonValueType.Object:
+                case JsonElementType.Null: return null;
+                case JsonElementType.Object:
                     var instance = CreateInstance();
-                    var objToken = (JsonObject)token;
+                    var objToken = (JsonObject)element;
                     foreach (var property in objToken.GetAllProperty())
                     {
                         var member = GetMemberDefinition(property.Name);
                         if (member != null)
                         {
                             var convert = option.ConverterProvider.Build(member.MemberType);
-                            var value = convert.FromToken(property.Value, option);
+                            var value = convert.FromElement(property.Value, option);
                             member.SetValue(instance, value);
                         }
                     }
                     return instance;
                 default:
-                    throw new JsonException($"无法从{token.ValueType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
+                    throw new JsonException($"无法从{element.ElementType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
             }
         }
 

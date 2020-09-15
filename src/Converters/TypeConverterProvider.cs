@@ -52,7 +52,7 @@ namespace Rapidity.Json.Converters
                 new KeyValuePairConverter(null,null,null),
                 new StringKeyValueConverter(null),
                 new ArrayListConverter(null),
-                new JsonTokenConverter(null),
+                new JsonElementConverter(null),
                 new ObjectConverter(null),
             };
         }

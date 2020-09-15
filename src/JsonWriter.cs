@@ -43,16 +43,16 @@ namespace Rapidity.Json
 
         #region write for jsontoken
 
-        public void WriteToken(JsonToken token)
+        public void WriteElement(JsonElement element)
         {
-            switch (token.ValueType)
+            switch (element.ElementType)
             {
-                case JsonValueType.Object: WriteObject((JsonObject)token); break;
-                case JsonValueType.Array: WriteArray((JsonArray)token); break;
-                case JsonValueType.String: WriteString((JsonString)token); break;
-                case JsonValueType.Number: WriteNumber((JsonNumber)token); break;
-                case JsonValueType.Boolean: WriteBoolean((JsonBoolean)token); break;
-                case JsonValueType.Null: WriteNull(); break;
+                case JsonElementType.Object: WriteObject((JsonObject)element); break;
+                case JsonElementType.Array: WriteArray((JsonArray)element); break;
+                case JsonElementType.String: WriteString((JsonString)element); break;
+                case JsonElementType.Number: WriteNumber((JsonNumber)element); break;
+                case JsonElementType.Boolean: WriteBoolean((JsonBoolean)element); break;
+                case JsonElementType.Null: WriteNull(); break;
                 default: break;
             }
         }
@@ -68,14 +68,14 @@ namespace Rapidity.Json
         public void WriteProperty(JsonProperty property)
         {
             WritePropertyName(property.Name);
-            WriteToken(property.Value);
+            WriteElement(property.Value);
         }
 
         public void WriteArray(JsonArray token)
         {
             WriteStartArray();
             foreach (var item in token)
-                WriteToken(item);
+                WriteElement(item);
             WriteEndArray();
         }
 

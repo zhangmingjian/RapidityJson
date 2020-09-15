@@ -2,11 +2,11 @@
 
 namespace Rapidity.Json
 {
-    public class JsonNumber : JsonToken, IEquatable<JsonNumber>
+    public class JsonNumber : JsonElement, IEquatable<JsonNumber>
     {
         private string _value; //为了避免精度问题，使用string来存储
 
-        public override JsonValueType ValueType => JsonValueType.Number;
+        public override JsonElementType ElementType => JsonElementType.Number;
 
         public JsonNumber() => _value = "0";
 

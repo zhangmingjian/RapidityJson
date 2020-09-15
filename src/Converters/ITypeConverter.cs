@@ -10,7 +10,7 @@ namespace Rapidity.Json.Converters
 
         object FromReader(JsonReader reader, JsonOption option);
 
-        object FromToken(JsonToken token, JsonOption option);
+        object FromElement(JsonElement element, JsonOption option);
 
         void ToWriter(JsonWriter writer, object obj, JsonOption option);
     }

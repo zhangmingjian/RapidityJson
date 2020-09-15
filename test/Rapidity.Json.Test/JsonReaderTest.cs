@@ -83,7 +83,7 @@ namespace Rapidity.Json.Test
         public void ReadEscapeStringTest()
         {
             var json = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "sample.json"));
-            var token = JsonToken.Parse(json);
+            var token = JsonElement.Parse(json);
             var j = token.ToString();
         }
 

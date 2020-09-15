@@ -106,15 +106,15 @@ namespace Rapidity.Json.Converters
             throw new JsonException($"无效的JSON Token:{reader.TokenType},序列化对象:{Type}", reader.Line, reader.Position);
         }
 
-        public object FromToken(JsonToken token, JsonOption option)
+        public object FromElement(JsonElement element, JsonOption option)
         {
-            switch (token.ValueType)
+            switch (element.ElementType)
             {
-                case JsonValueType.Boolean:
-                    if (_typeCode == TypeCode.Boolean) return ((JsonBoolean)token).Value;
+                case JsonElementType.Boolean:
+                    if (_typeCode == TypeCode.Boolean) return ((JsonBoolean)element).Value;
                     break;
-                case JsonValueType.String:
-                    var strToken = (JsonString)token;
+                case JsonElementType.String:
+                    var strToken = (JsonString)element;
                     switch (_typeCode)
                     {
                         case TypeCode.Char:
@@ -135,8 +135,8 @@ namespace Rapidity.Json.Converters
                             break;
                     }
                     break;
-                case JsonValueType.Number:
-                    var text = ((JsonNumber)token).ToString();
+                case JsonElementType.Number:
+                    var text = ((JsonNumber)element).ToString();
                     switch (_typeCode)
                     {
                         case TypeCode.Int32:
@@ -174,11 +174,11 @@ namespace Rapidity.Json.Converters
                             break;
                     }
                     break;
-                case JsonValueType.Null:
+                case JsonElementType.Null:
                     if (Type == typeof(DBNull)) return DBNull.Value;
                     break;
             }
-            throw new JsonException($"无法从{token.ValueType}转换为{Type},反序列化{Type}失败");
+            throw new JsonException($"无法从{element.ElementType}转换为{Type},反序列化{Type}失败");
         }
 
         public void ToWriter(JsonWriter writer, object value, JsonOption option)

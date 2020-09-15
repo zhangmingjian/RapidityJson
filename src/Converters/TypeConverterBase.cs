@@ -85,7 +85,7 @@ namespace Rapidity.Json.Converters
 
         public abstract object FromReader(JsonReader reader, JsonOption option);
 
-        public abstract object FromToken(JsonToken token, JsonOption option);
+        public abstract object FromElement(JsonElement element, JsonOption option);
 
         public virtual void ToWriter(JsonWriter writer, object obj, JsonOption option)
         {

@@ -39,18 +39,18 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        public object FromToken(JsonToken token, JsonOption option)
+        public object FromElement(JsonElement element, JsonOption option)
         {
-            switch (token.ValueType)
+            switch (element.ElementType)
             {
-                case JsonValueType.String:
-                    var text = ((JsonString)token).Value;
+                case JsonElementType.String:
+                    var text = ((JsonString)element).Value;
                     if (Type == typeof(DateTime) && DateTime.TryParse(text, out DateTime value))
                         return value;
                     if (Type == typeof(DateTimeOffset) && DateTimeOffset.TryParse(text, out DateTimeOffset val))
                         return val;
                     throw new JsonException($"无法将JsonValueType.String:{text}转换为{Type}，反序列化{Type}失败");
-                default: throw new JsonException($"无效的JSON Token:{token.ValueType},反序列化{Type}失败");
+                default: throw new JsonException($"无效的JSON Token:{element.ElementType},反序列化{Type}失败");
             }
         }
 
