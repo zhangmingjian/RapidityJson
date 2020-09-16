@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Rapidity.Json.Converters
 {
     public abstract class TypeConverterProvider
     {
-        public abstract IReadOnlyCollection<IConverterCreator> AllConverterFactories();
+        public abstract IEnumerable<IConverterCreator> GetConverterCreators();
 
         public abstract void AddConverterFactory(IConverterCreator converter);
 
         public virtual ITypeConverter Build(Type type)
         {
             ITypeConverter convert = null;
-            foreach (var creator in AllConverterFactories())
+            foreach (var creator in GetConverterCreators())
             {
                 if (creator.CanConvert(type))
                 {
                     convert = creator.Create(type);
-                    break; 
+                    break;
                 }
             }
             if (convert == null) throw new JsonException($"创建{type}的{nameof(ITypeConverter)}失败，不支持的类型");
@@ -32,15 +33,14 @@ namespace Rapidity.Json.Converters
     internal class DefaultTypeConverterProvider : TypeConverterProvider
     {
         private static Dictionary<Type, ITypeConverter> _dictionary = new Dictionary<Type, ITypeConverter>();
-        
-        private List<IConverterCreator> _converters;
 
-        public override IReadOnlyCollection<IConverterCreator> AllConverterFactories() => _converters;
+        private LinkedList<IConverterCreator> _converters;
+
+        public override IEnumerable<IConverterCreator> GetConverterCreators() => _converters;
 
         public DefaultTypeConverterProvider()
         {
-            _converters = new List<IConverterCreator>()
-            {
+            _converters = new LinkedList<IConverterCreator>(new List<IConverterCreator> {
                 new StringConverter(null),
                 new EnumConverter(null),
                 new DateTimeConverter(null),
@@ -54,13 +54,14 @@ namespace Rapidity.Json.Converters
                 new ArrayListConverter(null),
                 new JsonElementConverter(null),
                 new ObjectConverter(null),
-            };
+            });
         }
         public override void AddConverterFactory(IConverterCreator converter)
         {
-            if (_converters.Exists(x => x.GetType() == converter.GetType()))
+            var list = new List<string>(); 
+            if (_converters.Any(x => x.GetType() == converter.GetType()))
                 throw new JsonException($"集合中已存在{converter.GetType()}类型的{nameof(IConverterCreator)}");
-            _converters.Add(converter);
+            _converters.AddFirst(converter);
         }
 
         public override ITypeConverter Build(Type type)
