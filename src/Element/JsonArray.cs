@@ -13,9 +13,13 @@ namespace Rapidity.Json
 
         public override JsonElementType ElementType => JsonElementType.Array;
 
-        public JsonArray()
+        public JsonArray() : this(new JsonElement[0])
         {
-            _list = new List<JsonElement>();
+        }
+
+        public JsonArray(IEnumerable<JsonElement> elements)
+        {
+            _list = new List<JsonElement>(elements) { Capacity = 8 };
         }
 
         public int Count => _list.Count;
@@ -74,6 +78,20 @@ namespace Rapidity.Json
             return _list.GetEnumerator();
         }
 
+        /// <summary>
+        /// [start:end]数组片段，区间为[start,end),不包含end
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public JsonArray GetArray(int start, int end)
+        {
+            var arr = new JsonArray();
+            if (start < this.Count && end > start) 
+                arr._list.AddRange(this._list.GetRange(start, Math.Min(end - start, this.Count - start)));
+            return arr;
+        }
+
         public JsonObject GetObject(int index)
         {
             if (index < 0 || index > this.Count - 1) return null;
@@ -130,5 +148,6 @@ namespace Rapidity.Json
                 default: throw new Exception($"类型:{element.ElementType}不支持转换为String");
             }
         }
+
     }
 }

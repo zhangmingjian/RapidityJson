@@ -73,12 +73,7 @@ namespace Rapidity.Json
 
         #region 基本类型转换
 
-        public static implicit operator JsonElement(string value)
-        {
-            if (value == null) return new JsonNull();
-            return new JsonString(value);
-        }
-
+        public static implicit operator JsonElement(string value)=> new JsonString(value);
         public static implicit operator JsonElement(bool value) => new JsonBoolean(value);
         public static implicit operator JsonElement(byte value) => new JsonNumber(value);
         public static implicit operator JsonElement(short value) => new JsonNumber(value);

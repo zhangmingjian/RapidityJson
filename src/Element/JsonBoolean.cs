@@ -18,5 +18,7 @@ namespace Rapidity.Json
         public override bool Equals(object obj) => obj is JsonBoolean jsonBoolean && Equals(jsonBoolean);
 
         public override int GetHashCode() => _value.GetHashCode();
+
+        public static implicit operator JsonBoolean(bool value) => new JsonBoolean(value);
     }
 }

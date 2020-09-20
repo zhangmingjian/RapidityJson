@@ -155,20 +155,19 @@ namespace Rapidity.Json.Converters
         {
             if (obj is JsonElement element)
             {
-                WriteToken(writer, element, option);
+                WriteElement(writer, element, option);
                 return;
             }
             writer.WriteString(obj.ToString());
         }
 
-        public void WriteToken(JsonWriter writer, JsonElement element, JsonOption option)
+        public void WriteElement(JsonWriter writer, JsonElement element, JsonOption option)
         {
             switch (element.ElementType)
             {
                 case JsonElementType.Object: WriteObject(writer, (JsonObject)element, option); break;
                 case JsonElementType.Array: WriteArray(writer, (JsonArray)element, option); break;
-                case JsonElementType.String:
-                    writer.WriteString((JsonString)element); break;
+                case JsonElementType.String: writer.WriteString((JsonString)element); break;
                 case JsonElementType.Number: writer.WriteNumber((JsonNumber)element); break;
                 case JsonElementType.Boolean: writer.WriteBoolean((JsonBoolean)element); break;
                 case JsonElementType.Null: writer.WriteNull(); break;
@@ -176,28 +175,28 @@ namespace Rapidity.Json.Converters
             }
         }
 
-        private void WriteObject(JsonWriter writer, JsonObject token, JsonOption option)
+        private void WriteObject(JsonWriter writer, JsonObject obj, JsonOption option)
         {
             writer.WriteStartObject();
-            foreach (var property in token.GetAllProperty())
+            foreach (var property in obj.GetAllProperty())
             {
                 if (HandleLoopReferenceValue(writer, property.Name, property.Value, option))
                     continue;
                 writer.WritePropertyName(property.Name);
-                WriteToken(writer, property.Value, option);
+                WriteElement(writer, property.Value, option);
             }
             writer.WriteEndObject();
             option.LoopReferenceChecker.PopObject();
         }
 
-        private void WriteArray(JsonWriter writer, JsonArray token, JsonOption option)
+        private void WriteArray(JsonWriter writer, JsonArray arr, JsonOption option)
         {
             writer.WriteStartArray();
-            foreach (var item in token)
+            foreach (var item in arr)
             {
                 if (HandleLoopReferenceValue(writer, item, option))
                     continue;
-                WriteToken(writer, item, option);
+                WriteElement(writer, item, option);
             }
             writer.WriteEndArray();
             option.LoopReferenceChecker.PopObject();

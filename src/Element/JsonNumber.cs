@@ -61,5 +61,47 @@ namespace Rapidity.Json
         public override bool Equals(object obj) => obj is JsonNumber jsonNumber && Equals(jsonNumber);
 
         public override int GetHashCode() => _value.GetHashCode();
+
+        #region Operator
+        public static implicit operator JsonNumber(byte value) => new JsonNumber(value);
+        public static implicit operator JsonNumber(short value) => new JsonNumber(value);
+        public static implicit operator JsonNumber(int value) => new JsonNumber(value);
+        public static implicit operator JsonNumber(long value) => new JsonNumber(value);
+        public static implicit operator JsonNumber(float value) => new JsonNumber(value);
+        public static implicit operator JsonNumber(double value) => new JsonNumber(value);
+        public static implicit operator JsonNumber(decimal value) => new JsonNumber(value);
+
+        public static bool operator <(JsonNumber num1, JsonNumber num2)
+        {
+            double v1 = 0;
+            double v2 = 0;
+            if (num1.TryGetDouble(out v1) && num2.TryGetDouble(out v2)) return v1 < v2;
+            return false;
+        }
+
+        public static bool operator >(JsonNumber num1, JsonNumber num2)
+        {
+            double v1 = 0;
+            double v2 = 0;
+            if (num1.TryGetDouble(out v1) && num2.TryGetDouble(out v2)) return v1 > v2;
+            return false;
+        }
+
+        public static bool operator <(JsonNumber num1, int num2)
+        {
+            double v1 = 0;
+            if (num1.TryGetDouble(out v1)) return v1 < num2;
+            return false;
+        }
+
+        public static bool operator >(JsonNumber num1, int num2)
+        {
+            double v1 = 0;
+            if (num1.TryGetDouble(out v1)) return v1 > num2;
+            return false;
+        }
+
+
+        #endregion
     }
 }
