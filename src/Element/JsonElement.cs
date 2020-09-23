@@ -3,19 +3,22 @@
 namespace Rapidity.Json
 {
     /// <summary>
-    /// jsontoken
+    /// JsonElement
     /// </summary>
     public abstract class JsonElement
     {
         public abstract JsonElementType ElementType { get; }
+
+        public JsonElement() { }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static JsonElement Parse(string json)
+        public static JsonElement Create(string json)
         {
-            return Parse(json, new JsonOption());
+            return Create(json, new JsonOption());
         }
 
         /// <summary>
@@ -24,7 +27,7 @@ namespace Rapidity.Json
         /// <param name="json"></param>
         /// <param name="option"></param>
         /// <returns></returns>
-        public static JsonElement Parse(string json, JsonOption option)
+        public static JsonElement Create(string json, JsonOption option)
         {
             using (var reader = new JsonReader(json))
             {
@@ -73,7 +76,7 @@ namespace Rapidity.Json
 
         #region 基本类型转换
 
-        public static implicit operator JsonElement(string value)=> new JsonString(value);
+        public static implicit operator JsonElement(string value) => new JsonString(value);
         public static implicit operator JsonElement(bool value) => new JsonBoolean(value);
         public static implicit operator JsonElement(byte value) => new JsonNumber(value);
         public static implicit operator JsonElement(short value) => new JsonNumber(value);

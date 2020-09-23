@@ -190,7 +190,7 @@ namespace Rapidity.Json.Test
                 Indented = true
             };
             var json = JsonParse.ToJson(obj, option);
-            var token = JsonElement.Parse(json);
+            var token = JsonElement.Create(json);
             _output.WriteLine(token.ToString());
             var deModel = token.To<MultipleTypesModel>();
         }

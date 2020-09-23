@@ -37,12 +37,12 @@ namespace Rapidity.Json
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public new static JsonObject Parse(string json)
+        public new static JsonObject Create(string json)
         {
-            return Parse(json, new JsonOption());
+            return Create(json, new JsonOption());
         }
 
-        public new static JsonObject Parse(string json, JsonOption option)
+        public new static JsonObject Create(string json, JsonOption option)
         {
             using (var reader = new JsonReader(json))
             {

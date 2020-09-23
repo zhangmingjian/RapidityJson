@@ -10,7 +10,7 @@ namespace Rapidity.Json
     /// 
     /// </summary>
     public class JsonReader : IDisposable
-    {
+    {       
         private TextReader _reader;
         private StringBuilder _buffer;
         private JsonOption _option;
@@ -182,7 +182,7 @@ namespace Rapidity.Json
         private bool EndToken()
         {
             if (_tokens.Count == 0) return false;
-            throw new JsonException("$无效的JSON格式，非正常结束", _line, _position);
+            throw new JsonException("无效的JSON格式，非正常结束", _line, _position);
         }
 
         private bool StartObject()

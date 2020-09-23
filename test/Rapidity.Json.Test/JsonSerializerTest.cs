@@ -90,7 +90,7 @@ namespace Rapidity.Json.Test
             var json = serializer.Serialize(pairs);
             var value = serializer.Deserialize<KeyValuePair<int, ValueModel>>(new JsonReader(json));
 
-            var token = JsonObject.Parse(json);
+            var token = JsonObject.Create(json);
             var value2 = token.To<KeyValuePair<int, ValueModel>>();
         }
 
