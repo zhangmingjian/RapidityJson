@@ -41,7 +41,37 @@ namespace Rapidity.Json.JsonPath
     {
         public override IEnumerable<JsonElement> Filter(JsonElement root, IEnumerable<JsonElement> current)
         {
-            return current;
+            var list = new List<JsonElement>();
+            foreach (var element in current)
+            {
+                RecursiveCollect(element, list);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// 递归取出容器节点
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="target"></param>
+        private void RecursiveCollect(JsonElement element, List<JsonElement> target)
+        {
+            if (element.ElementType == JsonElementType.Object)
+            {
+                target.Add(element);
+                foreach (var propery in (JsonObject)element)
+                {              
+                    RecursiveCollect(propery.Value, target);
+                }
+            }
+            else if (element.ElementType == JsonElementType.Array)
+            {
+                target.Add(element);
+                foreach (var item in (JsonArray)element)
+                {                 
+                    RecursiveCollect(item, target);
+                }
+            }
         }
     }
 }

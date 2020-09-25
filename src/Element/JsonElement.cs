@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Rapidity.Json
 {
@@ -58,6 +60,11 @@ namespace Rapidity.Json
         public virtual T To<T>(JsonOption option)
         {
             return new JsonSerializer(option).Deserialize<T>(this);
+        }
+
+        public virtual IEnumerable<JsonElement> Filter(object filter)
+        {
+            return null;
         }
 
         public override string ToString()

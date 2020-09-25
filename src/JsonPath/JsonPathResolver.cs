@@ -24,24 +24,24 @@ namespace Rapidity.Json.JsonPath
 
         public IEnumerable<JsonPathFilter> ResolveFilters(string jsonPath)
         {
-            if (string.IsNullOrEmpty(jsonPath)) yield return default;
+            if (string.IsNullOrEmpty(jsonPath)) yield break;
             _jsonPath = jsonPath;
-            while (NextPath())
+            while (!(_filter is InvalidPathFilter) && Next()) //遇到InvalidPathFilter时直接中止路径解析
             {
                 yield return _filter;
             }
         }
 
-        private bool NextPath()
+        private bool Next()
         {
             while (Move())
             {
                 var @char = _jsonPath[_cursor];
                 switch (@char)
                 {
-                    case '$': _filter = new RootPathFilter(); return true;
+                    case '$': SetFilter(new RootPathFilter()); return true;
                     case '.': return ReadNext();
-                    case '*': _filter = new WildcardFilter(); return true;
+                    case '*': SetFilter(new WildcardFilter()); return true;
                     case '[': return ReadQuery();
                     default: return ReadName();
                 }
@@ -55,13 +55,18 @@ namespace Rapidity.Json.JsonPath
         /// <returns></returns>
         private bool ReadNext()
         {
+            if (_filter == null)  //起始位置不能是.
+            {
+                _filter = new InvalidPathFilter();
+                return true;
+            }
             if (Move() == false) return false;
             var current = _jsonPath[_cursor];
             switch (current)
             {
-                case '.': _filter = new RecursiveFilter(); return true;
-                case '*': _filter = new WildcardFilter(); return true;
-                case '$': _filter = new RootPathFilter(); return true;
+                case '.': SetFilter(new RecursiveFilter()); return true;
+                case '*': SetFilter(new WildcardFilter()); return true;
+                case '$': SetFilter(new RootPathFilter()); return true;
                 case '[': return ReadQuery();
                 default: return ReadName();
             }
@@ -80,7 +85,7 @@ namespace Rapidity.Json.JsonPath
                 }
             }
             var part = _jsonPath.Substring(start, _cursor - start + 1);
-            _filter = new PathNameFilter(part);
+            SetFilter(new PathNameFilter(part));
             return true;
         }
 
@@ -93,7 +98,7 @@ namespace Rapidity.Json.JsonPath
                 if (current == ']')
                 {
                     var part = _jsonPath.Substring(start, _cursor - start);
-                    _filter = new PathQueryFilter(part);
+                    SetFilter(new PathQueryFilter(part));
                     return true;
                 }
             }
@@ -110,6 +115,24 @@ namespace Rapidity.Json.JsonPath
             }
             return false;
         }
+
+        private void SetFilter(JsonPathFilter newFilter)
+        {
+            if (_filter == null) //当filter=null时为第一个片段
+            {
+                if (!(newFilter is RootPathFilter) && !(newFilter is PathNameFilter) && !(newFilter is WildcardFilter))
+                {
+                    _filter = new InvalidPathFilter();
+                    return;
+                }
+            }
+            if (_filter is RecursiveFilter && newFilter is RecursiveFilter)
+            {
+                _filter = new InvalidPathFilter();
+                return;
+            }
+            _filter = newFilter;
+        }
     }
 
     //public enum JsonFilterType : byte
@@ -122,8 +145,8 @@ namespace Rapidity.Json.JsonPath
     //    Name,           //.<name>   点，表示子节点
     //    Query,          //[] []内的一系列查询操作
     //    Invalid         //非法jsonpath
-    //    //QueryNames,  //['<name>' (, '<name>')] 括号表示子项
-    //    //QueryIndexs, //[<number> (, <number>)] 数组索引或索引
+    //    //QueryNames,     //['<name>' (, '<name>')] 括号表示子项
+    //    //QueryIndexs,    //[<number> (, <number>)] 数组索引或索引
     //    //ArraySlicing,   //[start:end] 数组切片操作
     //    //Expression      //[?(<expression>)] 过滤表达式。 表达式必须求值为一个布尔值。
     //}

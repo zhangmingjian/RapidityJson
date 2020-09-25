@@ -19,7 +19,7 @@ namespace Rapidity.Json
 
         public JsonArray(IEnumerable<JsonElement> elements)
         {
-            _list = new List<JsonElement>(elements) { Capacity = 8 };
+            _list = new List<JsonElement>(elements);
         }
 
         public int Count => _list.Count;
