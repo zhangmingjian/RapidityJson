@@ -13,10 +13,13 @@ namespace Rapidity.Json.Test
         [Fact]
         public void ResolveFilterTest()
         {
-            var path = "$.*.rootname['name.data','list']";
+            //var path = "$.*.rootname['name.data','list']";
+            //var path = "$.[city,0,'address',:2:3]";
+            var path = "$.phoneNumbers,0,'type'";
             var resolver = new DefaultJsonPathResolver();
-            var filters = resolver.ResolveFilters(path);
+            var filters = resolver.ResolveFilters(path).ToList();
         }
+
 
         [Fact]
         public void PathFilterTest1()
@@ -40,6 +43,15 @@ namespace Rapidity.Json.Test
             }
             var arr = new JsonArray(current);
             Debug.WriteLine(arr.ToString(new JsonOption { Indented = true }));
+        }
+
+        [Fact]
+        public void ElementFiltersTest()
+        {
+            var json = "{\"firstName\":\"John\",\"lastName\":\"doe\",\"age\":26,\"address\":{\"streetAddress\":\"naist street\",\"city\":\"Nara\",\"postalCode\":\"630 - 0192\"},\"phoneNumbers\":[{\"type\":\"iPhone\",\"number\":\"0123 - 4567 - 8888\"},{\"type\":\"home\",\"number\":\"0123 - 4567 - 8910\"}]}";
+            var element = JsonElement.Create(json);
+
+           var result = element.Filters("$.phoneNumbers,0,'type'");
         }
     }
 }

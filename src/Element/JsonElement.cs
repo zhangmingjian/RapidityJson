@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Rapidity.Json.JsonPath;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Rapidity.Json
 {
@@ -35,6 +37,33 @@ namespace Rapidity.Json
             {
                 return new JsonSerializer(option).Deserialize<JsonElement>(reader);
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="jsonPath"></param>
+        /// <returns></returns>
+        public JsonElement Filter(string jsonPath)
+        {
+            return Filters(jsonPath)?.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// 匹配多个
+        /// </summary>
+        /// <param name="jsonPath"></param>
+        /// <returns></returns>
+        public JsonArray Filters(string jsonPath)
+        {
+            var filters = new DefaultJsonPathResolver().ResolveFilters(jsonPath);
+            IEnumerable<JsonElement> current = new List<JsonElement> { this };
+            foreach (var filter in filters)
+            {
+                current = filter.Filter(this, current);
+                if (current == null || current.Count() == 0) break;
+            }
+            return current != null ? new JsonArray(current) : null;
         }
 
         /// <summary>

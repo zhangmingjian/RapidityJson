@@ -79,16 +79,23 @@ namespace Rapidity.Json
         }
 
         /// <summary>
-        /// [start:end]数组片段，区间为[start,end),不包含end
+        /// 数组切片操作
+        /// [start:end:step]数组片段，区间为[start,end),不包含end,step步长
         /// </summary>
-        /// <param name="start"></param>
+        /// <param name="strat"></param>
         /// <param name="end"></param>
+        /// <param name="step"></param>
         /// <returns></returns>
-        public JsonArray GetArray(int start, int end)
+        public JsonArray Slice(int start, int end, int step = 1)
         {
+            start = Math.Max(0, start);
+            end = Math.Min(this.Count, end);
+            step = Math.Max(1, step);
             var arr = new JsonArray();
-            if (start < this.Count && end > start) 
-                arr._list.AddRange(this._list.GetRange(start, Math.Min(end - start, this.Count - start)));
+            for (int i = start; i < end; i += step)
+            {
+                arr.Add(this[i]);
+            }
             return arr;
         }
 

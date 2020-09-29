@@ -5,7 +5,7 @@ using System.Text;
 namespace Rapidity.Json.JsonPath
 {
     /// <summary>
-    /// 通配符。所有对象/元素
+    /// * 通配符。所有对象/元素
     /// </summary>
     public class WildcardFilter : JsonPathFilter
     {
@@ -35,7 +35,7 @@ namespace Rapidity.Json.JsonPath
     }
 
     /// <summary>
-    /// 递归下降
+    /// .. 递归下降
     /// </summary>
     public class RecursiveFilter : JsonPathFilter
     {
