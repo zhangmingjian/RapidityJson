@@ -13,8 +13,6 @@ namespace Rapidity.Json
     {
         public abstract JsonElementType ElementType { get; }
 
-        public JsonElement() { }
-
         /// <summary>
         /// 
         /// </summary>
@@ -54,16 +52,16 @@ namespace Rapidity.Json
         /// </summary>
         /// <param name="jsonPath"></param>
         /// <returns></returns>
-        public JsonArray Filters(string jsonPath)
+        public IEnumerable<JsonElement> Filters(string jsonPath)
         {
             var filters = new DefaultJsonPathResolver().ResolveFilters(jsonPath);
-            IEnumerable<JsonElement> current = new List<JsonElement> { this };
+            IEnumerable<JsonElement> current = null;
             foreach (var filter in filters)
             {
                 current = filter.Filter(this, current);
                 if (current == null || current.Count() == 0) break;
             }
-            return current != null ? new JsonArray(current) : null;
+            return current;
         }
 
         /// <summary>
@@ -89,11 +87,6 @@ namespace Rapidity.Json
         public virtual T To<T>(JsonOption option)
         {
             return new JsonSerializer(option).Deserialize<T>(this);
-        }
-
-        public virtual IEnumerable<JsonElement> Filter(object filter)
-        {
-            return null;
         }
 
         public override string ToString()

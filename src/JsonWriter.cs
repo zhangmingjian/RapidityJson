@@ -15,10 +15,10 @@ namespace Rapidity.Json
         private string _indeteChars; //缩进字符
         private char _quoteSymbol = JsonConstants.Quote;   //引号字符
         private int _depth;
-        private JsonTokenType _elementType;
-        public JsonTokenType TokenType => _elementType;
+        private JsonTokenType _tokenType;
+        public JsonTokenType TokenType => _tokenType;
         public int Depth => _depth;
-        private Stack<JsonTokenType> _elements;
+        private Stack<JsonTokenType> _tokens;
         private JsonContainerType _containerType;
 
         public JsonWriter(TextWriter writer) : this(writer, new JsonOption())
@@ -29,7 +29,7 @@ namespace Rapidity.Json
         {
             _writer = writer;
             _option = option ?? throw new ArgumentNullException(nameof(option));
-            _elements = new Stack<JsonTokenType>();
+            _tokens = new Stack<JsonTokenType>();
             if (_option.Indented)
             {
                 if (_option.IndenteLength <= 0) _indeteChars = JsonConstants.Tab.ToString();
@@ -103,7 +103,7 @@ namespace Rapidity.Json
             _writer.Write(JsonConstants.OpenBrace);
             _depth++;
             WriteIndented();
-            _elementType = JsonTokenType.StartObject;
+            _tokenType = JsonTokenType.StartObject;
         }
 
         public void WriteEndObject()
@@ -112,7 +112,7 @@ namespace Rapidity.Json
             _depth--;
             WriteIndented();
             _writer.Write(JsonConstants.CloseBrace);
-            _elementType = JsonTokenType.EndObject;
+            _tokenType = JsonTokenType.EndObject;
         }
 
         public void WriteStartArray()
@@ -122,7 +122,7 @@ namespace Rapidity.Json
             _writer.Write(JsonConstants.OpenBracket);
             _depth++;
             WriteIndented();
-            _elementType = JsonTokenType.StartArray;
+            _tokenType = JsonTokenType.StartArray;
         }
 
         public void WriteEndArray()
@@ -131,7 +131,7 @@ namespace Rapidity.Json
             _depth--;
             WriteIndented();
             _writer.Write(JsonConstants.CloseBracket);
-            _elementType = JsonTokenType.EndArray;
+            _tokenType = JsonTokenType.EndArray;
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace Rapidity.Json
             WriteEscapeString(name);
             _writer.Write(_quoteSymbol);
             _writer.Write(JsonConstants.Colon);
-            _elementType = JsonTokenType.PropertyName;
+            _tokenType = JsonTokenType.PropertyName;
         }
 
         public void WriteString(string value)
@@ -161,7 +161,7 @@ namespace Rapidity.Json
             _writer.Write(_quoteSymbol);
             WriteEscapeString(value);
             _writer.Write(_quoteSymbol);
-            _elementType = JsonTokenType.String;
+            _tokenType = JsonTokenType.String;
         }
 
         private void WriteEscapeString(string value)
@@ -199,7 +199,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.String);
             WriteComma();
             _writer.Write(_quoteSymbol + value.ToString(_option.DateTimeFormat) + _quoteSymbol);
-            _elementType = JsonTokenType.String;
+            _tokenType = JsonTokenType.String;
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.String);
             WriteComma();
             _writer.Write(_quoteSymbol + value.ToString(_option.DateTimeFormat) + _quoteSymbol);
-            _elementType = JsonTokenType.String;
+            _tokenType = JsonTokenType.String;
         }
 
         public void WriteGuid(Guid value)
@@ -219,7 +219,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.String);
             WriteComma();
             _writer.Write(_quoteSymbol + value.ToString() + _quoteSymbol);
-            _elementType = JsonTokenType.String;
+            _tokenType = JsonTokenType.String;
         }
 
         public void WriteChar(char value)
@@ -229,7 +229,7 @@ namespace Rapidity.Json
             _writer.Write(_quoteSymbol);
             WriteEscapeString(value);
             _writer.Write(_quoteSymbol);
-            _elementType = JsonTokenType.String;
+            _tokenType = JsonTokenType.String;
         }
 
         public void WriteInt(int value)
@@ -237,7 +237,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            _elementType = JsonTokenType.Number;
+            _tokenType = JsonTokenType.Number;
         }
 
         public void WriteUInt(uint value)
@@ -245,7 +245,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            _elementType = JsonTokenType.Number;
+            _tokenType = JsonTokenType.Number;
         }
 
         public void WriteLong(long value)
@@ -253,7 +253,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            _elementType = JsonTokenType.Number;
+            _tokenType = JsonTokenType.Number;
         }
 
         public void WriteULong(ulong value)
@@ -261,7 +261,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            _elementType = JsonTokenType.Number;
+            _tokenType = JsonTokenType.Number;
         }
 
         public void WriteFloat(float value)
@@ -275,7 +275,7 @@ namespace Rapidity.Json
             else if (float.IsPositiveInfinity(value))
                 _writer.Write(_quoteSymbol + JsonConstants.PositiveInfinity + _quoteSymbol);
             else _writer.Write(value);
-            _elementType = JsonTokenType.Number;
+            _tokenType = JsonTokenType.Number;
         }
 
         public void WriteDouble(double value)
@@ -289,7 +289,7 @@ namespace Rapidity.Json
             else if (double.IsPositiveInfinity(value))
                 _writer.Write(_quoteSymbol + JsonConstants.PositiveInfinity + _quoteSymbol);
             else _writer.Write(value);
-            _elementType = JsonTokenType.Number;
+            _tokenType = JsonTokenType.Number;
         }
 
         public void WriteDecimal(decimal value)
@@ -297,7 +297,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.Number);
             WriteComma();
             _writer.Write(value);
-            _elementType = JsonTokenType.Number;
+            _tokenType = JsonTokenType.Number;
         }
 
         private void WriteNumber(string number)
@@ -305,7 +305,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.Number);
             WriteComma();
             _writer.Write(number);
-            _elementType = JsonTokenType.Number;
+            _tokenType = JsonTokenType.Number;
         }
 
         public void WriteBoolean(bool value)
@@ -314,7 +314,7 @@ namespace Rapidity.Json
             ValidateNext(element);
             WriteComma();
             _writer.Write(value ? JsonConstants.TrueString : JsonConstants.FalseString);
-            _elementType = element;
+            _tokenType = element;
         }
 
         public void WriteNull()
@@ -322,7 +322,7 @@ namespace Rapidity.Json
             ValidateNext(JsonTokenType.Null);
             WriteComma();
             _writer.Write(JsonConstants.NullString);
-            _elementType = JsonTokenType.Null;
+            _tokenType = JsonTokenType.Null;
         }
 
         public void WriteRaw(string raw)
@@ -353,7 +353,7 @@ namespace Rapidity.Json
         /// </summary>
         private void WriteComma()
         {
-            switch (_elementType)
+            switch (_tokenType)
             {
                 case JsonTokenType.EndObject:
                 case JsonTokenType.EndArray:
@@ -388,7 +388,7 @@ namespace Rapidity.Json
         private void ValidateNext(JsonTokenType next)
         {
             if (_option.SkipValidated) return;
-            switch (_elementType)
+            switch (_tokenType)
             {
                 case JsonTokenType.None: ValidateStart(next); break;
                 case JsonTokenType.StartObject: ValidateStartObject(next); break;
@@ -406,7 +406,7 @@ namespace Rapidity.Json
                         case JsonTokenType.PropertyName:
                             if (_containerType == JsonContainerType.Object)
                             {
-                                _elements.Push(next);
+                                _tokens.Push(next);
                                 return;
                             }
                             break;
@@ -414,7 +414,7 @@ namespace Rapidity.Json
                         case JsonTokenType.StartArray:
                             if (_containerType == JsonContainerType.Array)
                             {
-                                _elements.Push(next);
+                                _tokens.Push(next);
                                 return;
                             }
                             break;
@@ -453,11 +453,11 @@ namespace Rapidity.Json
             {
                 case JsonTokenType.StartObject:
                     _containerType = JsonContainerType.Object;
-                    _elements.Push(next);
+                    _tokens.Push(next);
                     break;
                 case JsonTokenType.StartArray:
                     _containerType = JsonContainerType.Array;
-                    _elements.Push(next);
+                    _tokens.Push(next);
                     break;
                 case JsonTokenType.PropertyName:
                 case JsonTokenType.EndObject:
@@ -473,7 +473,7 @@ namespace Rapidity.Json
             switch (next)
             {
                 case JsonTokenType.PropertyName:
-                    _elements.Push(next);
+                    _tokens.Push(next);
                     break;
                 case JsonTokenType.EndObject:
                     PopToken(next, JsonTokenType.StartObject);
@@ -489,11 +489,11 @@ namespace Rapidity.Json
             switch (next)
             {
                 case JsonTokenType.StartObject:
-                    _elements.Push(next);
+                    _tokens.Push(next);
                     _containerType = JsonContainerType.Object;
                     break;
                 case JsonTokenType.StartArray:
-                    _elements.Push(next);
+                    _tokens.Push(next);
                     _containerType = JsonContainerType.Array;
                     break;
                 case JsonTokenType.String:
@@ -514,11 +514,11 @@ namespace Rapidity.Json
             switch (next)
             {
                 case JsonTokenType.StartObject:
-                    _elements.Push(next);
+                    _tokens.Push(next);
                     _containerType = JsonContainerType.Object;
                     break;
                 case JsonTokenType.StartArray:
-                    _elements.Push(next);
+                    _tokens.Push(next);
                     _containerType = JsonContainerType.Array;
                     break;
                 case JsonTokenType.EndArray:
@@ -538,14 +538,14 @@ namespace Rapidity.Json
 
         private void PopToken(JsonTokenType next, JsonTokenType topToken)
         {
-            if (_elements.Count > 0)
+            if (_tokens.Count > 0)
             {
-                var top = _elements.Pop(); //栈顶值必须与topelement一致
+                var top = _tokens.Pop(); //栈顶值必须与topelement一致
                 if (top == topToken)
                 {
-                    if (_elements.Count > 0 && _elements.Peek() == JsonTokenType.PropertyName) //上一个是propertyName时继续出栈
-                        _elements.Pop();
-                    if (_elements.Count > 0) _containerType = _elements.Peek() == JsonTokenType.StartArray ? JsonContainerType.Array : JsonContainerType.Object;
+                    if (_tokens.Count > 0 && _tokens.Peek() == JsonTokenType.PropertyName) //上一个是propertyName时继续出栈
+                        _tokens.Pop();
+                    if (_tokens.Count > 0) _containerType = _tokens.Peek() == JsonTokenType.StartArray ? JsonContainerType.Array : JsonContainerType.Object;
                     else _containerType = JsonContainerType.None;
                     return;
                 }
@@ -556,7 +556,7 @@ namespace Rapidity.Json
 
         private void ThrowException(JsonTokenType next, JsonTokenType? current = null)
         {
-            throw new JsonException($"无效的JSON Token，{next}不能出现在{current ?? _elementType}之后");
+            throw new JsonException($"无效的JSON Token，{next}不能出现在{current ?? _tokenType}之后");
         }
 
         public void Dispose()

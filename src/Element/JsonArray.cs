@@ -13,8 +13,9 @@ namespace Rapidity.Json
 
         public override JsonElementType ElementType => JsonElementType.Array;
 
-        public JsonArray() : this(new JsonElement[0])
+        public JsonArray()
         {
+            _list = new List<JsonElement>();
         }
 
         public JsonArray(IEnumerable<JsonElement> elements)
@@ -155,6 +156,5 @@ namespace Rapidity.Json
                 default: throw new Exception($"类型:{element.ElementType}不支持转换为String");
             }
         }
-
     }
 }

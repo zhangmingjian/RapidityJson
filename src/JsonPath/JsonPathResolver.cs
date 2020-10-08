@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace Rapidity.Json.JsonPath
 {
     /// <summary>
-    /// jsonpath解释器
+    /// jsonpath解析器
     /// </summary>
     public interface IJsonPathResolver
     {
@@ -14,10 +16,6 @@ namespace Rapidity.Json.JsonPath
 
     public class DefaultJsonPathResolver : IJsonPathResolver
     {
-        public DefaultJsonPathResolver()
-        {
-        }
-
         private string _jsonPath;
         private int _cursor = -1;
         private JsonPathFilter _filter;
@@ -26,7 +24,7 @@ namespace Rapidity.Json.JsonPath
         {
             if (string.IsNullOrEmpty(jsonPath)) yield break;
             _jsonPath = jsonPath;
-            while (!(_filter is InvalidPathFilter) && Next()) //遇到InvalidPathFilter时直接中止路径解析
+            while (Next())
             {
                 yield return _filter;
             }
@@ -39,11 +37,11 @@ namespace Rapidity.Json.JsonPath
                 var @char = _jsonPath[_cursor];
                 switch (@char)
                 {
-                    case '$': SetFilter(new RootPathFilter()); return true;
+                    case '$': return ReadRootFilter();
+                    case '*': return ReadWildcardFilter();
                     case '.': return NextFilter();
-                    case '*': SetFilter(new WildcardFilter()); return true;
-                    case '[': return ReadQuery(true);
-                    default: return ReadQuery();
+                    case '[': return ReadFilter(true);
+                    default: return ReadFilter();
                 }
             }
             return false;
@@ -57,78 +55,182 @@ namespace Rapidity.Json.JsonPath
         {
             if (_filter == null)  //起始位置不能是.
             {
-                _filter = new InvalidPathFilter();
+                _filter = new InvalidFilter();
                 return true;
             }
-            if (Move() == false) return false;
+            Move();
             var current = _jsonPath[_cursor];
             switch (current)
             {
+                case '$': return ReadRootFilter();
+                case '*': return ReadWildcardFilter();
                 case '.': SetFilter(new RecursiveFilter()); return true;
-                case '*': SetFilter(new WildcardFilter()); return true;
-                case '$': SetFilter(new RootPathFilter()); return true;
-                case '[': return ReadQuery(true);
-                default: return ReadQuery();
+                case '[': //.[组合解析成.. 递归查询
+                    SetFilter(new RecursiveFilter());
+                    _cursor--; //回退一个字符
+                    return true;
+                default: return ReadFilter();
             }
         }
 
-        //private bool ReadName()
-        //{
-        //    var start = _cursor;  //从上一个字符开始计数 
-        //    while (Move())
-        //    {
-        //        var current = _jsonPath[_cursor];
-        //        if (current == '.' || current == '[')
-        //        {
-        //            _cursor--;
-        //            break;
-        //        }
-        //    }
-        //    var part = _jsonPath.Substring(start, _cursor - start + 1);
-        //    //SetFilter(new PathNameFilter(part));
-        //    return true;
-        //}
-
-        private bool ReadQuery(bool hasBracket = false)
+        private bool ReadRootFilter()
         {
-            var start = _cursor + 1;
-            var filters = new List<string>();
+            if (_cursor != _jsonPath.Length - 1)
+            {
+                var next = _jsonPath[_cursor + 1];
+                if (next != '.' && next != '[') return ReadFilter();
+            }
+            SetFilter(new RootFilter());
+            return true;
+        }
+
+        private bool ReadWildcardFilter()
+        {
+            if (_cursor != _jsonPath.Length - 1)
+            {
+                var next = _jsonPath[_cursor + 1];
+                if (next != '.' && next != '[') return ReadFilter();
+            }
+            SetFilter(new WildcardFilter());
+            return true;
+        }
+
+        private bool ReadFilter(bool hasBracket = false)
+        {
+            var start = hasBracket ? _cursor + 1 : _cursor;
+            JsonPathFilter filter = null;
+            List<JsonPathFilter> filters = null;
+            bool multi = false;
             while (Move())
             {
                 var current = _jsonPath[_cursor];
                 switch (current)
                 {
-                    case '?':
-                    case '(': return ReadExpQuery();
+                    //case '?':
+                    //case '(': 
+                    //    filter = ReadExppression();
+                    //    if (multi) filters.Add(filter);
+                    //    break;
                     case ',':
                         var part = _jsonPath.Substring(start, _cursor - start);
-                        filters.Add(part);
+                        if (!multi)
+                        {
+                            multi = true;
+                            filters = new List<JsonPathFilter>();
+                        }
+                        filters.Add(ResolverFilter(part));
                         start = _cursor + 1;
                         break;
                     case ']':
                         if (hasBracket)
                         {
                             var part2 = _jsonPath.Substring(start, _cursor - start);
-                            filters.Add(part2);
-                            SetFilter(new SubNodeFilter(filters, true));
+                            filter = ResolverFilter(part2);
+                            if (multi) filters.Add(filter);
+                            SetFilter(multi ? new MultipleFilters(filters) : filter);
+                            return true;
+                        }
+                        break;
+                    case '.':
+                        if (!hasBracket) //不在[]内时中断循环
+                        {
+                            var part3 = _jsonPath.Substring(start, _cursor - start);
+                            filter = ResolverFilter(part3);
+                            if (multi) filters.Add(filter);
+                            SetFilter(multi ? new MultipleFilters(filters) : filter);
                             return true;
                         }
                         break;
                 }
             }
-            if(hasBracket)  _filter = new InvalidPathFilter(); //读到这里说明没找到关闭符号],肯定是非法路径格式
+            if (hasBracket) _filter = new InvalidFilter(); //读到这里说明没找到闭括号],肯定是非法路径格式
             else
             {
-                var part2 = _jsonPath.Substring(start, _cursor - start);
-                filters.Add(part2);
-                SetFilter(new SubNodeFilter(filters));
+                var part2 = _jsonPath.Substring(start, _cursor - start + 1);
+                filter = ResolverFilter(part2);
+                if (multi) filters.Add(filter);
+                SetFilter(multi ? new MultipleFilters(filters) : filter);
+                return true;
             }
             return true;
         }
 
-        private bool ReadExpQuery()
+        private JsonPathFilter ResolverFilter(string name)
         {
-            return true;
+            if (name == "$")
+            {
+                return new RootFilter();
+            }
+            else if (name == "*")
+            {
+                return new WildcardFilter();
+            }
+            else if (name == "..")
+            {
+                return new RecursiveFilter();
+            }
+            else if (int.TryParse(name, out int index)) //按索引查找
+            {
+                return new ArrayIndexFilter(index);
+            }
+            else if ((name.StartsWith("?") || name.StartsWith("("))
+                && name.EndsWith(")"))
+            {
+                return new ExpressionFilter(name.TrimStart('?', '(').TrimEnd(')'));
+            }
+            else if (name.Contains(':')) //数组切片
+            {
+                var slices = name.Split(':');
+                if (slices.Length > 3) return new InvalidFilter();
+                int? start = 0;
+                int? end = int.MaxValue;
+                int? step = 1;
+                if (slices.Length > 0)
+                {
+                    var startVal = slices[0];
+                    if (startVal.Length > 0) start = startVal.TryToInt();
+                }
+                if (slices.Length > 1)
+                {
+                    var endVal = slices[1];
+                    if (endVal.Length > 0) end = endVal.TryToInt();
+                }
+                if (slices.Length > 2)
+                {
+                    var stepVal = slices[2];
+                    if (stepVal.Length > 0) step = stepVal.TryToInt();
+                }
+                if (!start.HasValue || !end.HasValue || !step.HasValue)
+                    return new InvalidFilter(); //有一个没有值则为输入格式非法，跳过
+                return new ArraySliceFilter(start.Value, end.Value, step.Value);
+            }
+            else  //属性名称查找
+                return new PropertyNameFilter(name);
+        }
+
+        private JsonPathFilter ReadExppression()
+        {
+            var start = _cursor + 1;
+            if (_jsonPath[_cursor] == '?' && _cursor != _jsonPath.Length - 1)
+            {
+                var next = _jsonPath[_cursor + 1];
+                if (next != '(')
+                {
+                    ReadFilter();
+                    return _filter;
+                }
+                else start = _cursor += 2;
+            }
+            while (Move())
+            {
+                var current = _jsonPath[_cursor];
+                if (current == ')')
+                {
+                    var exp = _jsonPath.Substring(start, _cursor - start);
+                    return new ExpressionFilter(exp);
+                }
+            }
+            return new InvalidFilter();
         }
 
         private bool Move()
@@ -149,42 +251,27 @@ namespace Rapidity.Json.JsonPath
         {
             if (_filter == null) //当filter=null时为第一个片段
             {
-                if (!(newFilter is RootPathFilter) && !(newFilter is SubNodeFilter) && !(newFilter is WildcardFilter))
+                if (!(newFilter is RootFilter) && !(newFilter is MultipleFilters) && !(newFilter is WildcardFilter)
+                    && !(newFilter is PropertyNameFilter))
                 {
-                    _filter = new InvalidPathFilter();
+                    _filter = new InvalidFilter();
                     return;
                 }
             }
-            if (_filter is RootPathFilter)
-            {
-                if (!(newFilter is SubNodeFilter) && !(newFilter is WildcardFilter))
-                {
-                    _filter = new InvalidPathFilter();
-                    return;
-                }
-            }
+            //if (_filter is RootFilter)
+            //{
+            //    if (!(newFilter is RecursiveFilter) && !(newFilter is WildcardFilter))
+            //    {
+            //        _filter = new InvalidPathFilter();
+            //        return;
+            //    }
+            //}
             if (_filter is RecursiveFilter && newFilter is RecursiveFilter) //不能有2个连续递归filter
             {
-                _filter = new InvalidPathFilter();
+                _filter = new InvalidFilter();
                 return;
             }
             _filter = newFilter;
         }
     }
-
-    //public enum JsonFilterType : byte
-    //{
-    //    None,
-    //    Root,           //$ 表示根节点
-    //    Current,        //@ 表示当前
-    //    AllChildern,    //*  通配符,取出所有子节点
-    //    Recursive,      //.. 递归取出所有子节点及子节点的子节点元素，直到节点是值类型为止
-    //    Name,           //.<name>   点，表示子节点
-    //    Query,          //[] []内的一系列查询操作
-    //    Invalid         //非法jsonpath
-    //    //QueryNames,     //['<name>' (, '<name>')] 括号表示子项
-    //    //QueryIndexs,    //[<number> (, <number>)] 数组索引或索引
-    //    //ArraySlicing,   //[start:end] 数组切片操作
-    //    //Expression      //[?(<expression>)] 过滤表达式。 表达式必须求值为一个布尔值。
-    //}
 }
