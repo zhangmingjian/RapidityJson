@@ -11,16 +11,16 @@ namespace Rapidity.Json.JsonPath
     /// </summary>
     public interface IJsonPathResolver
     {
-        IEnumerable<JsonPathFilter> ResolveFilters(string jsonPath);
+        IEnumerable<JsonPathFilter> Resolve(string jsonPath);
     }
 
-    public class DefaultJsonPathResolver : IJsonPathResolver
+    internal class DefaultJsonPathResolver : IJsonPathResolver
     {
         private string _jsonPath;
         private int _cursor = -1;
         private JsonPathFilter _filter;
 
-        public IEnumerable<JsonPathFilter> ResolveFilters(string jsonPath)
+        public IEnumerable<JsonPathFilter> Resolve(string jsonPath)
         {
             if (string.IsNullOrEmpty(jsonPath)) yield break;
             _jsonPath = jsonPath;
@@ -106,11 +106,16 @@ namespace Rapidity.Json.JsonPath
                 var current = _jsonPath[_cursor];
                 switch (current)
                 {
-                    //case '?':
-                    //case '(': 
-                    //    filter = ReadExppression();
-                    //    if (multi) filters.Add(filter);
-                    //    break;
+                    case ']':
+                        if (hasBracket)
+                        {
+                            var part2 = _jsonPath.Substring(start, _cursor - start);
+                            filter = ResolveFilter(part2);
+                            if (multi) filters.Add(filter);
+                            SetFilter(multi ? new MultipleFilters(filters) : filter);
+                            return true;
+                        }
+                        break;
                     case ',':
                         var part = _jsonPath.Substring(start, _cursor - start);
                         if (!multi)
@@ -118,36 +123,28 @@ namespace Rapidity.Json.JsonPath
                             multi = true;
                             filters = new List<JsonPathFilter>();
                         }
-                        filters.Add(ResolverFilter(part));
+                        filters.Add(ResolveFilter(part));
                         start = _cursor + 1;
-                        break;
-                    case ']':
-                        if (hasBracket)
-                        {
-                            var part2 = _jsonPath.Substring(start, _cursor - start);
-                            filter = ResolverFilter(part2);
-                            if (multi) filters.Add(filter);
-                            SetFilter(multi ? new MultipleFilters(filters) : filter);
-                            return true;
-                        }
                         break;
                     case '.':
                         if (!hasBracket) //不在[]内时中断循环
                         {
                             var part3 = _jsonPath.Substring(start, _cursor - start);
-                            filter = ResolverFilter(part3);
+                            filter = ResolveFilter(part3);
                             if (multi) filters.Add(filter);
                             SetFilter(multi ? new MultipleFilters(filters) : filter);
                             return true;
                         }
                         break;
+                    case '?': //按照expressfilter来预期读取，仅移动位置
+                    case '(': ConsumeExpFilter(current); break;
                 }
             }
-            if (hasBracket) _filter = new InvalidFilter(); //读到这里说明没找到闭括号],肯定是非法路径格式
+            if (hasBracket) _filter = new InvalidFilter(); //读到这里说明没找到闭括号],一定是非法格式
             else
             {
                 var part2 = _jsonPath.Substring(start, _cursor - start + 1);
-                filter = ResolverFilter(part2);
+                filter = ResolveFilter(part2);
                 if (multi) filters.Add(filter);
                 SetFilter(multi ? new MultipleFilters(filters) : filter);
                 return true;
@@ -155,26 +152,13 @@ namespace Rapidity.Json.JsonPath
             return true;
         }
 
-        private JsonPathFilter ResolverFilter(string name)
+        private JsonPathFilter ResolveFilter(string name)
         {
-            if (name == "$")
-            {
-                return new RootFilter();
-            }
-            else if (name == "*")
-            {
-                return new WildcardFilter();
-            }
-            else if (name == "..")
-            {
-                return new RecursiveFilter();
-            }
-            else if (int.TryParse(name, out int index)) //按索引查找
-            {
-                return new ArrayIndexFilter(index);
-            }
-            else if ((name.StartsWith("?") || name.StartsWith("("))
-                && name.EndsWith(")"))
+            if (name == "$") return new RootFilter();
+            else if (name == "*") return new WildcardFilter();
+            else if (name == "..") return new RecursiveFilter();
+            else if (int.TryParse(name, out int index))  return new ArrayIndexFilter(index);//按索引查找
+            else if ((name.StartsWith("?") || name.StartsWith("(")) && name.EndsWith(")"))
             {
                 return new ExpressionFilter(name.TrimStart('?', '(').TrimEnd(')'));
             }
@@ -204,33 +188,37 @@ namespace Rapidity.Json.JsonPath
                     return new InvalidFilter(); //有一个没有值则为输入格式非法，跳过
                 return new ArraySliceFilter(start.Value, end.Value, step.Value);
             }
-            else  //属性名称查找
-                return new PropertyNameFilter(name);
+            else return new PropertyFilter(name);
         }
 
-        private JsonPathFilter ReadExppression()
+        /// <summary>
+        /// 按照expressfilter来预期读取，仅移动位置，不处理扫描结果
+        /// </summary>
+        /// <param name="current"></param>
+        private void ConsumeExpFilter(char current)
         {
-            var start = _cursor + 1;
-            if (_jsonPath[_cursor] == '?' && _cursor != _jsonPath.Length - 1)
+            if (current == '?' && _cursor != _jsonPath.Length - 1)
             {
                 var next = _jsonPath[_cursor + 1];
                 if (next != '(')
                 {
                     ReadFilter();
-                    return _filter;
                 }
-                else start = _cursor += 2;
+                else Move();
             }
+            int deep = 1;
             while (Move())
             {
-                var current = _jsonPath[_cursor];
-                if (current == ')')
+                current = _jsonPath[_cursor];
+                switch (current)
                 {
-                    var exp = _jsonPath.Substring(start, _cursor - start);
-                    return new ExpressionFilter(exp);
+                    case '(': deep++; break;
+                    case ')':
+                        deep--;
+                        if (deep == 0) return;
+                        break;
                 }
             }
-            return new InvalidFilter();
         }
 
         private bool Move()
@@ -252,7 +240,7 @@ namespace Rapidity.Json.JsonPath
             if (_filter == null) //当filter=null时为第一个片段
             {
                 if (!(newFilter is RootFilter) && !(newFilter is MultipleFilters) && !(newFilter is WildcardFilter)
-                    && !(newFilter is PropertyNameFilter))
+                    && !(newFilter is PropertyFilter))
                 {
                     _filter = new InvalidFilter();
                     return;

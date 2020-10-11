@@ -18,10 +18,10 @@ namespace Rapidity.Json.Test
             //var path = "$.[phoneNumbers,0,'type']";
             var path = "$ ";
             var resolver = new DefaultJsonPathResolver();
-            var filters = resolver.ResolveFilters(path).ToList();
+            var filters = resolver.Resolve(path).ToList();
 
-            var str = "?(@.age=01)";
-            var str1 = str.TrimStart('?','(').TrimEnd(')');
+            var str = "'''?(@.age=01)''''";
+            var str1 = str.Trim('\'');
         }
 
 
@@ -32,7 +32,7 @@ namespace Rapidity.Json.Test
             var json = "{\"firstName\":\"John\",\"lastName\":\"doe\",\"age\":26,\"address\":{\"streetAddress\":\"naist street\",\"city\":\"Nara\",\"postalCode\":\"630 - 0192\"},\"phoneNumbers\":[{\"type\":\"iPhone\",\"number\":\"0123 - 4567 - 8888\"},{\"type\":\"home\",\"number\":\"0123 - 4567 - 8910\"}]}";
             var element = JsonElement.Create(json);
 
-            var filters = new DefaultJsonPathResolver().ResolveFilters(path).ToList();
+            var filters = new DefaultJsonPathResolver().Resolve(path).ToList();
 
             IEnumerable<JsonElement> current = new List<JsonElement> { element };
             foreach (var filter in filters)
@@ -54,7 +54,9 @@ namespace Rapidity.Json.Test
         {
             var json = "{\"firstName\":\"John\",\"lastName\":\"doe\",\"age\":26,\"address\":{\"streetAddress\":\"naist street\",\"city\":\"Nara\",\"postalCode\":\"630 - 0192\"},\"phoneNumbers\":[{\"type\":\"iPhone\",\"number\":\"0000000\"},{\"type\":\"home\",\"number\":\"111111111\"}]}";
             var element = JsonElement.Create(json);
-            var filters = new DefaultJsonPathResolver().ResolveFilters("$.[?(@.age>10)]").ToList();
+
+            var path = "$.[?(@.age>10),(@.flag in [1,23])].name,0,type.adata";
+            var filters = new DefaultJsonPathResolver().Resolve(path).ToList();
 
             IEnumerable<JsonElement> current = new List<JsonElement> { element };
             foreach (var filter in filters)
@@ -68,10 +70,7 @@ namespace Rapidity.Json.Test
                 return;
             }
             var arr = new JsonArray(current);
-            Debug.WriteLine(arr.ToString(new JsonOption { Indented = true }));
-
-            var jtoken = Newtonsoft.Json.Linq.JToken.Parse(json);
-            var res = jtoken.SelectTokens("$.[?(@.age>10)]").ToList();
+            Debug.WriteLine(arr.ToString(new JsonOption { Indented = true })); 
         }
     }
 }

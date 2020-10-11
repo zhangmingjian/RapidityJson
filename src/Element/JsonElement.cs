@@ -54,7 +54,7 @@ namespace Rapidity.Json
         /// <returns></returns>
         public IEnumerable<JsonElement> Filters(string jsonPath)
         {
-            var filters = new DefaultJsonPathResolver().ResolveFilters(jsonPath);
+            var filters = new DefaultJsonPathResolver().Resolve(jsonPath);
             IEnumerable<JsonElement> current = null;
             foreach (var filter in filters)
             {

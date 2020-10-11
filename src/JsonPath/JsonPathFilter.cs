@@ -13,7 +13,7 @@ namespace Rapidity.Json.JsonPath
     /// <summary>
     /// $ 开头的path
     /// </summary>
-    public class RootFilter : JsonPathFilter
+    internal class RootFilter : JsonPathFilter
     {
         public override IEnumerable<JsonElement> Filter(JsonElement root, IEnumerable<JsonElement> current)
         {
@@ -24,7 +24,7 @@ namespace Rapidity.Json.JsonPath
     /// <summary>
     /// 无效jsonpath
     /// </summary>
-    public class InvalidFilter : JsonPathFilter
+    internal class InvalidFilter : JsonPathFilter
     {
 
         public override IEnumerable<JsonElement> Filter(JsonElement root, IEnumerable<JsonElement> current)
@@ -36,7 +36,7 @@ namespace Rapidity.Json.JsonPath
     /// <summary>
     /// * 通配符。所有对象/元素
     /// </summary>
-    public class WildcardFilter : JsonPathFilter
+    internal class WildcardFilter : JsonPathFilter
     {
         public override IEnumerable<JsonElement> Filter(JsonElement root, IEnumerable<JsonElement> current)
         {
@@ -66,7 +66,7 @@ namespace Rapidity.Json.JsonPath
     /// <summary>
     /// .. 递归过滤器
     /// </summary>
-    public class RecursiveFilter : JsonPathFilter
+    internal class RecursiveFilter : JsonPathFilter
     {
         public override IEnumerable<JsonElement> Filter(JsonElement root, IEnumerable<JsonElement> current)
         {
@@ -108,17 +108,20 @@ namespace Rapidity.Json.JsonPath
     /// <summary>
     /// 按属性名称过滤器
     /// </summary>
-    public class PropertyNameFilter : JsonPathFilter
+    internal class PropertyFilter : JsonPathFilter
     {
         private readonly string _property;
-        public PropertyNameFilter(string property)
+        public PropertyFilter(string property)
         {
             _property = property;
         }
 
         public override IEnumerable<JsonElement> Filter(JsonElement root, IEnumerable<JsonElement> current)
         {
-            var property = _property.Trim('\'');
+            var property = _property;
+            if (property.StartsWith("'") && property.EndsWith("'"))
+                property = property.Substring(1, _property.Length - 1);
+
             var list = new List<JsonElement>();
             foreach (var element in current)
             {
@@ -135,7 +138,7 @@ namespace Rapidity.Json.JsonPath
     /// <summary>
     /// 数组索引过滤器
     /// </summary>
-    public class ArrayIndexFilter : JsonPathFilter
+    internal class ArrayIndexFilter : JsonPathFilter
     {
         private int _index;
 
@@ -162,7 +165,7 @@ namespace Rapidity.Json.JsonPath
     /// <summary>
     /// 数组切片过滤器
     /// </summary>
-    public class ArraySliceFilter : JsonPathFilter
+    internal class ArraySliceFilter : JsonPathFilter
     {
         private int _start;
         private int _end;
@@ -193,7 +196,7 @@ namespace Rapidity.Json.JsonPath
     /// <summary>
     /// 组合过滤器
     /// </summary>
-    public class MultipleFilters : JsonPathFilter
+    internal class MultipleFilters : JsonPathFilter
     {
         private IEnumerable<JsonPathFilter> _filters;
         public MultipleFilters(IEnumerable<JsonPathFilter> filters)
