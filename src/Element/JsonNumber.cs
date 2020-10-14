@@ -86,6 +86,37 @@ namespace Rapidity.Json
             if (num1.TryGetDouble(out v1) && num2.TryGetDouble(out v2)) return v1 > v2;
             return false;
         }
+        public static bool operator >=(JsonNumber num1, JsonNumber num2)
+        {
+            double v1 = 0;
+            double v2 = 0;
+            if (num1.TryGetDouble(out v1) && num2.TryGetDouble(out v2)) return v1 >= v2;
+            return false;
+        }
+
+        public static bool operator <=(JsonNumber num1, JsonNumber num2)
+        {
+            double v1 = 0;
+            double v2 = 0;
+            if (num1.TryGetDouble(out v1) && num2.TryGetDouble(out v2)) return v1 <= v2;
+            return false;
+        }
+
+        public static bool operator ==(JsonNumber num1, JsonNumber num2)
+        {
+            double v1 = 0;
+            double v2 = 0;
+            if (num1.TryGetDouble(out v1) && num2.TryGetDouble(out v2)) return v1 == v2;
+            return false;
+        }
+
+        public static bool operator !=(JsonNumber num1, JsonNumber num2)
+        {
+            double v1 = 0;
+            double v2 = 0;
+            if (num1.TryGetDouble(out v1) && num2.TryGetDouble(out v2)) return v1 != v2;
+            return false;
+        }
 
         public static bool operator <(JsonNumber num1, int num2)
         {
@@ -100,8 +131,6 @@ namespace Rapidity.Json
             if (num1.TryGetDouble(out v1)) return v1 > num2;
             return false;
         }
-
-
         #endregion
     }
 }

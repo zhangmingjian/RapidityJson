@@ -158,7 +158,7 @@ namespace Rapidity.Json.JsonPath
             else if (name == "*") return new WildcardFilter();
             else if (name == "..") return new RecursiveFilter();
             else if (int.TryParse(name, out int index))  return new ArrayIndexFilter(index);//按索引查找
-            else if ((name.StartsWith("?") || name.StartsWith("(")) && name.EndsWith(")"))
+            else if ((name.StartsWith("?(") || name.StartsWith("(")) && name.EndsWith(")"))
             {
                 return new ExpressionFilter(name.TrimStart('?', '(').TrimEnd(')'));
             }

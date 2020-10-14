@@ -17,8 +17,7 @@ namespace Rapidity.Json
         public override int GetHashCode() => _value?.GetHashCode() ?? -1;
 
         public static implicit operator JsonString(string value) => new JsonString(value);
+        public static implicit operator string(JsonString value) => value;
 
-        public static bool operator ==(JsonString value, string str) => value.Value == str;
-        public static bool operator !=(JsonString value, string str) => value.Value != str;
     }
 }
