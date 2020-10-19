@@ -160,7 +160,7 @@ namespace Rapidity.Json.JsonPath
             else if (int.TryParse(name, out int index))  return new ArrayIndexFilter(index);//按索引查找
             else if ((name.StartsWith("?(") || name.StartsWith("(")) && name.EndsWith(")"))
             {
-                return new ExpressionFilter(name.TrimStart('?', '(').TrimEnd(')'));
+                return new ExpressionFilter(name);
             }
             else if (name.Contains(':')) //数组切片
             {

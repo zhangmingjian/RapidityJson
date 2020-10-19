@@ -63,6 +63,7 @@ namespace Rapidity.Json
         public override int GetHashCode() => _value.GetHashCode();
 
         #region Operator
+
         public static implicit operator JsonNumber(byte value) => new JsonNumber(value);
         public static implicit operator JsonNumber(short value) => new JsonNumber(value);
         public static implicit operator JsonNumber(int value) => new JsonNumber(value);
