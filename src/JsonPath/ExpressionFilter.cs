@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Rapidity.Json.JsonPath
 {
@@ -10,16 +11,24 @@ namespace Rapidity.Json.JsonPath
     /// </summary>
     internal class ExpressionFilter : JsonPathFilter
     {
-        private string _expression;
+        private MatchExpression _expression;
 
-        public ExpressionFilter(string expresstion)
+        public ExpressionFilter(string expText) : this(MatchExpression.Create(expText))
+        {
+        }
+
+        public ExpressionFilter(MatchExpression expresstion)
         {
             _expression = expresstion;
         }
 
         public override IEnumerable<JsonElement> Filter(JsonElement root, IEnumerable<JsonElement> current)
         {
-            return current;
+            foreach (var element in current)
+            {
+                if (_expression.IsMatch(root, element))
+                    yield return element;
+            }
         }
     }
 
@@ -78,7 +87,13 @@ namespace Rapidity.Json.JsonPath
     {
         protected ConditionType ConditionType { get; set; }
 
-        public abstract bool CanMatch(JsonElement current);
+        public abstract bool IsMatch(JsonElement root, JsonElement current);
+
+        public static MatchExpression Create(string expression)
+        {
+            //todo
+            return null;
+        }
     }
 
     /// <summary>
@@ -102,12 +117,12 @@ namespace Rapidity.Json.JsonPath
             Right = right;
         }
 
-        public override bool CanMatch(JsonElement current)
+        public override bool IsMatch(JsonElement root, JsonElement current)
         {
             switch (ConditionType)
             {
-                case ConditionType.And: return Left.CanMatch(current) && Right.CanMatch(current);
-                case ConditionType.Or: return Left.CanMatch(current) || Right.CanMatch(current);
+                case ConditionType.And: return Left.IsMatch(root, current) && Right.IsMatch(root, current);
+                case ConditionType.Or: return Left.IsMatch(root, current) || Right.IsMatch(root, current);
                 default: throw new NotSupportedException();
             }
         }
@@ -118,73 +133,122 @@ namespace Rapidity.Json.JsonPath
     /// </summary>
     internal class ConditionMatchExpression : MatchExpression
     {
-        private string _value;
+        private ElementSelector _left;
+        private ElementSelector _right;
 
-        public ConditionMatchExpression(ConditionType type) : this(type, null)
+        public ConditionMatchExpression(ConditionType type, ElementSelector left) : this(type, left, null)
         {
         }
 
-        public ConditionMatchExpression(ConditionType type, string value)
+        public ConditionMatchExpression(ConditionType type, ElementSelector left, ElementSelector right)
         {
             ConditionType = type;
-            _value = value;
+            _left = left;
+            _right = right;
         }
 
-        public override bool CanMatch(JsonElement current)
+        public override bool IsMatch(JsonElement root, JsonElement current)
         {
+            var leftValue = _left.Select(root, current);
+            var rightValue = _right.Select(root, current);
             switch (ConditionType)
             {
                 case ConditionType.None: //无条件时 current非空即可满足
-                    if (current is JsonBoolean jsonBoolean) return jsonBoolean.Value;
-                    if (current.ElementType == JsonElementType.Null) return false;
-                    if (current is JsonString jsonString) return !string.IsNullOrEmpty(jsonString.Value);
-                    return current != null;
+                    if (leftValue is JsonBoolean jsonBoolean) return jsonBoolean.Value;
+                    if (leftValue.ElementType == JsonElementType.Null) return false;
+                    if (leftValue is JsonString jsonString) return !string.IsNullOrEmpty(jsonString.Value);
+                    return leftValue != null;
 
                 case ConditionType.GreaterThan:
                 case ConditionType.LessThan:
                 case ConditionType.GreaterOrEqual:
-                case ConditionType.LessOrEqual: return NumberCompare(current);
+                case ConditionType.LessOrEqual: return NumberCompare(leftValue, rightValue);
 
                 case ConditionType.Equal:
-                    if (current is JsonNumber number)
                     {
-                        var doubleV = _value.TryToDouble();
-                        if (doubleV == null) return false;
-                        return number == new JsonNumber(doubleV.Value);
+                        if (leftValue is JsonNumber number1 && rightValue is JsonNumber nuber2) return number1 == nuber2;
+                        if (leftValue is JsonString string1 && rightValue is JsonString string2) return string1 == string2;
+                        if (leftValue is JsonBoolean boolean1 && rightValue is JsonBoolean boolean2) return boolean1 == boolean2;
+                        return false;
                     }
-                    if (current is JsonString jString) return jString == _value;
-                    if (current is JsonBoolean jBool)
+                case ConditionType.NotEqual:
                     {
-                        var boolV = _value.TryToBool();
-                        if (boolV == null) return false;
-                        return jBool == boolV.Value;
+                        if (leftValue is JsonNumber number1 && rightValue is JsonNumber nuber2) return number1 != nuber2;
+                        if (leftValue is JsonString string1 && rightValue is JsonString string2) return string1 != string2;
+                        if (leftValue is JsonBoolean boolean1 && rightValue is JsonBoolean boolean2) return boolean1 != boolean2;
+                        return false;
                     }
-                    return false;
-                case ConditionType.NotEqual: break;
-
-                case ConditionType.Regular: break;
+                case ConditionType.Regular:
+                    if (!(leftValue is JsonString str)) return false;
+                    var regular = ((JsonString)rightValue).Value;
+                    return Regex.IsMatch(str.Value, regular);
 
                 default: throw new NotSupportedException();
             }
-            return false;
         }
 
-        private bool NumberCompare(JsonElement element)
+        private bool NumberCompare(JsonElement left, JsonElement right)
         {
-            if (element == null) return false;
-            if (!(element is JsonNumber jsonNumber)) return false;
-
-            var doubleV = _value.TryToDouble();
-            if (doubleV == null) return false;
-            var number2 = new JsonNumber(doubleV.Value);
+            if (!(left is JsonNumber number1) || !(right is JsonNumber number2))
+                return false;
             switch (ConditionType)
             {
-                case ConditionType.GreaterThan: return jsonNumber > number2;
-                case ConditionType.LessThan: return jsonNumber < number2;
-                case ConditionType.GreaterOrEqual: return jsonNumber >= number2;
-                case ConditionType.LessOrEqual: return jsonNumber <= number2;
+                case ConditionType.GreaterThan: return number1 > number2;
+                case ConditionType.LessThan: return number1 < number2;
+                case ConditionType.GreaterOrEqual: return number1 >= number2;
+                case ConditionType.LessOrEqual: return number1 <= number2;
             }
             return false;
         }
     }
+
+    #region json元素属性节点选择器
+    internal abstract class ElementSelector
+    {
+        public abstract JsonElement Select(JsonElement root, JsonElement current);
+    }
+
+    internal class ConstantSelector : ElementSelector
+    {
+        private JsonElement _element;
+        public ConstantSelector(JsonElement element)
+        {
+            _element = element;
+        }
+        public override JsonElement Select(JsonElement root, JsonElement current)
+        {
+            return _element;
+        }
+    }
+
+    internal class CurrentSelector : ElementSelector
+    {
+        private JsonPathFilter _filter;
+        public CurrentSelector(JsonPathFilter filter)
+        {
+            _filter = filter;
+        }
+        public override JsonElement Select(JsonElement root, JsonElement current)
+        {
+            var result = _filter.Filter(root, new JsonElement[] { current });
+            if (result == null || !result.Any()) return new JsonNull();
+            return result.First();
+        }
+    }
+
+    internal class RootSelector : ElementSelector
+    {
+        private JsonPathFilter _filter;
+        public RootSelector(JsonPathFilter filter)
+        {
+            _filter = filter;
+        }
+        public override JsonElement Select(JsonElement root, JsonElement current)
+        {
+            var result = _filter.Filter(root, new JsonElement[] { root });
+            if (result == null || !result.Any()) return new JsonNull();
+            return result.First();
+        }
+    }
+    #endregion
 }
