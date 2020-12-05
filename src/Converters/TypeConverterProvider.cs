@@ -53,12 +53,13 @@ namespace Rapidity.Json.Converters
                 new StringKeyValueConverter(null),
                 new ArrayListConverter(null),
                 new JsonElementConverter(null),
+                new DataTableConverter(null),
                 new ObjectConverter(null),
             });
         }
         public override void AddConverterFactory(IConverterCreator converter)
         {
-            var list = new List<string>(); 
+            var list = new List<string>();
             if (_converters.Any(x => x.GetType() == converter.GetType()))
                 throw new JsonException($"集合中已存在{converter.GetType()}类型的{nameof(IConverterCreator)}");
             _converters.AddFirst(converter);

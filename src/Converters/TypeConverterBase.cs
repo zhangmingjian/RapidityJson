@@ -24,7 +24,7 @@ namespace Rapidity.Json.Converters
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected virtual Func<object> BuildCreateInstanceMethod(Type type)
+        protected virtual Func<object> BuildCreateInstanceMethod1(Type type)
         {
             Func<object> func = () =>
             {
@@ -46,7 +46,12 @@ namespace Rapidity.Json.Converters
             return func;
         }
 
-        protected virtual Func<object> BuildCreateInstanceMethod2(Type type)
+        /// <summary>
+        /// 表达式树生成的委托来构造
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected virtual Func<object> BuildCreateInstanceMethod(Type type)
         {
             NewExpression newExp;
             //查找参数最少的一个构造函数

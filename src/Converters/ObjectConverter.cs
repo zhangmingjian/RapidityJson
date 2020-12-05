@@ -96,19 +96,24 @@ namespace Rapidity.Json.Converters
             return false;
         }
 
-        public virtual ITypeConverter Create(Type type)
-        {
-            return new ObjectConverter(type);
-        }
-
+        /// <summary>
+        /// 是否为自定义struct
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private bool IsCustomStruct(Type type)
         {
             //除datetime/decimal/guid以外的struct
-            return type.IsValueType && !type.IsPrimitive //struct
+            return type.IsValueType && !type.IsPrimitive //是值类型 同时不是基元类型 则为struct
                  && type != typeof(decimal)
                  && type != typeof(DateTime)
                  && type != typeof(DateTimeOffset)
                  && type != typeof(Guid);
+        }
+
+        public virtual ITypeConverter Create(Type type)
+        {
+            return new ObjectConverter(type);
         }
 
         public override object FromReader(JsonReader reader, JsonOption option)

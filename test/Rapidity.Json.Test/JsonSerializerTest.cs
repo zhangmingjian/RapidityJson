@@ -228,6 +228,23 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
+        public void DataTableConvertTest()
+        {
+            var table = new DataTable();
+            //var row = new DataRow();
+            table.Columns.Add("id", typeof(int));
+            table.Columns.Add("name", typeof(string));
+            table.Columns.Add("ctime", typeof(DateTime));
+            var row = table.NewRow();
+            row["id"] = 1;
+            row["name"] = "zhangsan";
+            row["ctime"] = DateTime.Now;
+            table.Rows.Add(row);
+
+            var json = JsonParse.ToJson(table);
+        }
+
+        [Fact]
         public void LoopReferenceTest()
         {
             var model = new ClassA
