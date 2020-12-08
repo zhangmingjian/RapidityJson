@@ -235,13 +235,59 @@ namespace Rapidity.Json.Test
             table.Columns.Add("id", typeof(int));
             table.Columns.Add("name", typeof(string));
             table.Columns.Add("ctime", typeof(DateTime));
+            table.Columns.Add("tokens", typeof(string[]));
+            table.Columns.Add("data", typeof(Stack<Guid>));
             var row = table.NewRow();
             row["id"] = 1;
             row["name"] = "zhangsan";
             row["ctime"] = DateTime.Now;
+            row["tokens"] = new string[] { "1111", "22222" };
+            row["data"] = new Stack<Guid>();
             table.Rows.Add(row);
 
-            var json = JsonParse.ToJson(table);
+            row = table.NewRow();
+            row["id"] = 2;
+            row["name"] = "zhangsan2";
+            row["ctime"] = DateTime.Now.AddDays(1);
+            row["tokens"] = new string[] { "33333", "444444" };
+            var stack = new Stack<Guid>();
+            stack.Push(Guid.NewGuid());
+            row["data"] = stack;
+            table.Rows.Add(row);
+
+            var json = JsonParse.ToJson(table, new JsonOption { LoopReferenceProcess = Converters.LoopReferenceProcess.Error });
+
+            var ele = JsonElement.Create(json);
+            var table2 = ele.To<DataTable>();
+
+            var table3 = JsonParse.To<DataTable>(json);
+            var table3Json = JsonParse.ToJson(table3);
+        }
+
+        [Fact]
+        public void DataSetConverTest()
+        {
+            DataSet dataSet = new DataSet("dataSet");
+            dataSet.Namespace = "NetFrameWork";
+            DataTable table = new DataTable();
+            DataColumn idColumn = new DataColumn("id", typeof(int));
+            idColumn.AutoIncrement = true;
+
+            DataColumn itemColumn = new DataColumn("item");
+            table.Columns.Add(idColumn);
+            table.Columns.Add(itemColumn);
+            dataSet.Tables.Add(table);
+
+            for (int i = 0; i < 2; i++)
+            {
+                DataRow newRow = table.NewRow();
+                newRow["item"] = "item " + i;
+                table.Rows.Add(newRow);
+            }
+
+            var json1 = Newtonsoft.Json.JsonConvert.SerializeObject(dataSet);
+
+            var dataset = JsonParse.To<DataSet>(json1);
         }
 
         [Fact]
@@ -274,12 +320,6 @@ namespace Rapidity.Json.Test
         {
             public int Number { get; set; }
             public ClassA ClassA { get; set; }
-        }
-
-        [Fact]
-        public void ValueTypeTest()
-        {
-            var type = typeof(IList<int>).IsAssignableFrom(typeof(List<int>));
         }
     }
 }

@@ -23,6 +23,8 @@ namespace Rapidity.Json
             set => AddProperty(propertyName, value);
         }
 
+        public int Count => _dictionary.Count;
+
         public IEnumerable<JsonProperty> GetAllProperty()
         {
             if (_dictionary.Count == 0) yield return default;

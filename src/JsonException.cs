@@ -13,9 +13,9 @@ namespace Rapidity.Json
 
         public int Position { get; set; }
 
-        public JsonException()
-        {
-        }
+        //public JsonException()
+        //{
+        //}
 
         public JsonException(string message) : base(message)
         {

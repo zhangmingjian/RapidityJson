@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Rapidity.Json.Converters
 {
@@ -12,7 +10,7 @@ namespace Rapidity.Json.Converters
 
         public bool CanConvert(Type type)
         {
-            return typeof(JsonElement).IsAssignableFrom(type) || type == typeof(object);
+            return type == typeof(object) || typeof(JsonElement).IsAssignableFrom(type);
         }
 
         public ITypeConverter Create(Type type)

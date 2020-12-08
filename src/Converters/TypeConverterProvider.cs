@@ -22,7 +22,7 @@ namespace Rapidity.Json.Converters
                     break;
                 }
             }
-            if (convert == null) throw new JsonException($"创建{type}的{nameof(ITypeConverter)}失败，不支持的类型");
+            if (convert == null) throw new JsonException($"创建{type}的{nameof(ITypeConverter)}失败，不支持的类型:{type.FullName}");
             return convert;
         }
     }
@@ -53,6 +53,7 @@ namespace Rapidity.Json.Converters
                 new StringKeyValueConverter(null),
                 new ArrayListConverter(null),
                 new JsonElementConverter(null),
+                new DataSetConverter(null),
                 new DataTableConverter(null),
                 new ObjectConverter(null),
             });
