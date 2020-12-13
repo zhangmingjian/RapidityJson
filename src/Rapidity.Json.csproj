@@ -3,6 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--<PackageVersion>1.0.0.0-preview1</PackageVersion>-->
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryUrl>https://github.com/zhangmingjian/RapidityJson</RepositoryUrl>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageDescription>Implementation of JSON parser based on expression tree</PackageDescription>
+    <Copyright>Copyright ©  2020</Copyright>
   </PropertyGroup>
-
 </Project>

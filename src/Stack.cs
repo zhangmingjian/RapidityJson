@@ -4,7 +4,7 @@ namespace Rapidity.Json
 {
     internal class Stack<T>
     {
-        private const int InitialCapacity = 8;
+        private const int InitialCapacity = 4;
         private T[] _array;
         private int _index;
         public int Count => _index + 1;

@@ -22,7 +22,7 @@ namespace Rapidity.Json.Converters
                     break;
                 }
             }
-            if (convert == null) throw new JsonException($"创建{type}的{nameof(ITypeConverter)}失败，不支持的类型");
+            if (convert == null) throw new JsonException($"创建{type}的{nameof(ITypeConverter)}失败，不支持的类型:{type.FullName}");
             return convert;
         }
     }
@@ -53,12 +53,14 @@ namespace Rapidity.Json.Converters
                 new StringKeyValueConverter(null),
                 new ArrayListConverter(null),
                 new JsonElementConverter(null),
+                new DataSetConverter(null),
+                new DataTableConverter(null),
                 new ObjectConverter(null),
             });
         }
         public override void AddConverterFactory(IConverterCreator converter)
         {
-            var list = new List<string>(); 
+            if (converter == null) throw new ArgumentNullException(nameof(converter));
             if (_converters.Any(x => x.GetType() == converter.GetType()))
                 throw new JsonException($"集合中已存在{converter.GetType()}类型的{nameof(IConverterCreator)}");
             _converters.AddFirst(converter);
@@ -66,9 +68,11 @@ namespace Rapidity.Json.Converters
 
         public override ITypeConverter Build(Type type)
         {
+            ITypeConverter converter = null;
             if (!_dictionary.ContainsKey(type))
-                _dictionary[type] = base.Build(type);
-            return _dictionary[type];
+                converter = base.Build(type);
+            _dictionary[type] = converter;
+            return converter;
         }
     }
 }
