@@ -26,7 +26,6 @@ namespace Rapidity.Json.JsonPath
     /// </summary>
     internal class InvalidFilter : JsonPathFilter
     {
-
         public override IEnumerable<JsonElement> Filter(JsonElement root, IEnumerable<JsonElement> current)
         {
             return null;

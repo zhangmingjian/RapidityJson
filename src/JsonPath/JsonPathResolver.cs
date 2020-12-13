@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
 
 namespace Rapidity.Json.JsonPath
 {
@@ -154,13 +152,14 @@ namespace Rapidity.Json.JsonPath
 
         private JsonPathFilter ResolveFilter(string name)
         {
+            Debug.WriteLine($"current:{_cursor},value:{name}");
             if (name == "$") return new RootFilter();
             else if (name == "*") return new WildcardFilter();
             else if (name == "..") return new RecursiveFilter();
-            else if (int.TryParse(name, out int index))  return new ArrayIndexFilter(index);//按索引查找
+            else if (int.TryParse(name, out int index)) return new ArrayIndexFilter(index);//按索引查找
             else if ((name.StartsWith("?(") || name.StartsWith("(")) && name.EndsWith(")"))
             {
-                return new ExpressionFilter(name);
+                return new ExpressionFilter(MatchExpression.Create(name));
             }
             else if (name.Contains(':')) //数组切片
             {
@@ -203,6 +202,7 @@ namespace Rapidity.Json.JsonPath
                 if (next != '(')
                 {
                     ReadFilter();
+                    return;
                 }
                 else Move();
             }

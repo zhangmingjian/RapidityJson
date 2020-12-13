@@ -13,10 +13,6 @@ namespace Rapidity.Json.JsonPath
     {
         private MatchExpression _expression;
 
-        public ExpressionFilter(string expText) : this(MatchExpression.Create(expText))
-        {
-        }
-
         public ExpressionFilter(MatchExpression expresstion)
         {
             _expression = expresstion;
@@ -91,6 +87,18 @@ namespace Rapidity.Json.JsonPath
 
         public static MatchExpression Create(string expression)
         {
+            //?(@.age>10) 
+            var cursor = 0;
+            do
+            {
+                var current = expression[cursor];
+                switch (current)
+                {
+
+                }
+                cursor++;
+            }
+            while (cursor < expression.Length);
             //todo
             return null;
         }
@@ -203,6 +211,7 @@ namespace Rapidity.Json.JsonPath
     }
 
     #region json元素属性节点选择器
+
     internal abstract class ElementSelector
     {
         public abstract JsonElement Select(JsonElement root, JsonElement current);

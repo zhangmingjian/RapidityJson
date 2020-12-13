@@ -150,7 +150,7 @@ namespace Rapidity.Json.Converters
                         var itemValue = convert.FromElement(item, option);
                         SetValue(itemValue, ref array, ref index);
                     }
-                    return ArrayCopy(array, index+1);
+                    return ArrayCopy(array, index + 1);
                 default:
                     throw new JsonException($"无法从{element.ElementType}转换为{Type},{this.GetType().Name}反序列化{Type}失败");
             }
