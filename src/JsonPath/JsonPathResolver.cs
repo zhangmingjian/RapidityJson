@@ -71,6 +71,10 @@ namespace Rapidity.Json.JsonPath
             }
         }
 
+        /// <summary>
+        /// 根节点过滤器
+        /// </summary>
+        /// <returns></returns>
         private bool ReadRootFilter()
         {
             if (_cursor != _jsonPath.Length - 1)
@@ -82,6 +86,10 @@ namespace Rapidity.Json.JsonPath
             return true;
         }
 
+        /// <summary>
+        /// 通配符过滤器
+        /// </summary>
+        /// <returns></returns>
         private bool ReadWildcardFilter()
         {
             if (_cursor != _jsonPath.Length - 1)
@@ -159,7 +167,8 @@ namespace Rapidity.Json.JsonPath
             else if (int.TryParse(name, out int index)) return new ArrayIndexFilter(index);//按索引查找
             else if ((name.StartsWith("?(") || name.StartsWith("(")) && name.EndsWith(")"))
             {
-                return new ExpressionFilter(MatchExpression.Create(name));
+                var express = MatchExpressionBuilder.Build(name);
+                return new ExpressionFilter(express);
             }
             else if (name.Contains(':')) //数组切片
             {

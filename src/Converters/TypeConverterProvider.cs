@@ -68,11 +68,9 @@ namespace Rapidity.Json.Converters
 
         public override ITypeConverter Build(Type type)
         {
-            ITypeConverter converter = null;
             if (!_dictionary.ContainsKey(type))
-                converter = base.Build(type);
-            _dictionary[type] = converter;
-            return converter;
+                _dictionary[type] = base.Build(type);
+            return _dictionary[type];
         }
     }
 }

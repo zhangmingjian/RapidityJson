@@ -63,45 +63,11 @@ namespace Rapidity.Json.JsonPath
         Or,             //||
     }
 
-    /// <summary>
-    /// 条件符号
-    /// </summary>
-    internal static class ConditionSymbol
-    {
-        public const string GreaterThan = ">";
-        public const string LessThan = "<";
-        public const string GreaterOrEqual = ">=";
-        public const string LessOrEqual = "<=";
-        public const string Equal = "==";
-        public const string NotEqual = "!=";
-        public const string And = "&&";
-        public const string Or = "||";
-        public const string Regular = "";
-    }
-
     internal abstract class MatchExpression
     {
         protected ConditionType ConditionType { get; set; }
 
         public abstract bool IsMatch(JsonElement root, JsonElement current);
-
-        public static MatchExpression Create(string expression)
-        {
-            //?(@.age>10) 
-            var cursor = 0;
-            do
-            {
-                var current = expression[cursor];
-                switch (current)
-                {
-
-                }
-                cursor++;
-            }
-            while (cursor < expression.Length);
-            //todo
-            return null;
-        }
     }
 
     /// <summary>
@@ -212,11 +178,17 @@ namespace Rapidity.Json.JsonPath
 
     #region json元素属性节点选择器
 
+    /// <summary>
+    /// 元素选择器
+    /// </summary>
     internal abstract class ElementSelector
     {
         public abstract JsonElement Select(JsonElement root, JsonElement current);
     }
 
+    /// <summary>
+    /// 常量选择器
+    /// </summary>
     internal class ConstantSelector : ElementSelector
     {
         private JsonElement _element;
@@ -230,6 +202,9 @@ namespace Rapidity.Json.JsonPath
         }
     }
 
+    /// <summary>
+    /// 当前元素节点选择器
+    /// </summary>
     internal class CurrentSelector : ElementSelector
     {
         private JsonPathFilter _filter;
@@ -245,6 +220,9 @@ namespace Rapidity.Json.JsonPath
         }
     }
 
+    /// <summary>
+    /// 根节点选择器
+    /// </summary>
     internal class RootSelector : ElementSelector
     {
         private JsonPathFilter _filter;
@@ -252,6 +230,7 @@ namespace Rapidity.Json.JsonPath
         {
             _filter = filter;
         }
+
         public override JsonElement Select(JsonElement root, JsonElement current)
         {
             var result = _filter.Filter(root, new JsonElement[] { root });
