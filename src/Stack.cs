@@ -4,12 +4,12 @@ namespace Rapidity.Json
 {
     internal class Stack<T>
     {
-        private const int InitialCapacity = 4;
+        public const int DefaultCapacity = 4;
         private T[] _array;
         private int _index;
         public int Count => _index + 1;
 
-        public Stack() : this(InitialCapacity)
+        public Stack() : this(DefaultCapacity)
         {
         }
 
@@ -24,7 +24,7 @@ namespace Rapidity.Json
         {
             if (_index + 1 >= _array.Length)
             {
-                Array.Resize(ref _array, _array.Length == 0 ? InitialCapacity : _array.Length * 2);
+                Array.Resize(ref _array, _array.Length == 0 ? DefaultCapacity : _array.Length * 2);
             }
             _array[++_index] = data;
         }

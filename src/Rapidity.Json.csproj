@@ -11,5 +11,6 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageDescription>Implementation of JSON parser based on expression tree</PackageDescription>
     <Copyright>Copyright ©  2020</Copyright>
+    <Description>Implementation of JSON parser based on expression tree</Description>
   </PropertyGroup>
 </Project>
