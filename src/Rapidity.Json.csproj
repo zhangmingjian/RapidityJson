@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!--<PackageVersion>1.0.0.0-preview1</PackageVersion>-->
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -13,4 +13,8 @@
     <Copyright>Copyright ©  2020</Copyright>
     <Description>Implementation of JSON parser based on expression tree</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+  </ItemGroup>
 </Project>

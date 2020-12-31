@@ -72,5 +72,17 @@ namespace Rapidity.Json.Test
             var arr = new JsonArray(current);
             Debug.WriteLine(arr.ToString(new JsonOption { Indented = true })); 
         }
+
+        #region JsonPathResolve 新版
+
+        [Fact]
+        public void ReadTest()
+        {
+            var path = "$.[?(@.age>10),(@.flag in [1,23])].name,0,type.data";
+            var resolver = new JsonPathResolver();
+            var filters = resolver.Resolve(path).ToList();
+        }
+
+        #endregion
     }
 }
