@@ -4,16 +4,14 @@ using System.IO;
 
 namespace Rapidity.Json
 {
-    internal class CharReader : TextReader
+    internal class CharReader
     {
         private ReadOnlyMemory<char> _memory;
-        private ReadOnlySpan<char> _span => _memory.Span;
         private int _cursor;
 
+        public char Current => _memory.Span[_cursor];
         public int Line;
         public int Position;
-        public char Value => _span[_cursor];
-        public bool End => _cursor >= _span.Length - 1;
 
         public CharReader(string str) : this(str.ToCharArray())
         {
@@ -27,31 +25,12 @@ namespace Rapidity.Json
             _cursor = -1;
         }
 
-        public override int Read()
+        public bool Move()
         {
-            if (End) return char.MinValue;
+            if (_cursor >= _memory.Length - 1) return false;
             _cursor++;
-            Debug.Write(Value);
-            switch (Value)
-            {
-                case JsonConstants.Space:
-                case JsonConstants.Tab:
-                case JsonConstants.CarriageReturn: Position++; break;
-                case JsonConstants.LineFeed:
-                    Line++;
-                    Position = 0;
-                    break;
-                default: Position++; break;
-            }
-            return Value;
-        }
-
-        public bool Next()
-        {
-            if (_cursor >= _span.Length - 1) return false;
-            _cursor++;
-            Debug.Write(Value);
-            switch (Value)
+            Trace.Write(Current);
+            switch (Current)
             {
                 case JsonConstants.Space:
                 case JsonConstants.Tab:
@@ -65,24 +44,43 @@ namespace Rapidity.Json
             return true;
         }
 
-        public bool Next(params char[] skips)
+        public bool Move(params char[] skips)
         {
-            if (Next())
+            if (Move())
             {
-                if (Array.IndexOf(skips, Value) > -1)
-                    return Next(skips);
+                if (Array.IndexOf(skips, Current) > -1)
+                    return Move(skips);
             }
             return false;
         }
 
-        public char? Peek()
+        public char? Read()
         {
-            if (_cursor >= _span.Length - 1) return default;
-            return _span[_cursor + 1];
+            if (_cursor >= _memory.Length - 1) return default;
+            _cursor++;
+            Trace.Write(Current);
+            switch (Current)
+            {
+                case JsonConstants.Space:
+                case JsonConstants.Tab:
+                case JsonConstants.CarriageReturn: Position++; break;
+                case JsonConstants.LineFeed:
+                    Line++;
+                    Position = 0;
+                    break;
+                default: Position++; break;
+            }
+            return Current;
         }
 
-        public char[] Slice(int start) => _span.Slice(start).ToArray();
+        public char? Peek()
+        {
+            if (_cursor >= _memory.Length - 1) return default;
+            return _memory.Span[_cursor + 1];
+        }
 
-        public char[] Slice(int start, int length) => _span.Slice(start, length).ToArray();
+        public char[] Slice(int start) => _memory.Slice(start).ToArray();
+
+        public char[] Slice(int start, int length) => _memory.Slice(start, length).ToArray();
     }
 }

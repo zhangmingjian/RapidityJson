@@ -210,6 +210,7 @@ namespace Rapidity.Json.Converters
         {
         }
 
+
         public override bool CanConvert(Type type)
         {
             return type == typeof(StringDictionary) || type == typeof(NameValueCollection);

@@ -21,7 +21,7 @@ namespace Rapidity.Json.JsonPath
             //}
             //while (cursor < expression.Length);
             //todo
-            return new ConditionMatchExpression(ConditionType.Equal, new CurrentSelector(new PropertyFilter("age")), new ConstantSelector(11));
+            return new ConditionMatchExpression(ConditionType.Equal, new CurrentSelector(new PropertyFilter("age")), new ConstantSelector((JsonNumber)11));
         }
     }
 

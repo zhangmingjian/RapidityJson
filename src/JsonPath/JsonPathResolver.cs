@@ -7,18 +7,18 @@ namespace Rapidity.Json.JsonPath
 {
     internal class JsonPathResolver : IJsonPathResolver
     {
-        private CharScanner _scanner;
+        private CharReader _reader;
         private JsonPathFilter _filter;
 
         public IEnumerable<JsonPathFilter> Resolve(string jsonPath)
         {
             if (string.IsNullOrEmpty(jsonPath)) yield break;
-            _scanner = new CharScanner(jsonPath);
+            _reader = new CharReader(jsonPath);
 
-            while (_scanner.Next())
+            while (_reader.Move())
             {
-                if (IsSpace(_scanner.Value)) continue; //跳过空字符
-                switch (_scanner.Value)
+                if (IsSpace(_reader.Current)) continue; //跳过空字符
+                switch ((char)_reader.Current)
                 {
                     case '$': ReadRootFilter(); break;
                     case '*': ReadWildcardFilter(); break;
@@ -48,7 +48,7 @@ namespace Rapidity.Json.JsonPath
         /// <returns></returns>
         private bool ReadRootFilter()
         {
-            var next = _scanner.Peek();
+            var next = _reader.Peek();
             //$后面跟.或[，则解析为RootFilter，否则继续读取
             if (next == '.' || next == '[') return SetFilter(new RootFilter());
             return false;
@@ -60,7 +60,7 @@ namespace Rapidity.Json.JsonPath
         /// <returns></returns>
         private bool ReadWildcardFilter()
         {
-            var next = _scanner.Peek();
+            var next = _reader.Peek();
             if (next == '.' || next == '[') return SetFilter(new WildcardFilter());
             return true;
         }

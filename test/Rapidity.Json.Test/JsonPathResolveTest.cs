@@ -16,8 +16,8 @@ namespace Rapidity.Json.Test
             //var path = "$.*.rootname['name.data','list']";
             //var path = "$.[city,0,'address',:2:3]";
             //var path = "$.[phoneNumbers,0,'type']";
-            var path = "$ ";
-            var resolver = new DefaultJsonPathResolver();
+            var path = "$.rootname";
+            var resolver = new JsonPathResolver();
             var filters = resolver.Resolve(path).ToList();
 
             var str = "'''?(@.age=01)''''";
