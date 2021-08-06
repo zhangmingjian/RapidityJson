@@ -47,7 +47,9 @@ namespace Rapidity.Json
             {
                 Serialize(writer, obj);
                 sw.Flush();
-                return sw.ToString();
+                var json = sw.ToString();
+                System.Diagnostics.Debug.WriteLine(json);
+                return json;
             }
         }
 

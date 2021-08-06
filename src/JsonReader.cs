@@ -10,7 +10,7 @@ namespace Rapidity.Json
     /// 
     /// </summary>
     public class JsonReader : IDisposable
-    {       
+    {
         private TextReader _reader;
         private StringBuilder _buffer;
         private JsonOption _option;
@@ -415,7 +415,7 @@ namespace Rapidity.Json
                 }
             } while (canRead);
             var text = _buffer.ToString();
-            if (double.TryParse(text, out double number))
+            if (double.TryParse(text, NumberStyles.Any, NumberFormatInfo.InvariantInfo, out double number))
             {
                 _buffer.Clear();
                 _state = TokenState.Value;

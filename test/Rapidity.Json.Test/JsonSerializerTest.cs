@@ -236,13 +236,13 @@ namespace Rapidity.Json.Test
             table.Columns.Add("name", typeof(string));
             table.Columns.Add("ctime", typeof(DateTime));
             table.Columns.Add("tokens", typeof(string[]));
-            table.Columns.Add("data", typeof(Stack<Guid>));
+            table.Columns.Add("data", typeof(List<Guid>));
             var row = table.NewRow();
             row["id"] = 1;
             row["name"] = "zhangsan";
             row["ctime"] = DateTime.Now;
             row["tokens"] = new string[] { "1111", "22222" };
-            row["data"] = new Stack<Guid>();
+            row["data"] = new List<Guid>();
             table.Rows.Add(row);
 
             row = table.NewRow();
@@ -250,12 +250,16 @@ namespace Rapidity.Json.Test
             row["name"] = "zhangsan2";
             row["ctime"] = DateTime.Now.AddDays(1);
             row["tokens"] = new string[] { "33333", "444444" };
-            var stack = new Stack<Guid>();
-            stack.Push(Guid.NewGuid());
+            var stack = new List<Guid>();
+            stack.Add(Guid.NewGuid());
             row["data"] = stack;
             table.Rows.Add(row);
 
-            var json = JsonParse.ToJson(table, new JsonOption { LoopReferenceProcess = Converters.LoopReferenceProcess.Error });
+            var json = JsonParse.ToJson(table, new JsonOption
+            {
+                DateTimeFormat ="yyyy-MM-dd HH:mm:ss.ffff",
+                LoopReferenceProcess = Converters.LoopReferenceProcess.Error
+            });
 
             var ele = JsonElement.Create(json);
             var table2 = ele.To<DataTable>();
@@ -286,6 +290,7 @@ namespace Rapidity.Json.Test
             }
 
             var json1 = Newtonsoft.Json.JsonConvert.SerializeObject(dataSet);
+            var json2 = JsonParse.ToJson(dataSet);
 
             var dataset = JsonParse.To<DataSet>(json1);
         }

@@ -165,7 +165,6 @@ namespace Rapidity.Json.Converters
             switch (element.ElementType)
             {
                 case JsonElementType.Object:
-                    var jObj = (JsonObject)element;
                     var dataset = new DataSet();
                     var convert = option.ConverterProvider.Build(typeof(DataTable));
                     foreach (var property in (JsonObject)element)
