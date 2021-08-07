@@ -191,16 +191,7 @@ namespace Rapidity.Json.Converters
 
     internal class MemberDefinition
     {
-        public MemberDefinition(MemberInfo memberInfo, JsonPropertyAttribute attribute)
-        {
-            this.MemberInfo = memberInfo;
-            if (MemberInfo.MemberType == MemberTypes.Property) MemberType = ((PropertyInfo)MemberInfo).PropertyType;
-            else if (MemberInfo.MemberType == MemberTypes.Field) MemberType = ((FieldInfo)MemberInfo).FieldType;
-            JsonProperty = attribute;
-            PropertyName = JsonProperty?.Name ?? MemberInfo.Name;
-            Sort = JsonProperty?.Sort ?? 0;
-        }
-
+        private IMemberAccessor _memberAccesser;
         public MemberInfo MemberInfo { get; }
         /// <summary>
         /// jsonProperty settings
@@ -213,127 +204,90 @@ namespace Rapidity.Json.Converters
 
         public int Sort { get; }
 
-        private Func<object, object> _getValue;
-
-        public Func<object, object> GetValue => _getValue = _getValue ?? BuildGetValueMethod();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        protected virtual Func<object, object> BuildGetValueMethod()
+        public MemberDefinition(MemberInfo memberInfo, JsonPropertyAttribute attribute)
         {
-            var instanceExp = Expression.Parameter(typeof(object), "instance");
-            MemberExpression memberExp;
-            if (MemberInfo is PropertyInfo property && property.GetGetMethod().IsStatic)
-            {
-                memberExp = Expression.Property(null, MemberInfo.DeclaringType, MemberInfo.Name);
-            }
-            else if (MemberInfo is FieldInfo field && field.IsStatic)
-            {
-                memberExp = Expression.Field(null, MemberInfo.DeclaringType, MemberInfo.Name);
-            }
-            else
-            {
-                var instanceTypeExp = Expression.Convert(instanceExp, MemberInfo.DeclaringType);
-                memberExp = Expression.PropertyOrField(instanceTypeExp, MemberInfo.Name);
-            }
-            var body = Expression.TypeAs(memberExp, typeof(object));
-            Expression<Func<object, object>> exp = Expression.Lambda<Func<object, object>>(body, instanceExp);
-            return exp.Compile();
+            this.MemberInfo = memberInfo;
+            if (MemberInfo.MemberType == MemberTypes.Property) MemberType = ((PropertyInfo)MemberInfo).PropertyType;
+            else if (MemberInfo.MemberType == MemberTypes.Field) MemberType = ((FieldInfo)MemberInfo).FieldType;
+            _memberAccesser = TypeAccessor.Build(memberInfo.DeclaringType).GetMember(memberInfo);
+            JsonProperty = attribute;
+            PropertyName = JsonProperty?.Name ?? MemberInfo.Name;
+            Sort = JsonProperty?.Sort ?? 0;
         }
 
-        private Action<object, object> _setValue;
-        public Action<object, object> SetValue => _setValue = _setValue ?? BuildSetValueMethod();
+        public object GetValue(object instance) => _memberAccesser.GetValue(instance);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        protected virtual Action<object, object> BuildSetValueMethod()
-        {
-            var instanceExp = Expression.Parameter(typeof(object), "instance");
-            var valueExp = Expression.Parameter(typeof(object), "memberValue");
+        public void SetValue(object instance, object value) => _memberAccesser.SetValue(instance, value);
 
-            var isProperty = MemberInfo is PropertyInfo;
-            Expression body;
-            if (isProperty && !((PropertyInfo)MemberInfo).CanWrite)
-                body = Expression.Label(Expression.Label()); //跳过只读属性赋值
-            else
-            {
-                MemberExpression memberExp;
-                //静态属性赋值
-                if (isProperty && ((PropertyInfo)MemberInfo).GetSetMethod().IsStatic)
-                {
-                    memberExp = Expression.Property(null, MemberInfo.DeclaringType, MemberInfo.Name);
-                }
-                //静态字段赋值
-                else if ((MemberInfo is FieldInfo field) && field.IsStatic)
-                {
-                    memberExp = Expression.Field(null, MemberInfo.DeclaringType, MemberInfo.Name);
-                }
-                else   //实例字段
-                {
-                    var instanceTypeExp = Expression.Convert(instanceExp, MemberInfo.DeclaringType);
-                    memberExp = Expression.PropertyOrField(instanceTypeExp, MemberInfo.Name);
-                }
-                body = Expression.Assign(memberExp, Expression.Convert(valueExp, MemberType));
-            }
-            Expression<Action<object, object>> exp = Expression.Lambda<Action<object, object>>(body, instanceExp, valueExp);
-            return exp.Compile();
-        }
-    }
 
-    /// <summary>
-    /// 使用反射重新实现一遍，为了验证两种方式的性能
-    /// </summary>
-    internal class ReflectionMemberDefinition : MemberDefinition
-    {
-        public ReflectionMemberDefinition(MemberInfo memberInfo, JsonPropertyAttribute attribute) : base(memberInfo, attribute)
-        {
-        }
+        //private Func<object, object> _getValue;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        protected override Func<object, object> BuildGetValueMethod()
-        {
-            Func<object, object> func = null;
-            if (MemberInfo is PropertyInfo property)
-            {
-                func = instance => property.GetValue(property.GetGetMethod().IsStatic ? null : instance);
-            }
-            else
-            {
-                var field = (FieldInfo)MemberInfo;
-                func = instance => field.GetValue(field.IsStatic ? null : instance);
-            }
-            return func;
-        }
+        //public Func<object, object> GetValue => _getValue = _getValue ?? BuildGetValueMethod();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        protected override Action<object, object> BuildSetValueMethod()
-        {
-            Action<object, object> action = null;
-            if (MemberInfo is PropertyInfo property)
-            {
-                if (!property.CanWrite) action = (instance, value) => { };
-                else
-                {
-                    var isStatic = property.GetSetMethod().IsStatic;
-                    action = (instance, value) => property.SetValue(isStatic ? null : instance, value);
-                }
-            }
-            else
-            {
-                var field = (FieldInfo)MemberInfo;
-                action = (instance, value) => field.SetValue(field.IsStatic ? null : instance, value);
-            }
-            return action;
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <returns></returns>
+        //protected virtual Func<object, object> BuildGetValueMethod()
+        //{
+        //    var instanceExp = Expression.Parameter(typeof(object), "instance");
+        //    MemberExpression memberExp;
+        //    if (MemberInfo is PropertyInfo property && property.GetGetMethod().IsStatic)
+        //    {
+        //        memberExp = Expression.Property(null, MemberInfo.DeclaringType, MemberInfo.Name);
+        //    }
+        //    else if (MemberInfo is FieldInfo field && field.IsStatic)
+        //    {
+        //        memberExp = Expression.Field(null, MemberInfo.DeclaringType, MemberInfo.Name);
+        //    }
+        //    else
+        //    {
+        //        var instanceTypeExp = Expression.Convert(instanceExp, MemberInfo.DeclaringType);
+        //        memberExp = Expression.PropertyOrField(instanceTypeExp, MemberInfo.Name);
+        //    }
+        //    var body = Expression.TypeAs(memberExp, typeof(object));
+        //    Expression<Func<object, object>> exp = Expression.Lambda<Func<object, object>>(body, instanceExp);
+        //    return exp.Compile();
+        //}
+
+        //private Action<object, object> _setValue;
+        //public Action<object, object> SetValue => _setValue = _setValue ?? BuildSetValueMethod();
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <returns></returns>
+        //protected virtual Action<object, object> BuildSetValueMethod()
+        //{
+        //    var instanceExp = Expression.Parameter(typeof(object), "instance");
+        //    var valueExp = Expression.Parameter(typeof(object), "memberValue");
+
+        //    var isProperty = MemberInfo is PropertyInfo;
+        //    Expression body;
+        //    if (isProperty && !((PropertyInfo)MemberInfo).CanWrite)
+        //        body = Expression.Label(Expression.Label()); //跳过只读属性赋值
+        //    else
+        //    {
+        //        MemberExpression memberExp;
+        //        //静态属性赋值
+        //        if (isProperty && ((PropertyInfo)MemberInfo).GetSetMethod().IsStatic)
+        //        {
+        //            memberExp = Expression.Property(null, MemberInfo.DeclaringType, MemberInfo.Name);
+        //        }
+        //        //静态字段赋值
+        //        else if ((MemberInfo is FieldInfo field) && field.IsStatic)
+        //        {
+        //            memberExp = Expression.Field(null, MemberInfo.DeclaringType, MemberInfo.Name);
+        //        }
+        //        else   //实例字段
+        //        {
+        //            var instanceTypeExp = Expression.Convert(instanceExp, MemberInfo.DeclaringType);
+        //            memberExp = Expression.PropertyOrField(instanceTypeExp, MemberInfo.Name);
+        //        }
+        //        body = Expression.Assign(memberExp, Expression.Convert(valueExp, MemberType));
+        //    }
+        //    Expression<Action<object, object>> exp = Expression.Lambda<Action<object, object>>(body, instanceExp, valueExp);
+        //    return exp.Compile();
+        //}
     }
 }

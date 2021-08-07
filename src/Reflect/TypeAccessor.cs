@@ -54,7 +54,7 @@ namespace Rapidity.Json.Reflect
 
             var body = Type.IsValueType
                             ? Expression.Convert(newExp, typeof(object))
-                            : Expression.TypeAs(newExp, typeof(object)); 
+                            : Expression.TypeAs(newExp, typeof(object));
 
             Expression<Func<object>> expression = Expression.Lambda<Func<object>>(body);
             return expression.Compile();
@@ -246,6 +246,23 @@ namespace Rapidity.Json.Reflect
         public IMemberAccessor GetMember(string name, BindingFlags flags)
         {
             return GetProperty(name, flags) ?? GetField(name, flags);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="member"></param>
+        /// <returns></returns>
+        public IMemberAccessor GetMember(MemberInfo member)
+        {
+            if (member.DeclaringType != Type) throw new Exception($"当前member:{member.Name}不属于{Type.Name}");
+            if (_memberCache.ContainsKey(member.Name)) return _memberCache[member.Name];
+            IMemberAccessor accessor = null;
+            if (member.MemberType == MemberTypes.Property) accessor = new PropertyAccessor((PropertyInfo)member);
+            else if (member.MemberType == MemberTypes.Field) accessor = new FieldAccessor((FieldInfo)member);
+            else return null;
+            _memberCache.TryAdd(member.Name, accessor);
+            return accessor;
         }
 
         public IEnumerable<IMemberAccessor> GetMembers()
