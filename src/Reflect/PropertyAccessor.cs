@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace Rapidity.Json.Reflect
 {
-    public class PropertyAccessor : IMemberAccessor
+    internal class PropertyAccessor : IMemberAccessor
     {
         public PropertyInfo PropertyInfo { get; }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rapidity.Json.Reflect;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -126,7 +127,7 @@ namespace Rapidity.Json.Converters
                     case JsonTokenType.None: break;
                     case JsonTokenType.EndObject: return instance;
                     case JsonTokenType.StartObject:
-                        if (instance == null) instance = CreateInstance();
+                        if (instance == null) instance = TypeAccessor.Build(Type).CreateInstance();
                         break;
                     case JsonTokenType.PropertyName:
                         var member = GetMemberDefinition(reader.Text);
@@ -151,7 +152,7 @@ namespace Rapidity.Json.Converters
             {
                 case JsonElementType.Null: return null;
                 case JsonElementType.Object:
-                    var instance = CreateInstance();
+                    var instance = TypeAccessor.Build(Type).CreateInstance();
                     var objToken = (JsonObject)element;
                     foreach (var property in objToken.GetAllProperty())
                     {
@@ -283,6 +284,9 @@ namespace Rapidity.Json.Converters
         }
     }
 
+    /// <summary>
+    /// 使用反射重新实现一遍，为了验证两种方式的性能
+    /// </summary>
     internal class ReflectionMemberDefinition : MemberDefinition
     {
         public ReflectionMemberDefinition(MemberInfo memberInfo, JsonPropertyAttribute attribute) : base(memberInfo, attribute)

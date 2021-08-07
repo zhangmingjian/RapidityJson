@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rapidity.Json.Reflect;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -65,7 +66,7 @@ namespace Rapidity.Json.Converters
                     case JsonTokenType.None: break;
                     case JsonTokenType.EndArray: return instance;
                     case JsonTokenType.StartArray:
-                        if (instance == null) instance = CreateInstance();
+                        if (instance == null) instance = TypeAccessor.Build(Type).CreateInstance();
                         else AddItem(instance, convert.FromReader(reader, option));
                         break;
                     case JsonTokenType.StartObject:
@@ -91,7 +92,7 @@ namespace Rapidity.Json.Converters
             {
                 case JsonElementType.Null: return null;
                 case JsonElementType.Array:
-                    var list = CreateInstance();
+                    var list = TypeAccessor.Build(Type).CreateInstance();
                     var arrayToken = (JsonArray)element;
                     var convert = option.ConverterProvider.Build(ItemType);
                     foreach (var item in arrayToken)

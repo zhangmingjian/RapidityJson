@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace Rapidity.Json.Reflect
 {
-    public interface IMemberAccessor
+    internal interface IMemberAccessor
     {
         Type MemberType { get; }
 

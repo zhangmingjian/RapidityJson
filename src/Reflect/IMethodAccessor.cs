@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 
 namespace Rapidity.Json.Reflect
 {
-    public interface IMethodAccessor
+    internal interface IMethodAccessor
     {
         string Name { get; }
         MethodInfo MethodInfo { get; } 

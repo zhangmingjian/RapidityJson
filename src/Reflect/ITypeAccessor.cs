@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace Rapidity.Json.Reflect
 {
-    public interface ITypeAccessor
+    internal interface ITypeAccessor
     {
         public Type Type { get; }
         public object CreateInstance();

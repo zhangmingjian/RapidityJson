@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Rapidity.Json.Reflect
 {
-    public class TypeAccessor : ITypeAccessor
+    internal class TypeAccessor : ITypeAccessor
     {
         private static readonly ConcurrentDictionary<TypeKey, TypeAccessor> _typeCache = new ConcurrentDictionary<TypeKey, TypeAccessor>();
         protected readonly ConcurrentDictionary<int, IMethodAccessor> _methodCache = new ConcurrentDictionary<int, IMethodAccessor>();
@@ -26,13 +25,39 @@ namespace Rapidity.Json.Reflect
         #region 创建实例
 
         private Func<object> _ctorFactory;
+        /// <summary>
+        /// 使用默认无参构造函数创建，如果没有默认构造函数，则找最少参数的去构造
+        /// </summary>
+        /// <returns></returns>
         protected virtual Func<object> CtorFactory()
         {
-            NewExpression newExp = Expression.New(Type);
+            NewExpression newExp;
+            //查找参数最少的一个构造函数
+            var constructors = Type.GetConstructors().OrderBy(t => t.GetParameters().Length);
+            if (constructors.Count() == 0)
+                newExp = Expression.New(Type);
+            else
+            {
+                var constructor = constructors.First();
+                var parameters = constructor.GetParameters();
+                List<Expression> parametExps = new List<Expression>();
+                foreach (var para in parameters)
+                {
+                    //有参构造函数使用默认值填充
+                    var defaultValue = para.ParameterType.IsValueType ? Activator.CreateInstance(para.ParameterType) : null;
+                    ConstantExpression constant = Expression.Constant(defaultValue);
+                    var paraValueExp = Expression.Convert(constant, para.ParameterType);
+                    parametExps.Add(paraValueExp);
+                }
+                newExp = Expression.New(constructor, parametExps);
+            }
+
             var body = Type.IsValueType
                             ? Expression.Convert(newExp, typeof(object))
-                            : Expression.TypeAs(newExp, typeof(object));
-            return Expression.Lambda<Func<object>>(body).Compile();
+                            : Expression.TypeAs(newExp, typeof(object)); 
+
+            Expression<Func<object>> expression = Expression.Lambda<Func<object>>(body);
+            return expression.Compile();
         }
 
         public virtual object CreateInstance()
@@ -300,7 +325,7 @@ namespace Rapidity.Json.Reflect
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class TypeAccessor<T> : TypeAccessor
+    internal class TypeAccessor<T> : TypeAccessor
     {
         public TypeAccessor() : base(typeof(T))
         {

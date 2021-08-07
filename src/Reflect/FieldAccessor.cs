@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Rapidity.Json.Reflect
 {
-    public class FieldAccessor : IMemberAccessor
+    internal class FieldAccessor : IMemberAccessor
     {
         public FieldInfo FieldInfo { get; }
 
