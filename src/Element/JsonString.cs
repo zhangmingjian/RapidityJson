@@ -8,6 +8,8 @@ namespace Rapidity.Json
         public string Value => _value;
         public override JsonElementType ElementType => JsonElementType.String;
 
+        public JsonString() { }
+
         public JsonString(string value) => _value = value;
 
         public bool Equals(JsonString other) => other != null && (this.Value?.Equals(other.Value) ?? false);

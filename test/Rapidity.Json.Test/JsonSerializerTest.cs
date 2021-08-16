@@ -163,8 +163,8 @@ namespace Rapidity.Json.Test
         public void ConvertTokenTest()
         {
             var token = new JsonObject();
-            token.AddProperty("name", new JsonString("张三"));
-            token.AddProperty("id", new JsonNumber(103));
+            token.AddProperty("name", new JsonString());
+            token.AddProperty("id", 103);
             token.AddProperty("dateTimeKinds", new JsonArray() { new JsonString("Local"), new JsonNull() });
 
             var serialize = new JsonSerializer();
