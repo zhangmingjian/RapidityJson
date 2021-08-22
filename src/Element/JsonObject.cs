@@ -14,13 +14,13 @@ namespace Rapidity.Json
 
         public JsonObject()
         {
-            _dictionary = new Dictionary<string, JsonElement>();
+            _dictionary = new Dictionary<string, JsonElement>(StringComparer.CurrentCultureIgnoreCase);
         }
 
-        public JsonElement this[string propertyName]
+        public JsonElement this[string property]
         {
-            get => GetValue(propertyName);
-            set => AddProperty(propertyName, value);
+            get => TryGetValue(property);
+            set => AddProperty(property, value);
         }
 
         public int Count => _dictionary.Count;
@@ -74,9 +74,8 @@ namespace Rapidity.Json
 
         public JsonElement GetValue(string property)
         {
-            if (TryGetValue(property, out JsonElement value))
-                return value;
-            throw new JsonException($"属性：{property}不存在");
+            var value = TryGetValue(property);
+            return value != null ? value : throw new JsonException($"属性：{property}不存在");
         }
 
         /// <summary>
@@ -85,14 +84,10 @@ namespace Rapidity.Json
         /// <param name="property"></param>
         /// <param name="element"></param>
         /// <returns></returns>
-        public bool TryGetValue(string property, out JsonElement element)
+        public JsonElement? TryGetValue(string property)
         {
-            if (property == null)
-            {
-                element = null;
-                return false;
-            }
-            return _dictionary.TryGetValue(property, out element);
+            if (property == null) return null;
+            return _dictionary.TryGetValue(property, out JsonElement element) ? element : null;
         }
 
         public bool ContainsProperty(string property)
@@ -119,145 +114,6 @@ namespace Rapidity.Json
         {
             return _dictionary.GetEnumerator();
         }
-
-        public JsonObject GetObject(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.Object: return (JsonObject)element;
-                case JsonElementType.Null: return null;
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转换为JsonObject");
-            }
-        }
-
-        public JsonArray GetArray(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.Array: return (JsonArray)element;
-                case JsonElementType.Null: return null;
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转换为JsonArray");
-            }
-        }
-
-        public string GetString(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.String:
-                case JsonElementType.Null:
-                case JsonElementType.Number: return element.ToString();
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转换为String");
-            }
-        }
-
-        public bool? GetBoolean(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.Boolean: return ((JsonBoolean)element).Value;
-                case JsonElementType.Null: return null;
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转换为Boolean");
-            }
-        }
-
-        public int? GetInt(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.String: return int.TryParse(((JsonString)element).Value, out int val) ? val : default(int?);
-                case JsonElementType.Null: return null;
-                case JsonElementType.Number: return ((JsonNumber)element).TryGetInt(out int val1) ? val1 : default(int?);
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转换为int");
-            }
-        }
-
-        public long? GetLong(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.String: return long.TryParse(((JsonString)element).Value, out long val) ? val : default(long?);
-                case JsonElementType.Null: return null;
-                case JsonElementType.Number: return ((JsonNumber)element).TryGetLong(out long val1) ? val1 : default(long?);
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转换为long");
-            }
-        }
-
-        public float? GetFloat(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.String: return float.TryParse(((JsonString)element).Value, out float val) ? val : default(float?);
-                case JsonElementType.Null: return null;
-                case JsonElementType.Number: return ((JsonNumber)element).TryGetFloat(out float val1) ? val1 : default(float?);
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转化为float");
-            }
-        }
-
-        public double? GetDouble(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.String: return double.TryParse(((JsonString)element).Value, out double val) ? val : default(double?);
-                case JsonElementType.Null: return null;
-                case JsonElementType.Number: return ((JsonNumber)element).TryGetDouble(out double val1) ? val1 : default(double?);
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转化为double");
-            }
-        }
-
-        public decimal? GetDecimal(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.String: return decimal.TryParse(((JsonString)element).Value, out decimal val) ? val : default(decimal?);
-                case JsonElementType.Null: return null;
-                case JsonElementType.Number: return ((JsonNumber)element).TryGetDecimal(out decimal val1) ? val1 : default(decimal?);
-                default: throw new Exception($"属性{property}:{element.ElementType}不转化为decimal");
-            }
-        }
-
-        public DateTime? GetDateTime(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.String: return DateTime.TryParse(((JsonString)element).Value, out DateTime val) ? val : default(DateTime?);
-                case JsonElementType.Null: return null;
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转化为DateTime");
-            }
-        }
-
-        public Guid? GetGuid(string property)
-        {
-            var element = this[property];
-            if (element == null) return null;
-            switch (element.ElementType)
-            {
-                case JsonElementType.String: return Guid.TryParse(((JsonString)element).Value, out Guid val) ? val : default(Guid?);
-                case JsonElementType.Null: return null;
-                default: throw new Exception($"属性{property}:{element.ElementType}不支持转化为Guid");
-            }
-        }
-
     }
 
     /// <summary>

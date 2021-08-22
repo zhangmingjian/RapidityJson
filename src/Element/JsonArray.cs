@@ -27,8 +27,12 @@ namespace Rapidity.Json
 
         public JsonElement this[int index]
         {
-            get => _list[index];
-            set => _list[index] = value ?? new JsonNull();
+            get => index >= 0 && index < _list.Count ? _list[index] : null;
+            set
+            {
+                if (index >= 0 && index < _list.Count)
+                    _list[index] = value ?? new JsonNull();
+            }
         }
 
         public new static JsonArray Create(string json)

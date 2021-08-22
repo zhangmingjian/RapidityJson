@@ -18,8 +18,12 @@ namespace Rapidity.Json
 
         public override int GetHashCode() => _value?.GetHashCode() ?? -1;
 
+        public override string ToString() => _value == null ? "null" : $"\"{_value}\"";
+
+        public override string ToString(JsonOption option) => ToString();
+
         public static implicit operator JsonString(string value) => new JsonString(value);
-        public static implicit operator string(JsonString value) => value;
+        public static implicit operator string(JsonString value) => value.Value;
 
     }
 }

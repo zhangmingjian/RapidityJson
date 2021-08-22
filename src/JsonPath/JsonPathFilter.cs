@@ -126,8 +126,8 @@ namespace Rapidity.Json.JsonPath
             {
                 if (element is JsonObject jObj)
                 {
-                    if (jObj.TryGetValue(property, out JsonElement value))
-                        list.Add(value);
+                    var value = jObj.TryGetValue(property);
+                    if (value != null)  list.Add(value);
                 }
             }
             return list;

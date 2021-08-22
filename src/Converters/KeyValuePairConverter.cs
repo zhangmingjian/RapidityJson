@@ -89,12 +89,16 @@ namespace Rapidity.Json.Converters
                     var objToken = (JsonObject)element;
                     object key = null;
                     object value = null;
-                    if (objToken.TryGetValue(KeyName, out JsonElement keyToken))
+
+                    var keyToken = objToken.TryGetValue(KeyName);
+                    if (keyToken != null)
                     {
                         var convert = option.ConverterProvider.Build(KeyType);
                         key = convert.FromElement(keyToken, option);
                     }
-                    if (objToken.TryGetValue(ValueName, out JsonElement valueToken))
+
+                    var valueToken = objToken.TryGetValue(ValueName);
+                    if (valueToken != null)
                     {
                         var convert = option.ConverterProvider.Build(ValueType);
                         value = convert.FromElement(valueToken, option);
