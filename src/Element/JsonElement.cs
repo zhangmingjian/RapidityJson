@@ -110,7 +110,7 @@ namespace Rapidity.Json
             }
         }
 
-        public JsonString GetString(string path)
+        public string GetString(string path)
         {
             var element = Get(path);
             if (element == null) return null;
