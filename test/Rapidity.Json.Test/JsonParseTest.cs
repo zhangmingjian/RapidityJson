@@ -4,6 +4,7 @@ using Rapidity.Json.Test.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -233,6 +234,13 @@ namespace Rapidity.Json.Test
             _output.WriteLine(json);
 
             var model = JsonParse.To<List<KeyValuePair<int, ValueModel>>>(json);
+        }
+
+        [Fact]
+        public void DesirTest()
+        {
+            var json = File.ReadAllText("C:\\Users\\mingjian\\Desktop\\json.txt");
+            var res = JsonParse.To<QueryOrderResponse>(json);
         }
     }
 }

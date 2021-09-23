@@ -47,4 +47,102 @@ namespace Rapidity.Json.Test.Models
         public int id;
     }
 
+    public class QueryOrderResponse
+    {
+        public int code;
+        public string message;
+        public List<CpOrder> data;
+        public string nextToken;
+    }
+
+    public class CpOrder
+    {
+        public long shipmentBoxId;
+        public long orderId;
+        public DateTime orderedAt;
+        public Orderer orderer;
+        public DateTime paidAt;
+        public string status;
+        public int shippingPrice;
+        public int remotePrice;
+        public bool remoteArea;
+        public string parcelPrintMessage;
+        public bool splitShipping;
+        public bool ableSplitShipping;
+        public Receiver receiver;
+        public Orderitem[] orderItems;
+        public Overseashippinginfodto overseaShippingInfoDto;
+        public string deliveryCompanyName;
+        public string invoiceNumber;
+        public string inTrasitDateTime;
+        public string deliveredDate;
+        public string refer;
+        public string shipmentType;
+
+
+        public class Orderer
+        {
+            public string name;
+            public string email;
+            public string safeNumber;
+            public object ordererNumber;
+        }
+
+        public class Receiver
+        {
+            public string name;
+            public string safeNumber;
+            public object receiverNumber;
+            public string addr1;
+            public string addr2;
+            public string postCode;
+        }
+
+        public class Overseashippinginfodto
+        {
+            public string personalCustomsClearanceCode;
+            public string ordererSsn;
+            public string ordererPhoneNumber;
+        }
+
+        public class Orderitem
+        {
+            public int vendorItemPackageId;
+            public string vendorItemPackageName;
+            public long productId;
+            public long vendorItemId;
+            public string vendorItemName;
+            public int shippingCount;
+            public int salesPrice;
+            public int orderPrice;
+            public int discountPrice;
+            public int instantCouponDiscount;
+            public int downloadableCouponDiscount;
+            public int coupangDiscount;
+            public string externalVendorSkuCode;
+            public object etcInfoHeader;
+            public object etcInfoValue;
+            public object etcInfoValues;
+            public long sellerProductId;
+            public string sellerProductName;
+            public string sellerProductItemName;
+            public string firstSellerProductItemName;
+            public int cancelCount;
+            public int holdCountForCancel;
+            public string estimatedShippingDate;
+            public string plannedShippingDate;
+            public DateTime invoiceNumberUploadDate;
+            public Extraproperties extraProperties;
+            public bool pricingBadge;
+            public bool usedProduct;
+            public string confirmDate;
+            public string deliveryChargeTypeName;
+            public bool canceled;
+        }
+
+        public class Extraproperties
+        {
+        }
+    }
+
 }

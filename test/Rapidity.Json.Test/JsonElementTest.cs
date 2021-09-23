@@ -57,8 +57,9 @@ namespace Rapidity.Json.Test
                 ["other"] = null
             });
             var arr2 = arr.Slice(0, 4, 4);
-            var token = Newtonsoft.Json.Linq.JToken.Parse(arr2.ToString());
-            var token2 = token.SelectTokens("$..name");
+            var token = Newtonsoft.Json.Linq.JToken.Parse(arr.ToString());
+            var token2 = token.SelectToken("$..name");
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(token2);
         }
     }
 }
