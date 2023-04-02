@@ -5,11 +5,11 @@ namespace Rapidity.Json.Converters
 {
     public class LoopReferenceChecker
     {
-        private readonly Stack<object> stack = new Stack<object>();     
+        private readonly Stack<object> stack = new Stack<object>();
 
         public virtual void PushRootObject(object obj)
         {
-            if (CanPush(obj)) stack.Push(obj); 
+            if (CanPush(obj)) stack.Push(obj);
         }
 
         public virtual bool Exsits(object obj)
@@ -27,11 +27,21 @@ namespace Rapidity.Json.Converters
 
         protected virtual bool CanPush(object obj)
         {
-            if (obj == null || obj.GetType().IsPrimitive
-              || obj is string || obj is decimal || obj is DateTime || obj is DateTimeOffset
-              || obj is Guid || obj is JsonString || obj is JsonNumber || obj is JsonBoolean
-              || obj is JsonNull || obj is DBNull)
-                return false;
+            //if (obj == null || obj.GetType().IsValueType
+            //  || obj is string || obj is decimal || obj is DateTime || obj is DateTimeOffset
+            //  || obj is Guid || obj is JsonString || obj is JsonNumber || obj is JsonBoolean
+            //  || obj is JsonNull || obj is DBNull)
+            //    return false;
+            //return true;
+
+            if (obj == null) return false;
+            var type = obj.GetType();
+            if (type.IsValueType) return false;
+            if (type == typeof(string)) return false;
+
+            if (obj is JsonString || obj is JsonNumber || obj is JsonBoolean || obj is JsonNull) return false;
+            if (obj is DBNull) return false;
+
             return true;
         }
     }

@@ -175,6 +175,10 @@ namespace Rapidity.Json.Converters
             writer.WriteStartObject();
             foreach (var member in this.MemberList)
             {
+                if (member.PropertyName == "TimeKind")
+                {
+
+                }
                 var value = GetValue(obj, member.PropertyName);
                 if (value == null && option.IgnoreNullValue)
                     continue;
