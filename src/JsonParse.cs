@@ -45,6 +45,7 @@
 
         public static string ToJson(object obj, JsonOption option)
         {
+            if (obj == null) return null;
             return new JsonSerializer(option).Serialize(obj);
         }
     }
