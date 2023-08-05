@@ -32,7 +32,7 @@ namespace Rapidity.Json.Converters
     /// </summary>
     internal class DefaultTypeConverterProvider : TypeConverterProvider
     {
-        private static Dictionary<Type, ITypeConverter> _dictionary = new Dictionary<Type, ITypeConverter>();
+        private static ConcurrentDictionary<Type, ITypeConverter> _dictionary = new ConcurrentDictionary<Type, ITypeConverter>();
 
         private LinkedList<IConverterCreator> _converters;
 
@@ -68,9 +68,12 @@ namespace Rapidity.Json.Converters
 
         public override ITypeConverter Build(Type type)
         {
-            if (!_dictionary.ContainsKey(type))
-                _dictionary[type] = base.Build(type);
-            return _dictionary[type];
+            if (!_dictionary.TryGetValue(type, out ITypeConverter tc))
+            {
+                tc = base.Build(type);
+                _dictionary[type] = tc;
+            }
+            return tc;
         }
     }
 }
