@@ -217,6 +217,13 @@ namespace Rapidity.Json.Test
         }
 
         [Fact]
+        public void AnonymousClassTest()
+        {
+            var model = new { name = "zhansan", age = 30 };
+            var json = JsonParse.ToJson(model);
+        }
+
+        [Fact]
         public void KeyValuePairsToJsonTest()
         {
             var pairs = new List<KeyValuePair<int, ValueModel>>()
